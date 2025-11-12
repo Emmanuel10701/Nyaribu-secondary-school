@@ -1,477 +1,93 @@
-### Environment Variables
 @baseUrl = http://172.18.113.79:3000/api
 @contentType = application/json
 @multipartContentType = multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
-### 🎯 ASSIGNMENT API TESTS
-### get all the assinments
-GET {{baseUrl}}/assignment
+### GET all news
+GET {{baseUrl}}/news
 Content-Type: {{contentType}}
 
-### 1. Create a New Assignment (Multipart Form Data)
-POST {{baseUrl}}/assignment
+###
+
+### POST new news item with image
+POST {{baseUrl}}/news
 Content-Type: {{multipartContentType}}
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="title"
 
-Mathematics Assignment - Algebra
+Sample News Title
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="subject"
+Content-Disposition: form-data; name="excerpt"
 
-Mathematics
+This is a short excerpt for the news.
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="className"
+Content-Disposition: form-data; name="fullContent"
 
-Form 1
+This is the full content of the news article, with details.
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="teacher"
+Content-Disposition: form-data; name="date"
 
-Mr. Michael Njoroge
+2025-12-15
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="dueDate"
+Content-Disposition: form-data; name="category"
 
-2024-03-20T23:59:00
+Education
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="dateAssigned"
+Content-Disposition: form-data; name="author"
 
-2024-03-10T00:00:00
+John Doe
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="status"
+Content-Disposition: form-data; name="image"; filename="sample.jpg"
+Content-Type: image/jpeg
 
-assigned
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="description"
-
-Solve quadratic equations and simultaneous equations from pages 45-50. Show all working steps clearly. This assignment focuses on developing algebraic thinking and problem-solving skills essential for advanced mathematics.
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="instructions"
-
-Complete all problems showing step-by-step solutions. Submit your work by the deadline. Ensure all calculations are clearly shown and final answers are boxed.
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="priority"
-
-high
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="estimatedTime"
-
-2 hours
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="additionalWork"
-
-Optional: Try the bonus problems on page 52 for extra credit. Research real-world applications of quadratic equations.
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="teacherRemarks"
-
-Focus on proper formatting and show all calculations clearly. Pay special attention to the discriminant in quadratic equations.
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="learningObjectives"
-
-["Solve quadratic equations using factorization", "Apply the quadratic formula correctly", "Solve simultaneous equations algebraically", "Interpret solutions in real-world contexts"]
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="assignmentFiles"; filename="algebra_problems.pdf"
-Content-Type: application/pdf
-
-< ./test-files/sample.pdf
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="assignmentFiles"; filename="solution_template.docx"
-Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
-
-< ./test-files/sample.docx
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="attachments"; filename="worksheet.pdf"
-Content-Type: application/pdf
-
-< ./test-files/sample.pdf
+< ./path/to/sample.jpg
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
-### 🎯 UPDATE ASSIGNMENT WITH FILE UPLOADS
 
-### 44. Update Assignment with New Files
-PUT {{baseUrl}}/assignments/1
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryUpdateFiles
+###
 
-------WebKitFormBoundaryUpdateFiles
+### GET single news by ID
+GET {{baseUrl}}/news/1
+Content-Type: {{contentType}}
+
+###
+
+### PUT (update) news by ID
+PUT {{baseUrl}}/news/1
+Content-Type: {{multipartContentType}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="title"
 
-Mathematics Assignment - Updated with New Files
-------WebKitFormBoundaryUpdateFiles
-Content-Disposition: form-data; name="description"
+Updated News Title
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="excerpt"
 
-This assignment has been updated with additional practice problems and new file attachments for better learning experience.
-------WebKitFormBoundaryUpdateFiles
-Content-Disposition: form-data; name="priority"
+Updated excerpt.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="fullContent"
 
-urgent
-------WebKitFormBoundaryUpdateFiles
-Content-Disposition: form-data; name="assignmentFiles"; filename="advanced_problems.pdf"
-Content-Type: application/pdf
-
-< ./test-files/sample.pdf
-------WebKitFormBoundaryUpdateFiles
-Content-Disposition: form-data; name="attachments"; filename="solution_guide.pdf"
-Content-Type: application/pdf
-
-< ./test-files/sample.pdf
-------WebKitFormBoundaryUpdateFiles--
-
-### 45. Update Assignment and Remove All Files
-PUT {{baseUrl}}/assignments/1
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryRemoveFiles
-
-------WebKitFormBoundaryRemoveFiles
-Content-Disposition: form-data; name="title"
-
-Mathematics Assignment - Files Removed
-------WebKitFormBoundaryRemoveFiles
-Content-Disposition: form-data; name="description"
-
-Updated assignment with all old files removed and new instructions.
-------WebKitFormBoundaryRemoveFiles
-Content-Disposition: form-data; name="removeAssignmentFiles"
-
-true
-------WebKitFormBoundaryRemoveFiles
-Content-Disposition: form-data; name="removeAttachments"
-
-true
-------WebKitFormBoundaryRemoveFiles--
-
-### 46. Update Assignment with Mixed Changes
-PUT {{baseUrl}}/assignment/2
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryMixed
-
-------WebKitFormBoundaryMixed
-Content-Disposition: form-data; name="title"
-
-Enhanced English  with Resources
-------WebKitFormBoundaryMixed
-Content-Disposition: form-data; name="instructions"
-
-Updated instructions: Include at least 5 references and use APA formatting. Submit both digital and printed copies by the new deadline.
-------WebKitFormBoundaryMixed
-Content-Disposition: form-data; name="estimatedTime"
-
-2 hours
-------WebKitFormBoundaryMixed
-Content-Disposition: form-data; name="assignmentFiles"; filename="writing_rubric.pdf"
-Content-Type: application/pdf
-
-< ./test-files/sample.pdf
-------WebKitFormBoundaryMixed
-Content-Disposition: form-data; name="removeAttachments"
-
-true
-------WebKitFormBoundaryMixed--
-
-### 47. Update Assignment with Learning Objectives
-PUT {{baseUrl}}/assignments/1
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryLearning
-
-------WebKitFormBoundaryLearning
-Content-Disposition: form-data; name="title"
-
-Mathematics Assignment - Enhanced Learning Objectives
-------WebKitFormBoundaryLearning
-Content-Disposition: form-data; name="learningObjectives"
-
-["Solve complex quadratic equations", "Apply algebraic formulas correctly", "Analyze real-world mathematical problems", "Develop critical thinking skills"]
-------WebKitFormBoundaryLearning
-Content-Disposition: form-data; name="assignmentFiles"; filename="practice_worksheets.pdf"
-Content-Type: application/pdf
-
-< ./test-files/sample.pdf
-------WebKitFormBoundaryLearning--
-
-
-
-### 3. Get Assignment by ID
-DELETE  {{baseUrl}}/assignment/2
-
-
-
-### Create a new counseling event
-POST {{baseUrl}}/guidance
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="counselor"
-
-Mr. Juma
---boundary
-Content-Disposition: form-data; name="category"
-
-Drugs
---boundary
-Content-Disposition: form-data; name="description"
-
-Student counseling session about peer pressure and drug awareness.
---boundary
-Content-Disposition: form-data; name="notes"
-
-Discussed how to avoid bad influence and set personal goals.
---boundary
+Updated full content.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="date"
 
-2025-11-12
---boundary
-Content-Disposition: form-data; name="time"
-
-11:00 AM
---boundary
-Content-Disposition: form-data; name="type"
-
-Counseling
---boundary
-Content-Disposition: form-data; name="priority"
-
-High
---boundary
-Content-Disposition: form-data; name="image"; filename="example.pdf"
-Content-Type: application/pdf
-
-< ./files/example.pdf
---boundary--
-
-
-### Get all counseling events
-GET {{baseUrl}}/guidance
-
-### Get counseling event by ID
-GET {{baseUrl}}/guidance/1
-
-
-
-### ---------------- Guidance Event ----------------
-
-### Create a new guidance event
-POST {{baseUrl}}/guidance
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="counselor"
-
-Mr. Juma
---boundary
+2025-12-16
+------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="category"
 
-Groups
---boundary
-Content-Disposition: form-data; name="description"
+Science
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="author"
 
-Discussion about teamwork and leadership
---boundary
-Content-Disposition: form-data; name="notes"
-
-Guided students on group dynamics and collaboration skills.
---boundary
-Content-Disposition: form-data; name="date"
-
-2025-11-20
---boundary
-Content-Disposition: form-data; name="time"
-
-10:00 AM
---boundary
-Content-Disposition: form-data; name="type"
-
-Guidance
---boundary
-Content-Disposition: form-data; name="priority"
-
-Medium
---boundary
-Content-Disposition: form-data; name="image"; filename="group.jpg"
+Jane Smith
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="updated.jpg"
 Content-Type: image/jpeg
 
-< ./images/group.jpg
---boundary--
+< ./path/to/updated.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
-### Get all guidance events
-GET {{baseUrl}}/guidance
+###
 
-### Get guidance event by ID
-GET {{baseUrl}}/guidance/3
-
-### Update guidance event
-PATCH {{baseUrl}}/guidance/1
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="description"
-
-Updated description for teamwork session
---boundary
-Content-Disposition: form-data; name="priority"
-
-High
---boundary--
-
-### Delete guidance event
-DELETE {{baseUrl}}/guidance/1
-
-### ---------------- Counseling Event ----------------
-
-### Create a new counseling event
-POST {{baseUrl}}/guidance
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="counselor"
-
-Mrs. Sarah Mwangi
---boundary
-Content-Disposition: form-data; name="category"
-
-Relationship
---boundary
-Content-Disposition: form-data; name="description"
-
-Advice on friendships and social skills
---boundary
-Content-Disposition: form-data; name="notes"
-
-Discussed strategies to build healthy peer relationships.
---boundary
-Content-Disposition: form-data; name="date"
-
-2025-11-21
---boundary
-Content-Disposition: form-data; name="time"
-
-2:00 PM
---boundary
-Content-Disposition: form-data; name="type"
-
-Counseling
---boundary
-Content-Disposition: form-data; name="priority"
-
-High
---boundary
-Content-Disposition: form-data; name="image"; filename="relationship.jpg"
-Content-Type: image/jpeg
-
-< ./images/relationship.jpg
---boundary--
-
-### Get all counseling events
-GET {{baseUrl}}/guidance/3
-
-### Get counseling event by ID
-GET {{baseUrl}}/guidance/1
-
-### Update counseling event
-PATCH {{baseUrl}}/guidance/1
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="description"
-
-Updated advice on peer relationships
---boundary
-Content-Disposition: form-data; name="priority"
-
-Medium
---boundary--
-
-### Delete counseling event
-DELETE {{baseUrl}}/guidance/1
-
-### ---------------- Peer Support Event ----------------
-
-### Create a new peer support event
-PUT {{baseUrl}}/guidance/3
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="counselor"
-
-Student Council
---boundary
-Content-Disposition: form-data; name="category"
-
-Worship
---boundary
-Content-Disposition: form-data; name="description"
-
-Peer-led worship and discussion session
---boundary
-Content-Disposition: form-data; name="notes"
-
-Encouraged spiritual growth and teamwork.
---boundary
-Content-Disposition: form-data; name="date"
-
-2025-11-22
---boundary
-Content-Disposition: form-data; name="time"
-
-6:00 PM
---boundary
-Content-Disposition: form-data; name="type"
-
-PeerSupport
---boundary
-Content-Disposition: form-data; name="priority"
-
-Low
---boundary
-Content-Disposition: form-data; name="image"; filename="worship.jpg"
-Content-Type: image/jpeg
-
-< ./images/worship.jpg
---boundary--
-
-### Get all peer support events
-DELETE  {{baseUrl}}/guidance/3
-
-### Get peer support event by ID
-GET {{baseUrl}}/peersupport/1
-
-### Update peer support event
-PATCH {{baseUrl}}/peersupport/1
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="description"
-
-Updated worship session details
---boundary
-Content-Disposition: form-data; name="priority"
-
-Medium
---boundary--
-
-### Delete peer support event
-DELETE {{baseUrl}}/peersupport/1
-
-
-
-
-
-### ---------------- Get single counseling event ----------------
-GET {{baseUrl}}/guidance/2
-Accept: application/json
-
-### ---------------- Update counseling event ----------------
-PATCH {{baseUrl}}/counseling/2
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="description"
-
-Updated advice on friendships and social skills with follow-up tips
---boundary
-Content-Disposition: form-data; name="priority"
-
-Medium
---boundary
-Content-Disposition: form-data; name="image"; filename="new-relationship.jpg"
-Content-Type: image/jpeg
-
-< ./images/new-relationship.jpg
---boundary--
-
-### ---------------- Delete counseling event ----------------
-DELETE {{baseUrl}}/counseling/2
-Accept: application/json
+### DELETE news by ID
+DELETE {{baseUrl}}/news/1
+Content-Type: {{contentType}}

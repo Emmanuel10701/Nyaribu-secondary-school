@@ -111,3 +111,36 @@ model CounselingEvent {
   updatedAt     DateTime    @updatedAt
 }
 
+model Event {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String
+  date         DateTime
+  time         String
+  location     String
+  category     String
+  type         String
+  featured     Boolean  @default(false)
+  registration Boolean  @default(false)
+  attendees    String   // now a string: "student" or "staff"
+  speaker      String
+  image        String?  // optional
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+
+model News {
+  id          Int      @id @default(autoincrement())
+  title       String
+  excerpt     String
+  fullContent String
+  date        DateTime
+  category    String
+  author      String
+  likes       Int      @default(0)
+  image       String?  // optional
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
