@@ -144,3 +144,22 @@ model News {
   updatedAt   DateTime @updatedAt
 }
 
+
+model Staff {
+  id           Int      @id @default(autoincrement())
+  name         String
+  role         String          // Principal, Deputy, Teacher, BOM Member, etc.
+  position     String?         // Optional additional info
+  department   String          // Administration, Sciences, Languages, etc.
+  email        String?
+  phone        String?
+  bio          String
+  responsibilities Json         // Store as JSON
+  expertise    Json             // Store as JSON
+  achievements Json             // Store as JSON
+  image        String?          // Optional image path
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+
