@@ -174,3 +174,31 @@ model EmailCampaign {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 }
+model GalleryImage {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String?
+  category    Category
+  department  Department
+  files       Json       // store array of file paths (images/videos)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+enum Category {
+  SPORTS
+  ADMINISTRATION
+  STUDENT_COUNCIL
+  DRAMA
+  MUSIC
+  ART
+  OTHER
+}
+
+enum Department {
+  SCIENCES
+  EXAMS
+  HUMANITIES
+  ARTS
+  OTHER
+}

@@ -27,6 +27,9 @@ import {
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
+import ChatBot from './components/chat/page';
+
+
 // Material-UI Components
 import { 
   CircularProgress, 
@@ -746,7 +749,7 @@ export default function ModernHero() {
             transition={{ duration: 0.3 }} 
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-white mb-4">Our Schools</h2>
+            <h2 className="text-4xl font-bold text-white mb-4">Our School</h2>
             <p className="text-white/60 text-xl">Explore our diverse academic programs and facilities</p>
           </motion.div>
 
@@ -781,6 +784,9 @@ export default function ModernHero() {
          </div>
         </div>
       </section>
+
+      <ChatBot />
+
 
       {/* Video Modal */}
       {showVideoModal && (

@@ -1,98 +1,74 @@
-@baseUrl = http://172.18.113.79:3000/api
-@jsonContentType = application/json
-@multipartContentType = multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-### ========================
-### GET all staff
-### ========================
-GET {{baseUrl}}/staff
-Content-Type: {{jsonContentType}}
+### GET all galleries
+GET http://localhost:3000/api/gallery
+Content-Type: application/json
 
 ###
 
-### ========================
-### GET single staff by ID
-### ========================
-GET {{baseUrl}}/staff/1
-Content-Type: {{jsonContentType}}
-
-###
-
-### ========================
-### POST create new staff
-### ========================
-POST {{baseUrl}}/staff
-Content-Type: {{multipartContentType}}
+### POST new gallery with multiple files
+POST http://localhost:3000/api/gallery
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="name"
+Content-Disposition: form-data; name="title"
 
-Ms. Grace Wanjiku
+Science Fair 2025
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="role"
+Content-Disposition: form-data; name="description"
 
-Deputy Principal
+Highlights from the annual science fair
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="position"
+Content-Disposition: form-data; name="category"
 
-Academic Head
+ART
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="department"
 
-Administration
+SCIENCES
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="email"
-
-dprincipal@school.com
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="phone"
-
-+254722111114
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="bio"
-
-Passionate educator specializing in curriculum development.
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="responsibilities"
-
-{"items":["Curriculum Development","Teacher Supervision","Student Assessment"]}
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="expertise"
-
-{"items":["Curriculum Design","Educational Assessment","Teacher Training"]}
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="achievements"
-
-{"items":["98% University Transition Rate","STEM Program Excellence Award"]}
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="image"; filename="grace.jpg"
+Content-Disposition: form-data; name="files"; filename="science1.jpg"
 Content-Type: image/jpeg
 
-<file content here>
+< ./uploads/science1.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="science2.mp4"
+Content-Type: video/mp4
+
+< ./uploads/science2.mp4
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
 ###
 
-### ========================
-### PUT update staff
-### ========================
-PUT {{baseUrl}}/staff/1
-Content-Type: {{multipartContentType}}
+### GET single gallery (replace :id with actual ID)
+GET http://localhost:3000/api/gallery/1
+Content-Type: application/json
+
+###
+
+### PUT update gallery (replace :id with actual ID)
+PUT http://localhost:3000/api/gallery/1
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="bio"
+Content-Disposition: form-data; name="title"
 
-Updated bio for Ms. Grace Wanjiku
+Updated Science Fair 2025
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="responsibilities"
+Content-Disposition: form-data; name="category"
 
-{"items":["Updated responsibility 1","Updated responsibility 2"]}
+MUSIC
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="department"
+
+SCIENCES
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="updated1.jpg"
+Content-Type: image/jpeg
+
+< ./uploads/updated1.jpg
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
 ###
 
-### ========================
-### DELETE staff
-### ========================
-DELETE {{baseUrl}}/staff/1
-Content-Type: {{jsonContentType}}
+### DELETE gallery (replace :id with actual ID)
+DELETE http://localhost:3000/api/gallery/1
+Content-Type: application/json
