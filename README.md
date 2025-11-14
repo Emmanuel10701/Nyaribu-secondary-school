@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🎓 School Management System - Assignments Manager
 
-## Getting Started
+A modern, responsive web application for managing school assignments with beautiful UI, real-time updates, and comprehensive file management capabilities.
 
-First, run the development server:
+![Assignments Manager](https://img.shields.io/badge/React-18.2.0-blue) ![Next.js](https://img.shields.io/badge/Next.js-14.0.0-black) ![TypeScript](https://img.shields.io/badge/TypeScript-5.0.0-blue) ![Tailwind](https://img.shields.io/badge/Tailwind-3.3.0-38B2AC)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🌐 Live Demo & Repository
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **GitHub Repository**: [https://github.com/Emmanuel10701/Katz](https://github.com/Emmanuel10701/Katz)
+- **Live Demo**: [Coming Soon]
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## ✨ Features
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### 🎯 Core Functionality
+- **Complete CRUD Operations** - Create, read, update, and delete assignments
+- **File Upload System** - Support for multiple file types with drag & drop
+- **Advanced Filtering** - Filter by class, subject, status, and teacher
+- **Real-time Search** - Instant search across assignment titles, descriptions, and teachers
+- **Pagination** - Efficient data loading with paginated results
 
-## Learn More
+### 🎨 Modern UI/UX
+- **Gradient Design** - Beautiful gradient backgrounds and modern aesthetics
+- **Material-UI Integration** - Professional spinners and loading states
+- **Framer Motion** - Smooth animations and transitions
+- **Responsive Design** - Fully responsive across all devices
+- **Toast Notifications** - User-friendly feedback system
 
-To learn more about Next.js, take a look at the following resources:
+### 📊 Assignment Management
+- **Detailed Assignment Forms** - Comprehensive form with all required fields
+- **Learning Objectives** - Dynamic learning objectives management
+- **Priority System** - High, medium, low priority assignments
+- **Status Tracking** - Assigned, in-progress, completed, overdue statuses
+- **Time Management** - Estimated time requirements and due dates
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 📁 File Management
+- **Multiple File Types** - Support for PDF, DOC, PPT, images, and more
+- **File Preview** - Visual file type indicators
+- **Bulk Uploads** - Upload multiple files simultaneously
+- **File Organization** - Separate assignment files and attachments
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## 🚀 Quick Start
 
-## Deploy on Vercel
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- PostgreSQL database
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Installation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Emmanuel10701/Katz.git
+   cd Katz
