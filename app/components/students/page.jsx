@@ -1,30 +1,33 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { 
   FiPlus, 
   FiSearch, 
   FiEdit, 
   FiTrash2, 
-  FiFilter,
   FiDownload,
   FiEye,
-  FiMail,
-  FiPhone,
   FiUser,
   FiBook,
-  FiHome,
   FiChevronLeft,
   FiChevronRight,
   FiX,
   FiMapPin,
   FiCalendar,
   FiAward,
-  FiHeart,
   FiUsers,
-  FiBookOpen,
-  FiBarChart2
+  FiBarChart2,
+  FiRefreshCcw, // ✅ Fixed from FiRefreshCw
+  FiLoader, // ⚠️ This doesn't exist in Feather Icons - using FiClock as alternative
+  FiArrowUpCircle, // ✅ Fixed from FiArrowUp
+  FiTrendingUp,
+  FiClock 
+    
 } from 'react-icons/fi';
+
 
 export default function StudentManager() {
   const [students, setStudents] = useState([]);
@@ -32,52 +35,112 @@ export default function StudentManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedForm, setSelectedForm] = useState('all');
   const [selectedStream, setSelectedStream] = useState('all');
-  const [selectedHouse, setSelectedHouse] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showPromotionModal, setShowPromotionModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [editingStudent, setEditingStudent] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [promotionClass, setPromotionClass] = useState('');
+  const [promotionAction, setPromotionAction] = useState('promote');
+  const [submitting, setSubmitting] = useState(false);
+  const [promotionHistory, setPromotionHistory] = useState([]);
   
   const [formData, setFormData] = useState({
     admissionNumber: '',
     name: '',
     form: 'Form 1',
     stream: 'East',
-    house: 'Red',
-    parentName: '',
-    parentEmail: '',
-    parentPhone: '',
-    studentEmail: '',
-    studentPhone: '',
-    address: '',
-    dateOfBirth: '',
     gender: 'Male',
-    medicalInfo: '',
-    emergencyContact: '',
+    dateOfBirth: '',
     enrollmentDate: '',
     kcpeMarks: '',
     previousSchool: '',
+    parentName: '',
+    parentEmail: '',
+    parentPhone: '',
+    emergencyContact: '',
+    address: '',
+    medicalInfo: '',
     hobbies: '',
     academicPerformance: 'Average',
     attendance: '95%',
-    disciplineRecord: 'Good'
+    disciplineRecord: 'Good',
+    status: 'Active'
   });
 
-  // Forms, Streams, and Houses data
+  // Forms, Streams data
   const forms = ['Form 1', 'Form 2', 'Form 3', 'Form 4'];
   const streams = ['East', 'West', 'North', 'South'];
-  const houses = ['Red', 'Blue', 'Green', 'Yellow'];
   const academicLevels = ['Excellent', 'Good', 'Average', 'Below Average'];
   const disciplineRecords = ['Excellent', 'Good', 'Fair', 'Needs Improvement'];
+  const statusOptions = ['Active', 'Inactive', 'Graduated', 'Transferred'];
+  const attendanceOptions = ['95%', '90%', '85%', '80%', '75%', '70%'];
 
-  // Generate sample student data
-  useEffect(() => {
+  // Promotion mapping
+  const promotionMap = {
+    'Form 1': 'Form 2',
+    'Form 2': 'Form 3', 
+    'Form 3': 'Form 4',
+    'Form 4': 'Graduated'
+  };
+
+  // Fetch students from API
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/student');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch students');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setStudents(result.students);
+        setFilteredStudents(result.students);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      toast.error('Failed to load students. Using sample data.');
+      generateSampleData();
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // Fetch promotion history
+  const fetchPromotionHistory = async (studentId = null) => {
+    try {
+      const url = studentId 
+        ? `/api/student?action=promotion-history&studentId=${studentId}`
+        : '/api/student?action=promotion-history';
+      
+      const response = await fetch(url);
+      const result = await response.json();
+      
+      if (result.success) {
+        setPromotionHistory(result.history);
+      }
+    } catch (error) {
+      console.error('Error fetching promotion history:', error);
+    }
+  };
+
+  // Generate sample data as fallback
+  const generateSampleData = () => {
     const sampleStudents = Array.from({ length: 45 }, (_, i) => {
       const form = forms[i % 4];
       const stream = streams[i % 4];
-      const house = houses[i % 4];
       const gender = i % 2 === 0 ? 'Male' : 'Female';
       
       return {
@@ -86,30 +149,31 @@ export default function StudentManager() {
         name: `Student ${i + 1}`,
         form,
         stream,
-        house,
+        gender,
         parentName: `Parent ${i + 1}`,
         parentEmail: `parent${i + 1}@email.com`,
         parentPhone: `+2547${Math.floor(Math.random() * 90000000 + 10000000)}`,
-        studentEmail: `student${i + 1}@katwanyaa.ac.ke`,
-        studentPhone: `+2547${Math.floor(Math.random() * 90000000 + 10000000)}`,
         address: `Address ${i + 1}, Nairobi, Kenya`,
         dateOfBirth: `200${7 + (i % 4)}-${String((i % 12) + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}`,
-        gender,
-        medicalInfo: i % 5 === 0 ? 'Asthma' : i % 7 === 0 ? 'Allergies' : 'None',
-        emergencyContact: `+2547${Math.floor(Math.random() * 90000000 + 10000000)}`,
         enrollmentDate: `2024-01-${String((i % 28) + 1).padStart(2, '0')}`,
-        kcpeMarks: `${Math.floor(Math.random() * 100) + 250}`,
+        kcpeMarks: Math.floor(Math.random() * 100) + 250,
         previousSchool: `Primary School ${i + 1}`,
         hobbies: ['Football', 'Music', 'Reading', 'Dancing'][i % 4],
         academicPerformance: academicLevels[i % 4],
         attendance: `${Math.floor(Math.random() * 10) + 90}%`,
         disciplineRecord: disciplineRecords[i % 4],
-        status: 'Active'
+        status: 'Active',
+        emergencyContact: `+2547${Math.floor(Math.random() * 90000000 + 10000000)}`,
+        medicalInfo: i % 5 === 0 ? 'Asthma' : i % 7 === 0 ? 'Allergies' : 'None',
       };
     });
     
     setStudents(sampleStudents);
     setFilteredStudents(sampleStudents);
+  };
+
+  useEffect(() => {
+    fetchStudents();
   }, []);
 
   // Filter students
@@ -120,7 +184,8 @@ export default function StudentManager() {
       filtered = filtered.filter(student =>
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.admissionNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.parentEmail.toLowerCase().includes(searchTerm.toLowerCase())
+        student.parentEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.parentName?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -132,13 +197,13 @@ export default function StudentManager() {
       filtered = filtered.filter(student => student.stream === selectedStream);
     }
 
-    if (selectedHouse !== 'all') {
-      filtered = filtered.filter(student => student.house === selectedHouse);
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter(student => student.status === selectedStatus);
     }
 
     setFilteredStudents(filtered);
     setCurrentPage(1);
-  }, [searchTerm, selectedForm, selectedStream, selectedHouse, students]);
+  }, [searchTerm, selectedForm, selectedStream, selectedStatus, students]);
 
   // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -155,31 +220,34 @@ export default function StudentManager() {
       name: '',
       form: 'Form 1',
       stream: 'East',
-      house: 'Red',
-      parentName: '',
-      parentEmail: '',
-      parentPhone: '',
-      studentEmail: '',
-      studentPhone: '',
-      address: '',
-      dateOfBirth: '',
       gender: 'Male',
-      medicalInfo: '',
-      emergencyContact: '',
+      dateOfBirth: '',
       enrollmentDate: '',
       kcpeMarks: '',
       previousSchool: '',
+      parentName: '',
+      parentEmail: '',
+      parentPhone: '',
+      emergencyContact: '',
+      address: '',
+      medicalInfo: '',
       hobbies: '',
       academicPerformance: 'Average',
       attendance: '95%',
-      disciplineRecord: 'Good'
+      disciplineRecord: 'Good',
+      status: 'Active'
     });
     setEditingStudent(null);
     setShowModal(true);
   };
 
   const handleEdit = (student) => {
-    setFormData({ ...student });
+    setFormData({ 
+      ...student,
+      dateOfBirth: student.dateOfBirth.split('T')[0],
+      enrollmentDate: student.enrollmentDate.split('T')[0],
+      kcpeMarks: student.kcpeMarks?.toString() || ''
+    });
     setEditingStudent(student);
     setShowModal(true);
   };
@@ -189,29 +257,214 @@ export default function StudentManager() {
     setShowDetailModal(true);
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this student?')) {
-      setStudents(students.filter(student => student.id !== id));
+  const handleViewHistory = (student = null) => {
+    if (student) {
+      setSelectedStudent(student);
+      fetchPromotionHistory(student.id);
+    } else {
+      fetchPromotionHistory();
+    }
+    setShowHistoryModal(true);
+  };
+
+  const handleDelete = async (student) => {
+    if (confirm(`Are you sure you want to delete ${student.name}?`)) {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/student/${student.id}`, {
+          method: 'DELETE',
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          setStudents(students.filter(s => s.id !== student.id));
+          toast.success('Student deleted successfully');
+        } else {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        console.error('Error deleting student:', error);
+        toast.error('Failed to delete student');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingStudent) {
-      setStudents(students.map(student => 
-        student.id === editingStudent.id 
-          ? { ...formData, id: editingStudent.id }
-          : student
-      ));
-    } else {
-      const newStudent = {
-        ...formData,
-        id: Date.now(),
-        status: 'Active'
-      };
-      setStudents([...students, newStudent]);
+    try {
+      setSubmitting(true);
+
+      const method = editingStudent ? 'PUT' : 'POST';
+      const url = editingStudent 
+        ? `/api/student/${editingStudent.id}`
+        : '/api/student';
+        
+      const payload = editingStudent 
+        ? { ...formData }
+        : formData;
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        if (editingStudent) {
+          setStudents(students.map(student => 
+            student.id === editingStudent.id 
+              ? result.student
+              : student
+          ));
+          toast.success('Student updated successfully');
+        } else {
+          setStudents([result.student, ...students]);
+          toast.success('Student created successfully');
+        }
+        setShowModal(false);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error saving student:', error);
+      toast.error(error.message || 'Failed to save student');
+    } finally {
+      setSubmitting(false);
     }
-    setShowModal(false);
+  };
+
+  // Export to CSV
+  const exportToCSV = () => {
+    if (filteredStudents.length === 0) {
+      toast.warning('No data to export');
+      return;
+    }
+
+    const headers = [
+      'Admission Number',
+      'Name',
+      'Form',
+      'Stream',
+      'Gender',
+      'Status',
+      'Date of Birth',
+      'Enrollment Date',
+      'KCPE Marks',
+      'Previous School',
+      'Parent Name',
+      'Parent Email',
+      'Parent Phone',
+      'Emergency Contact',
+      'Address',
+      'Medical Info',
+      'Hobbies',
+      'Academic Performance',
+      'Attendance',
+      'Discipline Record'
+    ];
+
+    const csvData = filteredStudents.map(student => [
+      student.admissionNumber,
+      student.name,
+      student.form,
+      student.stream,
+      student.gender,
+      student.status,
+      student.dateOfBirth.split('T')[0],
+      student.enrollmentDate.split('T')[0],
+      student.kcpeMarks || '',
+      student.previousSchool || '',
+      student.parentName,
+      student.parentEmail || '',
+      student.parentPhone,
+      student.emergencyContact,
+      student.address,
+      student.medicalInfo || '',
+      student.hobbies || '',
+      student.academicPerformance,
+      student.attendance,
+      student.disciplineRecord
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.map(field => `"${field}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `students_export_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast.success(`Exported ${filteredStudents.length} students to CSV`);
+  };
+
+  // Handle promotion/graduation
+  const handlePromotion = async () => {
+    if (!promotionClass) {
+      toast.error('Please select a class');
+      return;
+    }
+
+    const actionText = promotionAction === 'promote' 
+      ? `promote all ${promotionClass} students to ${promotionMap[promotionClass]}`
+      : `graduate all ${promotionClass} students`;
+
+    if (!confirm(`Are you sure you want to ${actionText}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch('/api/student', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          form: promotionClass, 
+          action: promotionAction 
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        await fetchStudents();
+        setPromotionClass('');
+        setPromotionAction('promote');
+        setShowPromotionModal(false);
+        
+        const successMessage = promotionAction === 'promote'
+          ? `${result.count} students promoted from ${promotionClass} to ${promotionMap[promotionClass]}`
+          : `${result.count} students graduated successfully`;
+          
+        toast.success(successMessage);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error processing promotion:', error);
+      toast.error('Failed to process promotion/graduation');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Refresh data
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchStudents();
   };
 
   const Pagination = () => (
@@ -279,23 +532,58 @@ export default function StudentManager() {
     );
   };
 
-  const HouseBadge = ({ house }) => {
+  const StatusBadge = ({ status }) => {
     const colors = {
-      'Red': 'from-red-500 to-pink-600',
-      'Blue': 'from-blue-500 to-cyan-600',
-      'Green': 'from-green-500 to-emerald-600',
-      'Yellow': 'from-yellow-500 to-orange-600'
+      'Active': 'from-green-500 to-emerald-600',
+      'Inactive': 'from-gray-500 to-gray-600',
+      'Graduated': 'from-blue-500 to-cyan-600',
+      'Transferred': 'from-orange-500 to-red-600'
     };
 
     return (
-      <span className={`bg-gradient-to-r ${colors[house] || 'from-gray-500 to-gray-600'} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
-        {house} House
+      <span className={`bg-gradient-to-r ${colors[status] || 'from-gray-500 to-gray-600'} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
+        {status}
       </span>
     );
   };
 
+  // Loading Skeleton
+  const LoadingSkeleton = () => (
+    <div className="space-y-4">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="animate-pulse bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
+          <div className="flex items-center space-x-4">
+            <div className="rounded-full bg-gray-300 h-12 w-12"></div>
+            <div className="flex-1 space-y-2">
+              <div className="h-4 bg-gray-300 rounded w-1/4"></div>
+              <div className="h-3 bg-gray-300 rounded w-1/6"></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // Get students count by form
+  const getStudentsByForm = (form) => {
+    return students.filter(s => s.form === form && s.status === 'Active').length;
+  };
+
   return (
-    <div className="p-4 lg:p-6 space-y-6">
+    <div className="min-h-screen bg-gray-50 p-4 lg:p-6 space-y-6">
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
@@ -304,19 +592,40 @@ export default function StudentManager() {
           </h1>
           <p className="text-gray-600 mt-2">Manage student records, enrollment, and academic information</p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleCreate}
-          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 lg:px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-lg shadow-blue-500/25 w-full lg:w-auto justify-center"
-        >
-          <FiPlus className="text-lg" />
-          Add Student
-        </motion.button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+          <motion.button
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 lg:px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-lg shadow-green-500/25 w-full lg:w-auto justify-center disabled:opacity-50"
+          >
+<FiRefreshCcw className={`text-lg ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowPromotionModal(true)}
+            className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-4 lg:px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-lg shadow-orange-500/25 w-full lg:w-auto justify-center"
+          >
+            <FiTrendingUp className="text-lg" />
+            Promote/Graduate
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleCreate}
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 lg:px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-lg shadow-blue-500/25 w-full lg:w-auto justify-center"
+          >
+            <FiPlus className="text-lg" />
+            Add Student
+          </motion.button>
+        </div>
       </div>
 
       {/* Student Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
         <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-4 lg:p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -330,43 +639,55 @@ export default function StudentManager() {
         <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-4 lg:p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm">Form 4</p>
+              <p className="text-green-100 text-sm">Form 1</p>
               <p className="text-xl lg:text-3xl font-bold mt-2">
-                {students.filter(s => s.form === 'Form 4').length}
+                {getStudentsByForm('Form 1')}
               </p>
             </div>
             <FiBook className="text-xl lg:text-2xl text-green-200" />
           </div>
         </div>
 
+        <div className="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl p-4 lg:p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-yellow-100 text-sm">Form 2</p>
+              <p className="text-xl lg:text-3xl font-bold mt-2">
+                {getStudentsByForm('Form 2')}
+              </p>
+            </div>
+            <FiBook className="text-xl lg:text-2xl text-yellow-200" />
+          </div>
+        </div>
+
         <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl p-4 lg:p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-orange-100 text-sm">Avg. Attendance</p>
+              <p className="text-orange-100 text-sm">Form 3</p>
               <p className="text-xl lg:text-3xl font-bold mt-2">
-                {Math.round(students.reduce((sum, s) => sum + parseInt(s.attendance), 0) / students.length)}%
+                {getStudentsByForm('Form 3')}
               </p>
             </div>
-            <FiBarChart2 className="text-xl lg:text-2xl text-orange-200" />
+            <FiBook className="text-xl lg:text-2xl text-orange-200" />
           </div>
         </div>
 
         <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-4 lg:p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm">Excellent Performance</p>
+              <p className="text-purple-100 text-sm">Form 4</p>
               <p className="text-xl lg:text-3xl font-bold mt-2">
-                {students.filter(s => s.academicPerformance === 'Excellent').length}
+                {getStudentsByForm('Form 4')}
               </p>
             </div>
-            <FiAward className="text-xl lg:text-2xl text-purple-200" />
+            <FiBook className="text-xl lg:text-2xl text-purple-200" />
           </div>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Action Bar */}
       <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-200/50">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-2 relative">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -401,122 +722,165 @@ export default function StudentManager() {
           </select>
 
           <select
-            value={selectedHouse}
-            onChange={(e) => setSelectedHouse(e.target.value)}
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
             className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
           >
-            <option value="all">All Houses</option>
-            {houses.map(house => (
-              <option key={house} value={house}>{house}</option>
+            <option value="all">All Status</option>
+            {statusOptions.map(status => (
+              <option key={status} value={status}>{status}</option>
             ))}
           </select>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={exportToCSV}
+            disabled={filteredStudents.length === 0}
+            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-3 rounded-xl font-semibold flex items-center gap-2 justify-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FiDownload className="text-lg" />
+            Export CSV
+          </motion.button>
+        </div>
+
+        {/* Additional Actions */}
+        <div className="flex flex-col sm:flex-row gap-4 mt-4">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => handleViewHistory()}
+            className="bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all duration-300"
+          >
+            < FiMapPin  className="text-sm" />
+            View Promotion History
+          </motion.button>
         </div>
       </div>
 
       {/* Students Table */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Student</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Admission</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Form/Stream</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Performance</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Contact</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {currentStudents.map((student) => (
-                <motion.tr
-                  key={student.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="hover:bg-gray-50 transition-colors cursor-pointer"
-                  onClick={() => handleViewDetails(student)}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold">
-                        {student.name.charAt(0)}
+      {loading ? (
+        <LoadingSkeleton />
+      ) : (
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Student</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Admission</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Form/Stream</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Performance</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Contact</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {currentStudents.map((student) => (
+                  <motion.tr
+                    key={student.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => handleViewDetails(student)}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold">
+                          {student.name.charAt(0)}
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-semibold text-gray-900">{student.name}</div>
+                          <div className="text-sm text-gray-500">{student.gender}</div>
+                        </div>
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-semibold text-gray-900">{student.name}</div>
-                        <div className="text-sm text-gray-500">{student.gender}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-mono text-gray-900">{student.admissionNumber}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-semibold text-gray-900">{student.form}</div>
+                      <div className="text-sm text-gray-500">{student.stream} Stream</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <StatusBadge status={student.status} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <PerformanceBadge level={student.academicPerformance} />
+                      <div className="text-sm text-gray-500 mt-1">Attendance: {student.attendance}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{student.parentName}</div>
+                      <div className="text-sm text-gray-500">{student.parentPhone}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center gap-2">
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewDetails(student);
+                          }}
+                          className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                          title="View Details"
+                        >
+                          <FiEye className="text-sm" />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewHistory(student);
+                          }}
+                          className="text-purple-600 hover:text-purple-900 p-2 rounded-lg hover:bg-purple-50 transition-colors"
+                          title="Promotion History"
+                        >
+                          <FiMapPin className="text-sm" />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(student);
+                          }}
+                          className="text-green-600 hover:text-green-900 p-2 rounded-lg hover:bg-green-50 transition-colors"
+                          title="Edit"
+                        >
+                          <FiEdit className="text-sm" />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(student);
+                          }}
+                          className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                          title="Delete"
+                        >
+                          <FiTrash2 className="text-sm" />
+                        </motion.button>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-mono text-gray-900">{student.admissionNumber}</div>
-                    <HouseBadge house={student.house} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-semibold text-gray-900">{student.form}</div>
-                    <div className="text-sm text-gray-500">{student.stream} Stream</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <PerformanceBadge level={student.academicPerformance} />
-                    <div className="text-sm text-gray-500 mt-1">Attendance: {student.attendance}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{student.parentName}</div>
-                    <div className="text-sm text-gray-500">{student.parentPhone}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center gap-2">
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewDetails(student);
-                        }}
-                        className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                        title="View Details"
-                      >
-                        <FiEye className="text-sm" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit(student);
-                        }}
-                        className="text-green-600 hover:text-green-900 p-2 rounded-lg hover:bg-green-50 transition-colors"
-                        title="Edit"
-                      >
-                        <FiEdit className="text-sm" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(student.id);
-                        }}
-                        className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
-                        title="Delete"
-                      >
-                        <FiTrash2 className="text-sm" />
-                      </motion.button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {filteredStudents.length === 0 && (
-          <div className="text-center py-12">
-            <FiUsers className="mx-auto text-4xl text-gray-400 mb-4" />
-            <p className="text-gray-500 text-lg">No students found</p>
-            <p className="text-gray-400 text-sm mt-2">Try adjusting your search or filters</p>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
+
+          {filteredStudents.length === 0 && (
+            <div className="text-center py-12">
+              <FiUsers className="mx-auto text-4xl text-gray-400 mb-4" />
+              <p className="text-gray-500 text-lg">No students found</p>
+              <p className="text-gray-400 text-sm mt-2">Try adjusting your search or filters</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Pagination */}
       {filteredStudents.length > 0 && (
@@ -533,7 +897,7 @@ export default function StudentManager() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-            onClick={() => setShowModal(false)}
+            onClick={() => !submitting && setShowModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -548,8 +912,9 @@ export default function StudentManager() {
                     {editingStudent ? 'Edit Student' : 'Add New Student'}
                   </h2>
                   <button
-                    onClick={() => setShowModal(false)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    onClick={() => !submitting && setShowModal(false)}
+                    disabled={submitting}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
                   >
                     <FiX className="text-xl text-gray-600" />
                   </button>
@@ -568,7 +933,7 @@ export default function StudentManager() {
                       value={formData.admissionNumber}
                       onChange={(e) => setFormData({ ...formData, admissionNumber: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., KHS2024001"
+                      placeholder="e.g., ADM/2024/001"
                     />
                   </div>
 
@@ -620,21 +985,6 @@ export default function StudentManager() {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      House
-                    </label>
-                    <select
-                      value={formData.house}
-                      onChange={(e) => setFormData({ ...formData, house: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      {houses.map(house => (
-                        <option key={house} value={house}>{house}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Gender *
                     </label>
                     <select
@@ -645,6 +995,22 @@ export default function StudentManager() {
                     >
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Status *
+                    </label>
+                    <select
+                      required
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      {statusOptions.map(status => (
+                        <option key={status} value={status}>{status}</option>
+                      ))}
                     </select>
                   </div>
 
@@ -680,10 +1046,12 @@ export default function StudentManager() {
                     </label>
                     <input
                       type="number"
+                      min="0"
+                      max="500"
                       value={formData.kcpeMarks}
                       onChange={(e) => setFormData({ ...formData, kcpeMarks: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter KCPE marks"
+                      placeholder="Enter KCPE marks (0-500)"
                     />
                   </div>
 
@@ -721,11 +1089,10 @@ export default function StudentManager() {
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Parent Email *
+                        Parent Email
                       </label>
                       <input
                         type="email"
-                        required
                         value={formData.parentEmail}
                         onChange={(e) => setFormData({ ...formData, parentEmail: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -784,6 +1151,21 @@ export default function StudentManager() {
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Attendance
+                      </label>
+                      <select
+                        value={formData.attendance}
+                        onChange={(e) => setFormData({ ...formData, attendance: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        {attendanceOptions.map(attendance => (
+                          <option key={attendance} value={attendance}>{attendance}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
                         Discipline Record
                       </label>
                       <select
@@ -807,32 +1189,6 @@ export default function StudentManager() {
                         onChange={(e) => setFormData({ ...formData, hobbies: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="e.g., Football, Music, Reading"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Student Email
-                      </label>
-                      <input
-                        type="email"
-                        value={formData.studentEmail}
-                        onChange={(e) => setFormData({ ...formData, studentEmail: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="student@katwanyaa.ac.ke"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Student Phone
-                      </label>
-                      <input
-                        type="tel"
-                        value={formData.studentPhone}
-                        onChange={(e) => setFormData({ ...formData, studentPhone: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="+254 XXX XXX XXX"
                       />
                     </div>
 
@@ -869,15 +1225,24 @@ export default function StudentManager() {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors"
+                    disabled={submitting}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+                    disabled={submitting}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    {editingStudent ? 'Update Student' : 'Add Student'}
+                    {submitting ? (
+                      <>
+<FiMapPin className="animate-spin" />
+                        {editingStudent ? 'Updating...' : 'Creating...'}
+                      </>
+                    ) : (
+                      editingStudent ? 'Update Student' : 'Add Student'
+                    )}
                   </button>
                 </div>
               </form>
@@ -925,7 +1290,7 @@ export default function StudentManager() {
                   <div className="flex-1">
                     <h3 className="text-2xl font-bold text-gray-800 mb-2">{selectedStudent.name}</h3>
                     <div className="flex flex-wrap gap-2 mb-3">
-                      <HouseBadge house={selectedStudent.house} />
+                      <StatusBadge status={selectedStudent.status} />
                       <PerformanceBadge level={selectedStudent.academicPerformance} />
                       <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
                         {selectedStudent.attendance} Attendance
@@ -938,7 +1303,7 @@ export default function StudentManager() {
                       </div>
                       <div>
                         <p className="text-gray-600">Gender: <span className="font-semibold text-gray-800">{selectedStudent.gender}</span></p>
-                        <p className="text-gray-600">KCPE: <span className="font-semibold text-gray-800">{selectedStudent.kcpeMarks} marks</span></p>
+                        <p className="text-gray-600">KCPE: <span className="font-semibold text-gray-800">{selectedStudent.kcpeMarks || 'N/A'} marks</span></p>
                       </div>
                     </div>
                   </div>
@@ -953,10 +1318,10 @@ export default function StudentManager() {
                         Personal Information
                       </h4>
                       <div className="space-y-1 text-sm bg-gray-50 p-4 rounded-xl">
-                        <p><span className="font-medium">Date of Birth:</span> {selectedStudent.dateOfBirth}</p>
-                        <p><span className="font-medium">Enrollment Date:</span> {selectedStudent.enrollmentDate}</p>
-                        <p><span className="font-medium">Previous School:</span> {selectedStudent.previousSchool}</p>
-                        <p><span className="font-medium">Hobbies:</span> {selectedStudent.hobbies}</p>
+                        <p><span className="font-medium">Date of Birth:</span> {new Date(selectedStudent.dateOfBirth).toLocaleDateString()}</p>
+                        <p><span className="font-medium">Enrollment Date:</span> {new Date(selectedStudent.enrollmentDate).toLocaleDateString()}</p>
+                        <p><span className="font-medium">Previous School:</span> {selectedStudent.previousSchool || 'N/A'}</p>
+                        <p><span className="font-medium">Hobbies:</span> {selectedStudent.hobbies || 'N/A'}</p>
                       </div>
                     </div>
 
@@ -969,7 +1334,7 @@ export default function StudentManager() {
                         <p><span className="font-medium">Performance:</span> {selectedStudent.academicPerformance}</p>
                         <p><span className="font-medium">Attendance:</span> {selectedStudent.attendance}</p>
                         <p><span className="font-medium">Discipline:</span> {selectedStudent.disciplineRecord}</p>
-                        <p><span className="font-medium">KCPE Marks:</span> {selectedStudent.kcpeMarks}</p>
+                        <p><span className="font-medium">KCPE Marks:</span> {selectedStudent.kcpeMarks || 'N/A'}</p>
                       </div>
                     </div>
                   </div>
@@ -983,7 +1348,7 @@ export default function StudentManager() {
                       </h4>
                       <div className="space-y-1 text-sm bg-gray-50 p-4 rounded-xl">
                         <p><span className="font-medium">Name:</span> {selectedStudent.parentName}</p>
-                        <p><span className="font-medium">Email:</span> {selectedStudent.parentEmail}</p>
+                        <p><span className="font-medium">Email:</span> {selectedStudent.parentEmail || 'N/A'}</p>
                         <p><span className="font-medium">Phone:</span> {selectedStudent.parentPhone}</p>
                         <p><span className="font-medium">Emergency:</span> {selectedStudent.emergencyContact}</p>
                       </div>
@@ -995,10 +1360,8 @@ export default function StudentManager() {
                         Contact & Medical
                       </h4>
                       <div className="space-y-1 text-sm bg-gray-50 p-4 rounded-xl">
-                        <p><span className="font-medium">Student Email:</span> {selectedStudent.studentEmail}</p>
-                        <p><span className="font-medium">Student Phone:</span> {selectedStudent.studentPhone}</p>
                         <p><span className="font-medium">Address:</span> {selectedStudent.address}</p>
-                        <p><span className="font-medium">Medical Info:</span> {selectedStudent.medicalInfo}</p>
+                        <p><span className="font-medium">Medical Info:</span> {selectedStudent.medicalInfo || 'None'}</p>
                       </div>
                     </div>
                   </div>
@@ -1019,6 +1382,199 @@ export default function StudentManager() {
                     className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors"
                   >
                     Close
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Promotion History Modal */}
+      <AnimatePresence>
+        {showHistoryModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            onClick={() => setShowHistoryModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    {selectedStudent ? `${selectedStudent.name}'s Promotion History` : 'All Promotion History'}
+                  </h2>
+                  <button
+                    onClick={() => setShowHistoryModal(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <FiX className="text-xl text-gray-600" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6">
+                {promotionHistory.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FiMapPin className="mx-auto text-4xl text-gray-400 mb-4" />
+                    <p className="text-gray-500 text-lg">No promotion history found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {promotionHistory.map((record, index) => (
+                      <div key={record.id} className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-semibold text-gray-800">
+                              {record.student.name} ({record.student.admissionNumber})
+                            </h4>
+                            <div className="flex items-center gap-4 mt-2">
+                              <span className="text-sm text-gray-600">
+                                From: <span className="font-semibold">{record.fromForm} {record.fromStream}</span>
+                              </span>
+                               <FiArrowUpRight className="text-green-500" />                              <span className="text-sm text-gray-600">
+                                To: <span className="font-semibold">{record.toForm} {record.toStream}</span>
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-gray-500">
+                              {new Date(record.promotedAt).toLocaleDateString()}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {new Date(record.promotedAt).toLocaleTimeString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Promotion/Graduation Modal */}
+      <AnimatePresence>
+        {showPromotionModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            onClick={() => setShowPromotionModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-800">Promote/Graduate Class</h2>
+                  <button
+                    onClick={() => setShowPromotionModal(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <FiX className="text-xl text-gray-600" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Select Class
+                  </label>
+                  <select
+                    value={promotionClass}
+                    onChange={(e) => setPromotionClass(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select a class</option>
+                    {forms.map(form => (
+                      <option key={form} value={form}>{form}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Action
+                  </label>
+                  <select
+                    value={promotionAction}
+                    onChange={(e) => setPromotionAction(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="promote">Promote to Next Class</option>
+                    <option value="graduate">Graduate Class</option>
+                  </select>
+                </div>
+
+                {promotionClass && (
+                  <div className="bg-blue-50 p-4 rounded-xl">
+                    <h4 className="font-semibold text-blue-800 mb-2">Action Preview:</h4>
+                    <p className="text-blue-700 text-sm">
+                      {promotionAction === 'promote' ? (
+                        <>
+                          All <span className="font-bold">{promotionClass}</span> students will be promoted to{' '}
+                          <span className="font-bold">{promotionMap[promotionClass]}</span>
+                          {promotionMap[promotionClass] === 'Graduated' && ' and marked as Graduated'}
+                        </>
+                      ) : (
+                        <>
+                          All <span className="font-bold">{promotionClass}</span> students will be marked as{' '}
+                          <span className="font-bold">Graduated</span>
+                        </>
+                      )}
+                    </p>
+                    <p className="text-blue-600 text-xs mt-2">
+                      Affected students: {getStudentsByForm(promotionClass)}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex gap-4 pt-4">
+                  <button
+                    onClick={() => setShowPromotionModal(false)}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handlePromotion}
+                    disabled={!promotionClass || loading}
+                    className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <FiLoader className="animate-spin" />
+                        Processing...
+                      </>
+                    ) : promotionAction === 'promote' ? (
+                      <>
+                        <FiTrendingUp />
+                        Promote Class
+                      </>
+                    ) : (
+                      <>
+<FiAward />
+                        Graduate Class
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

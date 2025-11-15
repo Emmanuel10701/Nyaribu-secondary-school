@@ -1,822 +1,401 @@
-### 🔹 GET School Info
-GET http://0.0.0.0:3001/api/gallery
-Content-Type: application/json
-
-###
-### Base URL
-@baseUrl =  http://0.0.0.0:3001/api/school
-
-### 1. GET - Get School Info (Initially should return 404)
-GET {{baseUrl}}
-Content-Type: application/json
-
-### 2. POST - Create School Info with YouTube Video
-POST {{baseUrl}}
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="name"
-
-Greenwood High School
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="description"
-
-A premier educational institution focused on holistic development and academic excellence.
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="youtubeLink"
-
-https://www.youtube.com/watch?v=dQw4w9WgXcQ
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="studentCount"
-
-1200
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="staffCount"
-
-85
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="feesBoarding"
-
-25000.00
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="feesDay"
-
-12000.00
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="feesDistribution"
-
-{
-  "tuition": 8000,
-  "boarding": 12000,
-  "meals": 3000,
-  "activities": 2000
-}
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="openDate"
-
-2024-09-01
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="closeDate"
-
-2025-06-30
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="subjects"
-
-[
-  "Mathematics",
-  "Science",
-  "English",
-  "History",
-  "Geography",
-  "Computer Science"
-]
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="departments"
-
-{
-  "science": ["Physics", "Chemistry", "Biology"],
-  "humanities": ["History", "Geography", "Economics"],
-  "languages": ["English", "French", "Spanish"]
-}
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="curriculumPDF"; filename="curriculum.pdf"
-Content-Type: application/pdf
-
-< ./sample-curriculum.pdf
-------WebKitFormBoundary7MA4YWxkTrZu0gW--
-
-### 3. POST - Create School Info with MP4 Video File
-PUT  {{baseUrl}}
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="name"
-
-Riverside Academy
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="description"
-
-Modern education with state-of-the-art facilities and experienced faculty.
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="videoTour"; filename="school-tour.mp4"
-Content-Type: video/mp4
-
-< ./sample-video.mp4
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="studentCount"
-
-800
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="staffCount"
-
-60
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="feesBoarding"
-
-28000.00
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="feesDay"
-
-15000.00
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="feesDistribution"
-
-{
-  "tuition": 10000,
-  "boarding": 15000,
-  "meals": 2000,
-  "transport": 1000
-}
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="openDate"
-
-2024-08-15
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="closeDate"
-
-2025-06-15
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="subjects"
-
-[
-  "Physics",
-  "Chemistry",
-  "Biology",
-  "Mathematics",
-  "English",
-  "Business Studies"
-]
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="departments"
-
-{
-  "stem": ["Mathematics", "Physics", "Chemistry", "Computer Science"],
-  "business": ["Accounting", "Economics", "Business Studies"],
-  "arts": ["English Literature", "History", "Art & Design"]
-}
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="curriculumPDF"; filename="academic-curriculum.pdf"
-Content-Type: application/pdf
-
-< ./sample-curriculum.pdf
-------WebKitFormBoundary7MA4YWxkTrZu0gW--
-
-### 4. GET - Get Created School Info
-GET {{baseUrl}}
-Content-Type: application/json
-
-### 5. PUT - Update School Info (Switch to MP4 file)
-PUT {{baseUrl}}
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="name"
-
-Greenwood International School (Updated)
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="description"
-
-Updated description with enhanced facilities and new programs.
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="videoTour"; filename="updated-tour.mp4"
-Content-Type: video/mp4
-
-< ./sample-video.mp4
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="studentCount"
-
-1500
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="staffCount"
-
-95
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="feesBoarding"
-
-27000.00
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="feesDay"
-
-13000.00
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="feesDistribution"
-
-{
-  "tuition": 9000,
-  "boarding": 13000,
-  "meals": 3500,
-  "activities": 1500
-}
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="curriculumPDF"; filename="updated-curriculum.pdf"
-Content-Type: application/pdf
-
-< ./sample-curriculum.pdf
-------WebKitFormBoundary7MA4YWxkTrZu0gW--
-
-### 6. PUT - Update School Info (Switch to YouTube URL)
-PUT {{baseUrl}}
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="name"
-
-Greenwood International School (YouTube Version)
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="youtubeLink"
-
-https://youtu.be/dQw4w9WgXcQ
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="studentCount"
-
-1600
-------WebKitFormBoundary7MA4YWxkTrZu0gW--
-
-### 7. GET - Verify Updates
-GET {{baseUrl}}
-Content-Type: application/json
-
-### 8. DELETE - Remove All School Info
-DELETE {{baseUrl}}
-Content-Type: application/json
-
-### 9. GET - Verify Deletion (Should return 404)
-GET {{baseUrl}}
-Content-Type: application/json
-
-### 10. POST - Test Validation Error (Missing required fields)
-POST {{baseUrl}}
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="name"
-
-Test School
-------WebKitFormBoundary7MA4YWxkTrZu0gW--
-
-### 11. POST - Test Invalid YouTube URL
-POST {{baseUrl}}
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="name"
-
-Test School
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="youtubeLink"
-
-https://invalid-url.com
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="studentCount"
-
-100
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="staffCount"
-
-10
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="feesBoarding"
-
-10000
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="feesDay"
-
-5000
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="feesDistribution"
-
-{"test": 1000}
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="openDate"
-
-2024-09-01
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="closeDate"
-
-2025-06-30
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="subjects"
-
-["Math", "Science"]
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="departments"
-
-{"stem": ["Math", "Science"]}
-------WebKitFormBoundary7MA4YWxkTrZu0gW--
-
-
-
-
-### GET all galleries
-GET http://0.0.0.0:3001/api/gallery
-Accept: application/json
-
-###
-###
-# GET all gallery items
-GET http://0.0.0.0:3001/api/gallery
-Accept: application/json
-
-###
-
-
-###
-# GET all email campaigns
+### Test Server Connection
 GET http://0.0.0.0:3001/api/student
 
-Accept: application/json
+### 1. CREATE - Add New Students
 
-
-
-###
-# GET all students
-GET http://localhost:3000/api/students
-Accept: application/json
-
-###
-
-# POST new student
+#### Add Student 1 - Form 1
 POST http://0.0.0.0:3001/api/student
 Content-Type: application/json
 
 {
-  "admissionNumber": "YTR/2025/0012",
-  "name": "John Aaron",
-  "form": "Form 2",
-  "stream": "North",
+  "admissionNumber": "ADM/2024/001",
+  "name": "John Kamau",
+  "form": "Form 1",
+  "stream": "East",
   "gender": "Male",
   "dateOfBirth": "2009-05-14",
-  "enrollmentDate": "2021-01-04",
-  "kcpeMarks": 372,
+  "enrollmentDate": "2024-01-10",
+  "kcpeMarks": 350,
   "previousSchool": "Sunrise Primary School",
-  "parentName": "Peter Mwangi",
-  "parentEmail": "emmanuelmakau53@gmail.com",
+  "parentName": "Peter Kamau",
+  "parentEmail": "peter.kamau@email.com",
   "parentPhone": "+254712345678",
-  "emergencyContact": "+254798556677",
-  "address": "Makueni County, Kenya",
-  "medicalInfo": "Asthmatic, uses inhaler occasionally.",
-  "hobbies": "Football, Reading, Music",
-  "academicPerformance": "Above average in Mathematics and Sciences.",
-  "attendance": "Good attendance record, rarely misses classes.",
-  "disciplineRecord": "No major disciplinary cases recorded.",
+  "emergencyContact": "+254798765432",
+  "address": "123 Main Street, Nairobi, Kenya",
+  "medicalInfo": "None",
+  "hobbies": "Football, Reading",
+  "academicPerformance": "Good",
+  "attendance": "95%",
+  "disciplineRecord": "Good",
   "status": "Active"
 }
 
-###
-
-# CREATE a new email campaign (draft)
-POST http://0.0.0.0:3001/api/emails
+#### Add Student 2 - Form 1
+POST http://0.0.0.0:3001/api/student
 Content-Type: application/json
 
 {
-  "title": "Parent Meeting Notification",
-  "subject": "Upcoming Parents' Meeting",
-  "content": "Dear parents, this is a reminder for the upcoming parents' meeting next week.",
-  "recipients": "emmanuelmakau53@gmail.com, student1@example.com",
-  "status": "draft"
+  "admissionNumber": "ADM/2024/002",
+  "name": "Mary Wanjiku",
+  "form": "Form 1",
+  "stream": "West",
+  "gender": "Female",
+  "dateOfBirth": "2009-08-22",
+  "enrollmentDate": "2024-01-10",
+  "kcpeMarks": 380,
+  "previousSchool": "Greenhill Academy",
+  "parentName": "James Wanjiku",
+  "parentEmail": "james.w@email.com",
+  "parentPhone": "+254723456789",
+  "emergencyContact": "+254787654321",
+  "address": "456 Oak Avenue, Nairobi, Kenya",
+  "medicalInfo": "Asthmatic",
+  "hobbies": "Music, Swimming",
+  "academicPerformance": "Excellent",
+  "attendance": "98%",
+  "disciplineRecord": "Excellent",
+  "status": "Active"
 }
 
-###
-
-# CREATE and SEND campaign immediately (status = published)
-POST http://localhost:3000/api/email
+#### Add Student 3 - Form 2
+POST http://0.0.0.0:3001/api/student
 Content-Type: application/json
 
 {
-  "title": "School Closing Ceremony",
-  "subject": "Official Closing Ceremony Announcement",
-  "content": "We are pleased to inform you that the school closing ceremony will be held this Friday at 10:00 AM.",
-  "recipients": "emmanuelmakau53@gmail.com",
-  "status": "published"
+  "admissionNumber": "ADM/2023/001",
+  "name": "David Ochieng",
+  "form": "Form 2",
+  "stream": "North",
+  "gender": "Male",
+  "dateOfBirth": "2008-03-15",
+  "enrollmentDate": "2023-01-15",
+  "kcpeMarks": 365,
+  "previousSchool": "Riverside Primary",
+  "parentName": "Sarah Ochieng",
+  "parentEmail": "sarah.o@email.com",
+  "parentPhone": "+254734567890",
+  "emergencyContact": "+254776543210",
+  "address": "789 Pine Road, Nairobi, Kenya",
+  "medicalInfo": "None",
+  "hobbies": "Basketball, Chess",
+  "academicPerformance": "Average",
+  "attendance": "90%",
+  "disciplineRecord": "Good",
+  "status": "Active"
 }
 
-
-#####
-GET  http://0.0.0.0:3001/api/guidance
+#### Add Student 4 - Form 3
+POST http://0.0.0.0:3001/api/student
 Content-Type: application/json
 
 {
-  "email": "newsubscriber@gmail.com"
+  "admissionNumber": "ADM/2022/001",
+  "name": "Grace Achieng",
+  "form": "Form 3",
+  "stream": "South",
+  "gender": "Female",
+  "dateOfBirth": "2007-11-30",
+  "enrollmentDate": "2022-01-20",
+  "kcpeMarks": 390,
+  "previousSchool": "Mountain View Academy",
+  "parentName": "Michael Achieng",
+  "parentEmail": "michael.a@email.com",
+  "parentPhone": "+254745678901",
+  "emergencyContact": "+254765432109",
+  "address": "321 Elm Street, Nairobi, Kenya",
+  "medicalInfo": "Allergies to dust",
+  "hobbies": "Dancing, Painting",
+  "academicPerformance": "Excellent",
+  "attendance": "97%",
+  "disciplineRecord": "Excellent",
+  "status": "Active"
 }
 
-
-
-# POST new gallery item (multipart/form-data)
-POST http://0.0.0.0:3001/api/gallery
-Content-Type: multipart/form-data; boundary=----MyBoundary123
-
-------MyBoundary123
-Content-Disposition: form-data; name="title"
-
-Inter-School Sports Day
-------MyBoundary123
-Content-Disposition: form-data; name="description"
-
-A collection of images from the sports event.
-------MyBoundary123
-Content-Disposition: form-data; name="category"
-
-SPORTS
-------MyBoundary123
-Content-Disposition: form-data; name="department"
-
-SCIENCES
-------MyBoundary123
-Content-Disposition: form-data; name="files"; filename="image1.jpg"
-Content-Type: image/jpeg
-
-< ./samples/image1.jpg
-------MyBoundary123
-Content-Disposition: form-data; name="files"; filename="image2.png"
-Content-Type: image/png
-
-< ./samples/image2.png
-------MyBoundary123--
-
-
-
-
-
-
-### ----------------------------------------------------
-### ✔ SUPER-DETAILED ASSIGNMENT WITH MANY FIELDS + FILES
-### ----------------------------------------------------
-POST http://0.0.0.0:3001/api/assignment
-Content-Type: multipart/form-data; boundary=----DeepBoundary999
-
-------DeepBoundary999
-Content-Disposition: form-data; name="title"
-
-Comprehensive Science Research Project – Term 1
-------DeepBoundary999
-Content-Disposition: form-data; name="subject"
-
-Science
-------DeepBoundary999
-Content-Disposition: form-data; name="className"
-
-Form 2 West
-------DeepBoundary999
-Content-Disposition: form-data; name="teacher"
-
-Mr. Anthony Wafula
-------DeepBoundary999
-Content-Disposition: form-data; name="dueDate"
-
-2025-02-15
-------DeepBoundary999
-Content-Disposition: form-data; name="dateAssigned"
-
-2025-01-10
-------DeepBoundary999
-Content-Disposition: form-data; name="status"
-
-assigned
-------DeepBoundary999
-Content-Disposition: form-data; name="priority"
-
-high
-------DeepBoundary999
-Content-Disposition: form-data; name="estimatedTime"
-
-6 hours
-------DeepBoundary999
-Content-Disposition: form-data; name="additionalWork"
-
-Read Chapter 4–8 of the science textbook and summarize key concepts.
-------DeepBoundary999
-Content-Disposition: form-data; name="teacherRemarks"
-
-Submit in PDF format only. Late work will receive penalties.
-------DeepBoundary999
-Content-Disposition: form-data; name="description"
-
-This is a detailed research project requiring students to explore environmental conservation, 
-climate change, renewable energy sources, water purification methods, and impacts of pollution 
-on biodiversity. Students must demonstrate critical thinking, proper sources, and strong 
-scientific writing skills. Provide REAL DATA collected from your environment, including 
-observations, photos, recorded temperatures, rainfall trends, or interviews with community members.
-------DeepBoundary999
-Content-Disposition: form-data; name="instructions"
-
-1. Form a group of 3–4 students.  
-2. Select one major environmental problem in your community.  
-3. Conduct field research and gather measurable data.  
-4. Compare community findings with national or global scientific data.  
-5. Write a 10–15 page research report including:  
-   - Introduction  
-   - Background  
-   - Data collection method  
-   - Tables or graphs  
-   - Analysis and interpretation  
-   - Conclusion and recommendations  
-6. Attach photos, interview audio transcripts, and any related documents.  
-------DeepBoundary999
-Content-Disposition: form-data; name="learningObjectives"
-
-[
-  "Understand environmental conservation practices",
-  "Analyze climate change effects on local communities",
-  "Collect field data and interpret scientific results",
-  "Practice teamwork and collaborative research",
-  "Demonstrate scientific writing and documentation",
-  "Use charts and graphs to illustrate findings",
-  "Develop problem-solving and critical thinking skills",
-  "Investigate community-based environmental solutions"
-]
-------DeepBoundary999
-Content-Disposition: form-data; name="assignmentFiles"; filename="research_guidelines.pdf"
-Content-Type: application/pdf
-
-< ./sample_files/research_guidelines.pdf
-------DeepBoundary999
-Content-Disposition: form-data; name="assignmentFiles"; filename="field_template.docx"
-Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
-
-< ./sample_files/field_template.docx
-------DeepBoundary999
-Content-Disposition: form-data; name="attachments"; filename="community_photo1.jpg"
-Content-Type: image/jpeg
-
-< ./sample_files/community_photo1.jpg
-------DeepBoundary999
-Content-Disposition: form-data; name="attachments"; filename="community_photo2.jpg"
-Content-Type: image/jpeg
-
-< ./sample_files/community_photo2.jpg
-------DeepBoundary999--
-
-
-
-###
-# GET all staff
-GET http://0.0.0.0:3001/api/staff
-Accept: application/json
-
-###
-### ----------------------------------------
-### ✔ TEST CREATE ASSIGNMENT (WITH FILES)
-### ----------------------------------------
-POST http://0.0.0.0:3001/api/assignment
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="title"
-
-Math Homework 1
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="subject"
-
-Mathematics
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="className"
-
-Grade 4 North
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="teacher"
-
-Mr. John Doe
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="dueDate"
-
-2025-01-01
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="description"
-
-Solve all questions attached below
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="instructions"
-
-Show working steps clearly
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="priority"
-
-high
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="estimatedTime"
-
-45 minutes
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="learningObjectives"
-
-["Addition", "Subtraction", "Word Problems"]
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="assignmentFiles"; filename="work1.pdf"
-Content-Type: application/pdf
-
-< ./sample_files/work1.pdf
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="attachments"; filename="notes.png"
-Content-Type: image/png
-
-< ./sample_files/notes.png
-------WebKitFormBoundary7MA4YWxkTrZu0gW--
-
-### ----------------------------------------
-### ✔ TEST CREATE ASSIGNMENT (WITHOUT FILES)
-### ----------------------------------------
-GET  http://0.0.0.0:3001/api/assignment
-
-
-### GET all counseling events
-GET http://localhost:3000/api/counseling
-Accept: application/json
-
-
-
-### CREATE Counseling Event (multipart/form-data)
-GET  http://0.0.0.0:3001/api/guidance
-
-POST  http://0.0.0.0:3001/api/guidance
-
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryX
-
-------WebKitFormBoundaryX
-Content-Disposition: form-data; name="counselor"
-
-Mr. James
-------WebKitFormBoundaryX
-Content-Disposition: form-data; name="category"
-
-Discipline
-------WebKitFormBoundaryX
-Content-Disposition: form-data; name="description"
-
-A student was reported for repeated class disruption.
-------WebKitFormBoundaryX
-Content-Disposition: form-data; name="notes"
-
-Follow-up scheduled next week.
-------WebKitFormBoundaryX
-Content-Disposition: form-data; name="date"
-
-2025-11-14T09:00:00.000Z
-------WebKitFormBoundaryX
-Content-Disposition: form-data; name="time"
-
-09:00 AM
-------WebKitFormBoundaryX
-Content-Disposition: form-data; name="type"
-
-Guidance
-------WebKitFormBoundaryX
-Content-Disposition: form-data; name="priority"
-
-High
-------WebKitFormBoundaryX
-Content-Disposition: form-data; name="image"; filename="example.jpg"
-Content-Type: image/jpeg
-
-< ./example.jpg
-------WebKitFormBoundaryX--
-
-
-
-
-
-
-### POST new counseling event (multipart/form-data)
-GET  http://0.0.0.0:3001/api/guidance/1
-Content-Type: multipart/form-data; boundary=---BOUNDARY
-
----BOUNDARY
-Content-Disposition: form-data; name="counselor"
-
-Mr. Patrick
----BOUNDARY
-Content-Disposition: form-data; name="category"
-
-Behavioral
----BOUNDARY
-Content-Disposition: form-data; name="description"
-
-Student counseling on behavioral issues
----BOUNDARY
-Content-Disposition: form-data; name="notes"
-
-Student showing signs of progress
----BOUNDARY
-Content-Disposition: form-data; name="date"
-
-2025-11-20
----BOUNDARY
-Content-Disposition: form-data; name="time"
-
-10:30 AM
----BOUNDARY
-Content-Disposition: form-data; name="type"
-
-One-on-One
----BOUNDARY
-Content-Disposition: form-data; name="priority"
-
-High
----BOUNDARY
-Content-Disposition: form-data; name="image"; filename="test.jpg"
-Content-Type: image/jpeg
-
-< ./test.jpg
----BOUNDARY--
-
-
-
-
-
-Content-Type: multipart/form-data; boundary=----TestBoundary123
-
-------TestBoundary123
-Content-Disposition: form-data; name="title"
-
-English Essay
-------TestBoundary123
-Content-Disposition: form-data; name="subject"
-
-English
-------TestBoundary123
-Content-Disposition: form-data; name="className"
-
-Grade 6 East
-------TestBoundary123
-Content-Disposition: form-data; name="teacher"
-
-Mrs. Ann Marie
-------TestBoundary123
-Content-Disposition: form-data; name="dueDate"
-
-2025-02-01
-------TestBoundary123
-Content-Disposition: form-data; name="description"
-
-Write an essay about your holiday
-------TestBoundary123
-Content-Disposition: form-data; name="priority"
-
-medium
-------TestBoundary123--
-
-### ----------------------------------------
-### ✔ GET ALL ASSIGNMENTS
-### ----------------------------------------
-GET http://localhost:3000/api/assignment
-
-### ----------------------------------------
-### ✔ GET WITH FILTERS
-### ----------------------------------------
-GET http://localhost:3000/api/assignment?class=Grade%204%20North&subject=Mathematics&teacher=Mr.%20John%20Doe&status=assigned&page=1&limit=10
-
-### ----------------------------------------
-### ✔ SEARCH ASSIGNMENTS
-### ----------------------------------------
-GET http://localhost:3000/api/assignment?search=essay
-
-
-# POST new staff (with image)
-POST http://0.0.0.0:3001/api/staff
-Content-Type: multipart/form-data; boundary=----StaffBoundaryX
-
-------StaffBoundaryX
-Content-Disposition: form-data; name="name"
-
-Mr. Daniel Kamau
-------StaffBoundaryX
-Content-Disposition: form-data; name="role"
-
-Teacher
-------StaffBoundaryX
-Content-Disposition: form-data; name="position"
-
-Mathematics & Physics Teacher
-------StaffBoundaryX
-Content-Disposition: form-data; name="department"
-
-Sciences
-------StaffBoundaryX
-Content-Disposition: form-data; name="email"
-
-daniel.kamau@katwanyaa.ac.ke
-------StaffBoundaryX
-Content-Disposition: form-data; name="phone"
-
-+254712334455
-------StaffBoundaryX
-Content-Disposition: form-data; name="bio"
-
-A dedicated mathematics and physics teacher with 10 years of teaching experience.
-------StaffBoundaryX
-Content-Disposition: form-data; name="responsibilities"
-
-["Class teacher Form 2 North", "Science club patron", "Exam analysis coordinator"]
-------StaffBoundaryX
-Content-Disposition: form-data; name="expertise"
-
-["Mathematics", "Physics", "Exam preparation", "STEM training"]
-------StaffBoundaryX
-Content-Disposition: form-data; name="achievements"
-
-["2021 Best Teacher Award", "Improved KCSE mean score for 3 consecutive years"]
-------StaffBoundaryX
-Content-Disposition: form-data; name="image"; filename="staff1.jpg"
-Content-Type: image/jpeg
-
-< ./samples/staff1.jpg
-------StaffBoundaryX--
+#### Add Student 5 - Form 4
+POST http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "admissionNumber": "ADM/2021/001",
+  "name": "Robert Mutiso",
+  "form": "Form 4",
+  "stream": "East",
+  "gender": "Male",
+  "dateOfBirth": "2006-07-12",
+  "enrollmentDate": "2021-01-18",
+  "kcpeMarks": 375,
+  "previousSchool": "Valley Primary School",
+  "parentName": "Elizabeth Mutiso",
+  "parentEmail": "elizabeth.m@email.com",
+  "parentPhone": "+254756789012",
+  "emergencyContact": "+254754321098",
+  "address": "654 Cedar Lane, Nairobi, Kenya",
+  "medicalInfo": "None",
+  "hobbies": "Football, Athletics",
+  "academicPerformance": "Good",
+  "attendance": "92%",
+  "disciplineRecord": "Good",
+  "status": "Active"
+}
+
+#### Add Student 6 - Form 4 (Another one)
+POST http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "admissionNumber": "ADM/2021/002",
+  "name": "Susan Nyong'o",
+  "form": "Form 4",
+  "stream": "West",
+  "gender": "Female",
+  "dateOfBirth": "2006-09-25",
+  "enrollmentDate": "2021-01-18",
+  "kcpeMarks": 400,
+  "previousSchool": "Bright Stars Academy",
+  "parentName": "Thomas Nyong'o",
+  "parentEmail": "thomas.n@email.com",
+  "parentPhone": "+254767890123",
+  "emergencyContact": "+254743210987",
+  "address": "987 Maple Drive, Nairobi, Kenya",
+  "medicalInfo": "None",
+  "hobbies": "Debate, Reading",
+  "academicPerformance": "Excellent",
+  "attendance": "99%",
+  "disciplineRecord": "Excellent",
+  "status": "Active"
+}
+
+### 2. READ - Get All Students
+GET http://0.0.0.0:3001/api/student
+
+### 3. READ - Get Promotion History (All)
+GET http://0.0.0.0:3001/api/student?action=promotion-history
+
+### 4. UPDATE - Update Student Information
+PUT http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "id": 1,
+  "admissionNumber": "ADM/2024/001",
+  "name": "John Kamau Updated",
+  "form": "Form 1",
+  "stream": "East",
+  "gender": "Male",
+  "dateOfBirth": "2009-05-14",
+  "enrollmentDate": "2024-01-10",
+  "kcpeMarks": 355,
+  "previousSchool": "Sunrise Primary School",
+  "parentName": "Peter Kamau",
+  "parentEmail": "peter.kamau@email.com",
+  "parentPhone": "+254712345678",
+  "emergencyContact": "+254798765432",
+  "address": "123 Main Street, Nairobi, Kenya - UPDATED",
+  "medicalInfo": "Allergic to peanuts",
+  "hobbies": "Football, Reading, Music",
+  "academicPerformance": "Excellent",
+  "attendance": "96%",
+  "disciplineRecord": "Excellent",
+  "status": "Active"
+}
+
+### 5. PROMOTION - Promote Form 1 to Form 2
+PATCH http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "form": "Form 1",
+  "action": "promote"
+}
+
+### 6. PROMOTION - Promote Form 2 to Form 3
+PATCH http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "form": "Form 2",
+  "action": "promote"
+}
+
+### 7. PROMOTION - Promote Form 3 to Form 4
+PATCH http://0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "form": "Form 3",
+  "action": "promote"
+}
+
+### 8. GRADUATION - Graduate Form 4 Students
+PATCH http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "form": "Form 4",
+  "action": "graduate"
+}
+
+### 9. READ - Check Students After Promotion/Graduation
+GET http://0.0.0.0:3001/api/student
+
+### 10. READ - Check Promotion History After Operations
+GET http://0.0.0.0:3001/api/student?action=promotion-history
+
+### 11. READ - Get Promotion History for Specific Student
+GET http://0.0.0.0:3001/api/student?action=promotion-history&studentId=1
+
+### 12. DELETE - Delete a Student
+DELETE http://0.0.0.0:3001/api/student?id=1
+
+### 13. READ - Verify Student Deletion
+GET http://0.0.0.0:3001/api/student
+
+### 14. TEST - Add More Students for Testing Promotion System
+
+#### Add Form 1 Student for Testing
+POST http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "admissionNumber": "ADM/TEST/001",
+  "name": "Test Student One",
+  "form": "Form 1",
+  "stream": "North",
+  "gender": "Male",
+  "dateOfBirth": "2009-12-01",
+  "enrollmentDate": "2024-01-10",
+  "kcpeMarks": 340,
+  "previousSchool": "Test Primary School",
+  "parentName": "Test Parent One",
+  "parentEmail": "test.parent1@email.com",
+  "parentPhone": "+254700000001",
+  "emergencyContact": "+254711111111",
+  "address": "Test Address 1, Nairobi, Kenya",
+  "medicalInfo": "None",
+  "hobbies": "Testing, Learning",
+  "academicPerformance": "Average",
+  "attendance": "88%",
+  "disciplineRecord": "Good",
+  "status": "Active"
+}
+
+#### Add Form 2 Student for Testing
+POST http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "admissionNumber": "ADM/TEST/002",
+  "name": "Test Student Two",
+  "form": "Form 2",
+  "stream": "South",
+  "gender": "Female",
+  "dateOfBirth": "2008-06-15",
+  "enrollmentDate": "2023-01-15",
+  "kcpeMarks": 360,
+  "previousSchool": "Test Academy",
+  "parentName": "Test Parent Two",
+  "parentEmail": "test.parent2@email.com",
+  "parentPhone": "+254700000002",
+  "emergencyContact": "+254722222222",
+  "address": "Test Address 2, Nairobi, Kenya",
+  "medicalInfo": "Asthma",
+  "hobbies": "Reading, Writing",
+  "academicPerformance": "Good",
+  "attendance": "94%",
+  "disciplineRecord": "Excellent",
+  "status": "Active"
+}
+
+### 15. TEST - Test Direct Graduation Without Promotion
+PATCH http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "form": "Form 4",
+  "action": "graduate"
+}
+
+### 16. TEST - Test Error Cases
+
+#### Try to Promote Invalid Form
+PATCH http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "form": "Form 5",
+  "action": "promote"
+}
+
+#### Try to Graduate Empty Class
+PATCH http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "form": "Form 5",
+  "action": "graduate"
+}
+
+#### Try Invalid Action
+PATCH http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "form": "Form 1",
+  "action": "invalid_action"
+}
+
+### 17. READ - Final Check of All Data
+GET http://0.0.0.0:3001/api/student
+
+### 18. READ - Final Promotion History
+GET http://0.0.0.0:3001/api/student?action=promotion-history
+
+### 19. TEST - Create Student with Minimal Data
+POST http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "admissionNumber": "ADM/MIN/001",
+  "name": "Minimal Student",
+  "form": "Form 1",
+  "stream": "East",
+  "gender": "Male",
+  "dateOfBirth": "2009-01-01",
+  "enrollmentDate": "2024-01-01",
+  "parentName": "Minimal Parent",
+  "parentPhone": "+254700000000",
+  "emergencyContact": "+254711111111",
+  "address": "Minimal Address",
+  "academicPerformance": "Average",
+  "attendance": "95%",
+  "disciplineRecord": "Good",
+  "status": "Active"
+}
+
+### 20. TEST - Update Student Status Only
+PUT http://0.0.0.0:3001/api/student/2
+Content-Type: application/json
+
+{
+  "id": 2,
+  "admissionNumber": "ADM/2024/002",
+  "name": "Mary Wanjiku",
+  "form": "Form 1",
+  "stream": "West",
+  "gender": "Female",
+  "dateOfBirth": "2009-08-22",
+  "enrollmentDate": "2024-01-10",
+  "kcpeMarks": 380,
+  "previousSchool": "Greenhill Academy",
+  "parentName": "James Wanjiku",
+  "parentEmail": "james.w@email.com",
+  "parentPhone": "+254723456789",
+  "emergencyContact": "+254787654321",
+  "address": "456 Oak Avenue, Nairobi, Kenya",
+  "medicalInfo": "Asthmatic",
+  "hobbies": "Music, Swimming",
+  "academicPerformance": "Excellent",
+  "attendance": "98%",
+  "disciplineRecord": "Excellent",
+  "status": "Inactive"
+}

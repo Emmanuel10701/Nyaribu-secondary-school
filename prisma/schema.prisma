@@ -203,6 +203,7 @@ enum Department {
   OTHER
 }
 
+
 model Student {
   id                  Int      @id @default(autoincrement())
   admissionNumber     String   @unique
@@ -227,6 +228,23 @@ model Student {
   status              String   @default("Active")
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+
+  promotionHistory PromotionHistory[]
+}
+
+model PromotionHistory {
+  id          Int      @id @default(autoincrement())
+  studentId   Int
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  fromForm    String
+  toForm      String
+  fromStream  String
+  toStream    String
+  promotedAt  DateTime @default(now())
+  promotedBy  String   @default("System")
+
+  @@index([studentId])
+  @@index([promotedAt])
 }
 
 model SchoolInfo {

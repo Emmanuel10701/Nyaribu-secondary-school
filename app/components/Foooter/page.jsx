@@ -427,23 +427,7 @@ export default function ModernFooter() {
               📞 Contact Information
             </button>
           </nav>
-          
-          {/* Quick Actions */}
-          <div className="mt-8 p-4 bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600">
-            <h4 className="font-semibold text-sm mb-3 text-gray-800 dark:text-white">Quick Actions</h4>
-            <div className="space-y-2">
-              <button className="w-full text-left p-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">
-                Download PDF Version
-              </button>
-              <button className="w-full text-left p-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">
-                Print Policy
-              </button>
-              <button className="w-full text-left p-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">
-                Share Policy
-              </button>
             </div>
-          </div>
-        </div>
 
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto p-6 lg:p-8">
