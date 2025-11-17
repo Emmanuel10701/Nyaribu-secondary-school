@@ -67,8 +67,8 @@ export const generateToken = (user) => {
       email: user.email,
       name: user.name,
       role: user.role,
-      iss: 'tokatwanyaa-highschool',
-      aud: 'tokatwanyaa-highschool-app',
+      iss: 'katwanyaa-highschool',
+      aud: 'katwanyaa-highschool-app',
       iat: Math.floor(Date.now() / 1000),
     };
 

@@ -56,6 +56,11 @@ export default function StudentManager() {
 const [graduatedStudents, setGraduatedStudents] = useState([]);
 const [graduationYearFilter, setGraduationYearFilter] = useState('all');
 const [graduatedClassFilter, setGraduatedClassFilter] = useState('all');
+
+const [showGraduationModal, setShowGraduationModal] = useState(false);
+const [selectedGraduatedStudent, setSelectedGraduatedStudent] = useState(null);
+const [showGraduatedDetailsModal, setShowGraduatedDetailsModal] = useState(false);
+const [repeatForm, setRepeatForm] = useState('Form 4');
   
   const [formData, setFormData] = useState({
     admissionNumber: '',
@@ -88,6 +93,58 @@ const [graduatedClassFilter, setGraduatedClassFilter] = useState('all');
   const statusOptions = ['Active', 'Inactive', 'Graduated', 'Transferred'];
   const attendanceOptions = ['95%', '90%', '85%', '80%', '75%', '70%'];
 
+
+
+  const graduationYears = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i);
+
+
+  const fetchGraduatedStudents = async () => {
+  try {
+    const response = await fetch('/api/student');
+    const result = await response.json();
+    
+    if (result.success) {
+      const graduated = result.students.filter(student => 
+        student.status === 'Graduated' && student.form === 'Form 4'
+      );
+      setGraduatedStudents(graduated);
+    }
+  } catch (error) {
+    console.error('Error fetching graduated students:', error);
+  }
+};
+
+const handleRepeatStudent = async (student) => {
+  if (confirm(`Are you sure you want to move ${student.name} back to ${repeatForm}?`)) {
+    try {
+      const response = await fetch(`/api/student/${student.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          form: repeatForm,
+          stream: student.stream,
+          status: 'Active'
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        await fetchGraduatedStudents();
+        await fetchStudents();
+        setShowGraduatedDetailsModal(false);
+        toast.success(`${student.name} moved to ${repeatForm} successfully`);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error updating student:', error);
+      toast.error('Failed to update student');
+    }
+  }
+};
 
 
   // Export graduated students to CSV
@@ -172,7 +229,6 @@ const exportGraduatedToCSV = () => {
     } catch (error) {
       console.error('Error fetching students:', error);
       toast.error('Failed to load students. Using sample data.');
-      generateSampleData();
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -212,41 +268,7 @@ useEffect(() => {
     }
   };
 
-  // Generate sample data as fallback
-  const generateSampleData = () => {
-    const sampleStudents = Array.from({ length: 45 }, (_, i) => {
-      const form = forms[i % 4];
-      const stream = streams[i % 4];
-      const gender = i % 2 === 0 ? 'Male' : 'Female';
-      
-      return {
-        id: i + 1,
-        admissionNumber: `KHS2024${String(i + 1).padStart(3, '0')}`,
-        name: `Student ${i + 1}`,
-        form,
-        stream,
-        gender,
-        parentName: `Parent ${i + 1}`,
-        parentEmail: `parent${i + 1}@email.com`,
-        parentPhone: `+2547${Math.floor(Math.random() * 90000000 + 10000000)}`,
-        address: `Address ${i + 1}, Nairobi, Kenya`,
-        dateOfBirth: `200${7 + (i % 4)}-${String((i % 12) + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}`,
-        enrollmentDate: `2024-01-${String((i % 28) + 1).padStart(2, '0')}`,
-        kcpeMarks: Math.floor(Math.random() * 100) + 250,
-        previousSchool: `Primary School ${i + 1}`,
-        hobbies: ['Football', 'Music', 'Reading', 'Dancing'][i % 4],
-        academicPerformance: academicLevels[i % 4],
-        attendance: `${Math.floor(Math.random() * 10) + 90}%`,
-        disciplineRecord: disciplineRecords[i % 4],
-        status: 'Active',
-        emergencyContact: `+2547${Math.floor(Math.random() * 90000000 + 10000000)}`,
-        medicalInfo: i % 5 === 0 ? 'Asthma' : i % 7 === 0 ? 'Allergies' : 'None',
-      };
-    });
-    
-    setStudents(sampleStudents);
-    setFilteredStudents(sampleStudents);
-  };
+
 
   useEffect(() => {
     fetchStudents();
@@ -839,31 +861,45 @@ const getStudentsByForm = (form) => {
             <FiDownload className="text-lg" />
             Export CSV
           </motion.button>
+
+           <motion.button
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={() => {
+        setShowGraduationModal(true);
+        fetchGraduatedStudents();
+      }}
+      className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-4 py-3 rounded-xl font-semibold flex items-center gap-2 justify-center transition-all duration-300"
+    >
+      <FiAward className="text-lg" />
+      Export Graduated
+    </motion.button>
         </div>
 
-        {/* Additional Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 mt-4">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => handleViewHistory()}
-            className="bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all duration-300"
-          >
-            < FiMapPin  className="text-sm" />
-            View Promotion History
-          </motion.button>
-        </div>
+     {/* Additional Actions */}
+<div className="flex flex-col sm:flex-row md:gap-[35%] gap-5 mt-4">
+  <motion.button
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    onClick={() => handleViewHistory()}
+    className="bg-gradient-to-r from-gray-500 to-gray-700  hover:from-gray-600 hover:to-gray-800 text-white px-4 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all duration-300 justify-center flex-1 min-w-0"
+  >
+    <FiMapPin className="text-sm flex-shrink-0" />
+    <span className="truncate"> Promotion History</span>
+  </motion.button>
+  
+  <motion.button
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    onClick={() => setShowGraduatedModal(true)}
+    className="bg-gradient-to-r from-purple-500  to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-4 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all duration-300 justify-center flex-1 min-w-0"
+  >
+    <FiAward className="text-sm flex-shrink-0" />
+    <span className="truncate"> Graduated Students</span>
+  </motion.button>
+</div>
       </div>
 
-<motion.button
-  whileHover={{ scale: 1.02 }}
-  whileTap={{ scale: 0.98 }}
-  onClick={() => setShowGraduatedModal(true)}
-  className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all duration-300"
->
-  <FiAward className="text-sm" />
-  View Graduated Students
-</motion.button>
 
       {/* Students Table */}
       {loading ? (
@@ -1571,7 +1607,8 @@ const getStudentsByForm = (form) => {
         )}
       </AnimatePresence>
 
-      {/* Graduated Students Modal */}
+
+{/* Graduated Students Modal */}
 <AnimatePresence>
   {showGraduatedModal && (
     <motion.div
@@ -1601,8 +1638,8 @@ const getStudentsByForm = (form) => {
         </div>
 
         <div className="p-6">
-          {/* Filters for Graduated Students */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Filters and Export Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Graduation Year
@@ -1613,24 +1650,25 @@ const getStudentsByForm = (form) => {
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">All Years</option>
-                <option value="2023">2023</option>
-                <option value="2022">2022</option>
-                <option value="2021">2021</option>
-                <option value="2020">2020</option>
+                {graduationYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Final Class
+                Stream
               </label>
               <select
-                value={graduatedClassFilter}
-                onChange={(e) => setGraduatedClassFilter(e.target.value)}
+                value={selectedStream}
+                onChange={(e) => setSelectedStream(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="all">All Classes</option>
-                <option value="Form 4">Form 4</option>
+                <option value="all">All Streams</option>
+                {streams.map(stream => (
+                  <option key={stream} value={stream}>{stream}</option>
+                ))}
               </select>
             </div>
 
@@ -1642,7 +1680,7 @@ const getStudentsByForm = (form) => {
                 className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 w-full justify-center"
               >
                 <FiDownload className="text-lg" />
-                Export Graduated
+                Export CSV
               </motion.button>
             </div>
           </div>
@@ -1655,7 +1693,7 @@ const getStudentsByForm = (form) => {
                   <tr className="bg-gray-50 border-b border-gray-200">
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Student</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Admission</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Final Class</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Stream Graduated With</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Graduation Year</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">KCPE Marks</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Performance</th>
@@ -1665,14 +1703,18 @@ const getStudentsByForm = (form) => {
                   {graduatedStudents
                     .filter(student => 
                       (graduationYearFilter === 'all' || student.graduationYear === graduationYearFilter) &&
-                      (graduatedClassFilter === 'all' || student.finalClass === graduatedClassFilter)
+                      (selectedStream === 'all' || student.stream === selectedStream)
                     )
                     .map((student) => (
                     <motion.tr
                       key={student.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="hover:bg-gray-50 transition-colors"
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => {
+                        setSelectedGraduatedStudent(student);
+                        setShowGraduatedDetailsModal(true);
+                      }}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -1689,8 +1731,7 @@ const getStudentsByForm = (form) => {
                         <div className="text-sm font-mono text-gray-900">{student.admissionNumber}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">{student.finalClass}</div>
-                        <div className="text-sm text-gray-500">{student.stream} Stream</div>
+                        <div className="text-sm font-semibold text-gray-900">{student.stream} Stream</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-semibold text-gray-900">{student.graduationYear}</div>
@@ -1714,6 +1755,243 @@ const getStudentsByForm = (form) => {
                 <p className="text-gray-400 text-sm mt-2">Graduated students will appear here</p>
               </div>
             )}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
+{/* Graduated Student Details Modal */}
+<AnimatePresence>
+  {showGraduatedDetailsModal && selectedGraduatedStudent && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={() => setShowGraduatedDetailsModal(false)}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-800">Graduated Student Details</h2>
+            <button
+              onClick={() => setShowGraduatedDetailsModal(false)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <FiX className="text-xl text-gray-600" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {/* Header Section */}
+          <div className="flex flex-col lg:flex-row gap-6 mb-8">
+            <div className="flex-shrink-0">
+              <div className="w-24 h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+                {selectedGraduatedStudent.name.charAt(0)}
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">{selectedGraduatedStudent.name}</h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                <StatusBadge status={selectedGraduatedStudent.status} />
+                <PerformanceBadge level={selectedGraduatedStudent.academicPerformance} />
+                <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-semibold">
+                  Graduated {selectedGraduatedStudent.graduationYear}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-600">Admission</p>
+                  <p className="font-semibold text-gray-800">{selectedGraduatedStudent.admissionNumber}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Stream</p>
+                  <p className="font-semibold text-gray-800">{selectedGraduatedStudent.stream}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Gender</p>
+                  <p className="font-semibold text-gray-800">{selectedGraduatedStudent.gender}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">KCPE Marks</p>
+                  <p className="font-semibold text-gray-800">{selectedGraduatedStudent.kcpeMarks || 'N/A'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detailed Information Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Column */}
+            <div className="space-y-6">
+              {/* Personal Information */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <FiUser className="text-purple-500" />
+                  Personal Information
+                </h4>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Date of Birth:</span>
+                    <span className="font-medium text-gray-800">
+                      {new Date(selectedGraduatedStudent.dateOfBirth).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Enrollment Date:</span>
+                    <span className="font-medium text-gray-800">
+                      {new Date(selectedGraduatedStudent.enrollmentDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Previous School:</span>
+                    <span className="font-medium text-gray-800">
+                      {selectedGraduatedStudent.previousSchool || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Hobbies & Interests:</span>
+                    <span className="font-medium text-gray-800 text-right">
+                      {selectedGraduatedStudent.hobbies || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Academic Information */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <FiAward className="text-purple-500" />
+                  Academic Information
+                </h4>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Academic Performance:</span>
+                    <PerformanceBadge level={selectedGraduatedStudent.academicPerformance} />
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Attendance Record:</span>
+                    <span className="font-medium text-gray-800">{selectedGraduatedStudent.attendance}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Discipline Record:</span>
+                    <span className="font-medium text-gray-800">{selectedGraduatedStudent.disciplineRecord}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">KCPE Marks:</span>
+                    <span className="font-medium text-gray-800">{selectedGraduatedStudent.kcpeMarks || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-6">
+              {/* Parent/Guardian Information */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <FiUsers className="text-purple-500" />
+                  Parent/Guardian Information
+                </h4>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Parent Name:</span>
+                    <span className="font-medium text-gray-800">{selectedGraduatedStudent.parentName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Parent Email:</span>
+                    <span className="font-medium text-gray-800">{selectedGraduatedStudent.parentEmail || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Parent Phone:</span>
+                    <span className="font-medium text-gray-800">{selectedGraduatedStudent.parentPhone}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Emergency Contact:</span>
+                    <span className="font-medium text-gray-800">{selectedGraduatedStudent.emergencyContact}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact & Medical Information */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <FiMapPin className="text-purple-500" />
+                  Contact & Medical Information
+                </h4>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <p className="text-gray-600 mb-1">Address:</p>
+                    <p className="font-medium text-gray-800">{selectedGraduatedStudent.address}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600 mb-1">Medical Information:</p>
+                    <p className="font-medium text-gray-800">
+                      {selectedGraduatedStudent.medicalInfo || 'No medical conditions reported'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Move Student Back Section */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <FiRefreshCcw className="text-yellow-600" />
+                  Move Student Back to School
+                </h4>
+                <p className="text-sm text-gray-600 mb-4">
+                  This will move the student back to active status in the selected form.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <select
+                    value={repeatForm}
+                    onChange={(e) => setRepeatForm(e.target.value)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="Form 4">Form 4</option>
+                    <option value="Form 3">Form 3</option>
+                    <option value="Form 2">Form 2</option>
+                    <option value="Form 1">Form 1</option>
+                  </select>
+                  <button
+                    onClick={() => handleRepeatStudent(selectedGraduatedStudent)}
+                    className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2 whitespace-nowrap"
+                  >
+                    <FiRefreshCcw className="text-lg" />
+                    Move to {repeatForm}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-4 pt-8 mt-8 border-t border-gray-200">
+            <button
+              onClick={() => {
+                setShowGraduatedDetailsModal(false);
+                handleEdit(selectedGraduatedStudent);
+              }}
+              className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+            >
+              <FiEdit className="text-lg" />
+              Edit Student
+            </button>
+            <button
+              onClick={() => setShowGraduatedDetailsModal(false)}
+              className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors"
+            >
+              Close Details
+            </button>
           </div>
         </div>
       </motion.div>
