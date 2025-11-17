@@ -63,6 +63,10 @@ const StudentCouncil = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
 
+const [selectedForm, setSelectedForm] = useState('all');
+const [selectedStream, setSelectedStream] = useState('all');
+const [filteredStudents, setFilteredStudents] = useState([]);
+
   // Council positions with proper hierarchy
   const councilPositions = [
     // Presidency
@@ -171,17 +175,21 @@ const fetchCouncilMembers = async () => {
 const searchStudents = async (term) => {
   if (!term.trim()) {
     setStudents([]);
+    setFilteredStudents([]);
     return;
   }
 
   try {
     setSearchLoading(true);
-    // CHANGE THIS LINE:
     const response = await fetch(`/api/student?action=search-students&search=${encodeURIComponent(term)}`);
     const result = await response.json();
 
     if (result.success) {
       setStudents(result.students);
+      setFilteredStudents(result.students);
+      // Reset filters when new search is performed
+      setSelectedForm('all');
+      setSelectedStream('all');
     }
   } catch (error) {
     console.error('Error searching students:', error);
@@ -189,7 +197,7 @@ const searchStudents = async (term) => {
   } finally {
     setSearchLoading(false);
   }
-};;
+};
 
   useEffect(() => {
     fetchCouncilMembers();
@@ -220,6 +228,34 @@ const searchStudents = async (term) => {
     setFilteredMembers(filtered);
     setCurrentPage(1);
   }, [selectedDepartment, selectedStatus, councilMembers]);
+
+
+// Filter students based on search term, form, and stream
+useEffect(() => {
+  let filtered = students;
+
+  // Filter by search term
+  if (searchTerm) {
+    filtered = filtered.filter(student =>
+      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.admissionNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.form.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.stream.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+
+  // Filter by form
+  if (selectedForm !== 'all') {
+    filtered = filtered.filter(student => student.form === selectedForm);
+  }
+
+  // Filter by stream
+  if (selectedStream !== 'all') {
+    filtered = filtered.filter(student => student.stream === selectedStream);
+  }
+
+  setFilteredStudents(filtered);
+}, [students, searchTerm, selectedForm, selectedStream]);
 
   // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -818,91 +854,128 @@ const handleSubmit = async (e) => {
           <Pagination />
         </div>
       )}
-
-      {/* Student Search Modal */}
-      <AnimatePresence>
-        {showStudentSearch && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-            onClick={() => setShowStudentSearch(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
+{/* Student Search Modal */}
+<AnimatePresence>
+  {showStudentSearch && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={() => setShowStudentSearch(false)}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-800">Select Student for Council</h2>
+            <button
+              onClick={() => setShowStudentSearch(false)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-800">Select Student for Council</h2>
-                  <button
-                    onClick={() => setShowStudentSearch(false)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <FiX className="text-xl text-gray-600" />
-                  </button>
-                </div>
-              </div>
+              <FiX className="text-xl text-gray-600" />
+            </button>
+          </div>
+        </div>
 
-              <div className="p-6">
-                <div className="relative mb-6">
-                  <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search students by name, admission number, form, or stream..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
+        <div className="p-6">
+          <div className="relative mb-4">
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search students by name, admission number, form, or stream..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
+          </div>
 
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {searchLoading ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
-                      <p className="text-gray-500 mt-2">Searching students...</p>
-                    </div>
-                  ) : students.length > 0 ? (
-                    students.map((student) => (
-                      <motion.div
-                        key={student.id}
-                        whileHover={{ scale: 1.02 }}
-                        className="flex items-center gap-4 p-4 border border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all"
-                        onClick={() => handleStudentSelect(student)}
-                      >
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold">
-                          {student.name.charAt(0)}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-800">{student.name}</h3>
-                          <p className="text-sm text-gray-600">{student.admissionNumber}</p>
-                          <p className="text-sm text-gray-500">{student.form} {student.stream} • {student.gender}</p>
-                          <p className="text-xs text-gray-400 mt-1">Performance: {student.academicPerformance}</p>
-                        </div>
-                        <FiCheck className="text-green-500 text-xl" />
-                      </motion.div>
-                    ))
-                  ) : searchTerm ? (
-                    <div className="text-center py-8">
-                      <FiUser className="mx-auto text-4xl text-gray-400 mb-4" />
-                      <p className="text-gray-500">No students found matching "{searchTerm}"</p>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <FiSearch className="mx-auto text-4xl text-gray-400 mb-4" />
-                      <p className="text-gray-500">Search for students to add to council</p>
-                    </div>
-                  )}
-                </div>
+          {/* Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Filter by Form
+              </label>
+              <select
+                value={selectedForm}
+                onChange={(e) => setSelectedForm(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              >
+                <option value="all">All Forms</option>
+                <option value="Form 1">Form 1</option>
+                <option value="Form 2">Form 2</option>
+                <option value="Form 3">Form 3</option>
+                <option value="Form 4">Form 4</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Filter by Stream
+              </label>
+              <select
+                value={selectedStream}
+                onChange={(e) => setSelectedStream(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              >
+                <option value="all">All Streams</option>
+                <option value="East">East</option>
+                <option value="West">West</option>
+                <option value="North">North</option>
+                <option value="South">South</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {searchLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                <p className="text-gray-500 mt-2">Searching students...</p>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            ) : filteredStudents.length > 0 ? (
+              filteredStudents.map((student) => (
+                <motion.div
+                  key={student.id}
+                  whileHover={{ scale: 1.02 }}
+                  className="flex items-center gap-4 p-4 border border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all"
+                  onClick={() => handleStudentSelect(student)}
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold">
+                    {student.name.charAt(0)}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-800">{student.name}</h3>
+                    <p className="text-sm text-gray-600">{student.admissionNumber}</p>
+                    <p className="text-sm text-gray-500">{student.form} {student.stream} • {student.gender}</p>
+                    <p className="text-xs text-gray-400 mt-1">Performance: {student.academicPerformance}</p>
+                  </div>
+                  <FiCheck className="text-green-500 text-xl" />
+                </motion.div>
+              ))
+            ) : searchTerm || selectedForm !== 'all' || selectedStream !== 'all' ? (
+              <div className="text-center py-8">
+                <FiUser className="mx-auto text-4xl text-gray-400 mb-4" />
+                <p className="text-gray-500">No students found matching your criteria</p>
+                <p className="text-sm text-gray-400 mt-1">Try adjusting your search or filters</p>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <FiSearch className="mx-auto text-4xl text-gray-400 mb-4" />
+                <p className="text-gray-500">Search for students to add to council</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
 
       {/* Council Member Detail Modal */}
       <AnimatePresence>
