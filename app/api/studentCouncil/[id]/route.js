@@ -10,6 +10,34 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// Helper function to map string positions to CouncilPosition enum
+const mapPositionToEnum = (position) => {
+  const positionMap = {
+    'President': 'President',
+    'DeputyPresident': 'DeputyPresident',
+    'SchoolCaptain': 'SchoolCaptain',
+    'DeputyCaptain': 'DeputyCaptain',
+    'AcademicsSecretary': 'AcademicsSecretary',
+    'SportsSecretary': 'SportsSecretary',
+    'EntertainmentSecretary': 'EntertainmentSecretary',
+    'CleaningSecretary': 'CleaningSecretary',
+    'MealsSecretary': 'MealsSecretary',
+    'BellRinger': 'BellRinger',
+    'DisciplineSecretary': 'DisciplineSecretary',
+    'HealthSecretary': 'HealthSecretary',
+    'LibrarySecretary': 'LibrarySecretary',
+    'TransportSecretary': 'TransportSecretary',
+    'EnvironmentSecretary': 'EnvironmentSecretary',
+    'SpiritualSecretary': 'SpiritualSecretary',
+    'TechnologySecretary': 'TechnologySecretary',
+    'Assistant': 'Assistant',
+    'ClassRepresentative': 'ClassRepresentative',
+    'ClassAssistant': 'ClassAssistant'
+  };
+  
+  return positionMap[position];
+};
+
 // GET single council member
 export async function GET(req, { params }) {
   const { id } = params;
@@ -70,6 +98,17 @@ export async function PUT(req, { params }) {
     const status = formData.get('status');
     const imageFile = formData.get('image');
     const removeImage = formData.get('removeImage');
+    const form = formData.get('form');
+    const stream = formData.get('stream');
+
+    // Map position to enum
+    const mappedPosition = mapPositionToEnum(position);
+    if (!mappedPosition) {
+      return NextResponse.json(
+        { success: false, error: "Invalid position" },
+        { status: 400 }
+      );
+    }
 
     // Check if council member exists
     const existingMember = await prisma.studentCouncil.findUnique({
@@ -84,20 +123,43 @@ export async function PUT(req, { params }) {
       );
     }
 
-    // If changing position/department, check for conflicts
-    if (position !== existingMember.position || department !== existingMember.department) {
+    // Department is required for non-class roles
+    if (!['ClassRepresentative', 'ClassAssistant'].includes(mappedPosition) && !department) {
+      return NextResponse.json(
+        { success: false, error: "Department is required for this position" },
+        { status: 400 }
+      );
+    }
+
+    // Form and stream are required for class roles
+    if (['ClassRepresentative', 'ClassAssistant'].includes(mappedPosition) && (!form || !stream)) {
+      return NextResponse.json(
+        { success: false, error: "Form and stream are required for class roles" },
+        { status: 400 }
+      );
+    }
+
+    // If changing position/department/form/stream, check for conflicts
+    if (mappedPosition !== existingMember.position || 
+        department !== existingMember.department ||
+        form !== existingMember.form || 
+        stream !== existingMember.stream) {
+      
       const conflict = await prisma.studentCouncil.findFirst({
         where: {
-          position,
-          department,
+          position: mappedPosition,
+          department: department || null,
+          form: form || null,
+          stream: stream || null,
           status: 'Active',
           id: { not: id }
         }
       });
 
       if (conflict) {
+        const location = department ? `${department} department` : `${form} ${stream}`;
         return NextResponse.json(
-          { success: false, error: `${position} position in ${department} is already occupied` },
+          { success: false, error: `${position} position in ${location} is already occupied` },
           { status: 400 }
         );
       }
@@ -157,8 +219,10 @@ export async function PUT(req, { params }) {
     const updatedMember = await prisma.studentCouncil.update({
       where: { id },
       data: {
-        position,
-        department,
+        position: mappedPosition,
+        department: department || null,
+        form: form || null,
+        stream: stream || null,
         startDate: new Date(startDate),
         endDate: endDate ? new Date(endDate) : null,
         responsibilities,

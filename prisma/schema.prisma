@@ -229,6 +229,9 @@ model Student {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   councilPositions StudentCouncil[]   @relation("StudentToStudentCouncil")
+  isClassPrefect      Boolean        @default(false)
+  isClassAssistant    Boolean        @default(false)
+  isBellRinger        Boolean        @default(false)
 
   promotionHistory PromotionHistory[]
 }
@@ -240,19 +243,21 @@ model Student {
 model StudentCouncil {
   id                String           @id @default(cuid())
   position          CouncilPosition
-  department        CouncilDepartment
+  department        CouncilDepartment?
   studentId         Int
   student           Student          @relation(name: "StudentToStudentCouncil", fields: [studentId], references: [id], onDelete: Cascade)
+  form              String?          // Add for class-specific roles
+  stream            String?          // Add for class-specific roles
   startDate         DateTime
   endDate           DateTime?
   status            CouncilStatus    @default(Active)
-  image             String?          // Add image field for council member photos
+  image             String?
   achievements      String?
   responsibilities  String
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
-  @@unique([studentId, position, department])
+  @@unique([studentId, position, department, form, stream])
   @@map("student_councils")
 }
 
@@ -263,6 +268,9 @@ enum CouncilStatus {
   Inactive
   Graduated
 }
+
+
+
 
 enum CouncilPosition {
   President
@@ -283,8 +291,9 @@ enum CouncilPosition {
   SpiritualSecretary
   TechnologySecretary
   Assistant
+  ClassRepresentative  // For class reps
+  ClassAssistant       // For class assistants
 }
-
 enum CouncilDepartment {
   Presidency
   Academics

@@ -207,16 +207,18 @@ export async function DELETE(req) {
 }
 
 // 🔹 PATCH promote/graduate class
+// 🔹 PATCH promote/graduate class
 export async function PATCH(req) {
   try {
     const data = await req.json();
     const { form, action } = data;
 
     if (action === 'graduate') {
+      // Graduate both Active and Transferred students
       const updatedStudents = await prisma.student.updateMany({
         where: { 
           form: form,
-          status: { not: "Graduated" }
+          status: { in: ["Active", "Transferred"] } // Include both statuses
         },
         data: {
           status: "Graduated"
@@ -272,24 +274,25 @@ export async function PATCH(req) {
       }
 
       if (nextForm === 'Graduated') {
+        // For graduation, include both Active and Transferred students
         const studentsToUpdate = await prisma.student.findMany({
           where: { 
             form: form,
-            status: { not: "Graduated" }
+            status: { in: ["Active", "Transferred"] } // Include both
           }
         });
 
         if (studentsToUpdate.length === 0) {
           return NextResponse.json({ 
             success: false, 
-            error: `No active students found in ${form} to graduate` 
+            error: `No students found in ${form} to graduate` 
           }, { status: 400 });
         }
 
         const updateResult = await prisma.student.updateMany({
           where: { 
             form: form,
-            status: { not: "Graduated" }
+            status: { in: ["Active", "Transferred"] }
           },
           data: {
             status: "Graduated"
@@ -317,24 +320,25 @@ export async function PATCH(req) {
           count: updateResult.count
         });
       } else {
+        // For promotion, include both Active and Transferred students
         const studentsToUpdate = await prisma.student.findMany({
           where: { 
             form: form,
-            status: "Active"
+            status: { in: ["Active", "Transferred"] } // Include both
           }
         });
 
         if (studentsToUpdate.length === 0) {
           return NextResponse.json({ 
             success: false, 
-            error: `No active students found in ${form} to promote` 
+            error: `No students found in ${form} to promote` 
           }, { status: 400 });
         }
 
         const updateResult = await prisma.student.updateMany({
           where: { 
             form: form,
-            status: "Active"
+            status: { in: ["Active", "Transferred"] }
           },
           data: {
             form: nextForm

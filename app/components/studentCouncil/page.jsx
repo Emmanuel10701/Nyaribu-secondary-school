@@ -67,88 +67,98 @@ const [selectedForm, setSelectedForm] = useState('all');
 const [selectedStream, setSelectedStream] = useState('all');
 const [filteredStudents, setFilteredStudents] = useState([]);
 
-  // Council positions with proper hierarchy
-  const councilPositions = [
-    // Presidency
-    { value: 'President', label: 'President of the School', department: 'Presidency', level: 1 },
-    { value: 'DeputyPresident', label: 'Deputy President', department: 'Presidency', level: 2 },
-    
-    // School Leadership
-    { value: 'SchoolCaptain', label: 'School Captain', department: 'General', level: 1 },
-    { value: 'DeputyCaptain', label: 'Deputy Captain', department: 'General', level: 2 },
-    
-    // Academic Department
-    { value: 'AcademicsSecretary', label: 'Academics Secretary', department: 'Academics', level: 1 },
-    { value: 'Assistant', label: 'Academic Assistant', department: 'Academics', level: 2 },
-    
-    // Sports Department
-    { value: 'SportsSecretary', label: 'Sports Secretary', department: 'Sports', level: 1 },
-    { value: 'Assistant', label: 'Sports Assistant', department: 'Sports', level: 2 },
-    
-    // Entertainment Department
-    { value: 'EntertainmentSecretary', label: 'Entertainment Secretary', department: 'Entertainment', level: 1 },
-    { value: 'Assistant', label: 'Entertainment Assistant', department: 'Entertainment', level: 2 },
-    
-    // Cleaning Department
-    { value: 'CleaningSecretary', label: 'Cleaning Secretary', department: 'Cleaning', level: 1 },
-    { value: 'Assistant', label: 'Cleaning Assistant', department: 'Cleaning', level: 2 },
-    
-    // Meals Department
-    { value: 'MealsSecretary', label: 'Meals Secretary', department: 'Meals', level: 1 },
-    { value: 'Assistant', label: 'Meals Assistant', department: 'Meals', level: 2 },
-    
-    // Discipline Department
-    { value: 'DisciplineSecretary', label: 'Discipline Secretary', department: 'Discipline', level: 1 },
-    { value: 'Assistant', label: 'Discipline Assistant', department: 'Discipline', level: 2 },
-    
-    // Health Department
-    { value: 'HealthSecretary', label: 'Health Secretary', department: 'Health', level: 1 },
-    { value: 'Assistant', label: 'Health Assistant', department: 'Health', level: 2 },
-    
-    // Library Department
-    { value: 'LibrarySecretary', label: 'Library Secretary', department: 'Library', level: 1 },
-    { value: 'Assistant', label: 'Library Assistant', department: 'Library', level: 2 },
-    
-    // Other Departments
-    { value: 'BellRinger', label: 'Bell Ringer', department: 'General', level: 3 },
-    { value: 'TransportSecretary', label: 'Transport Secretary', department: 'Transport', level: 1 },
-    { value: 'EnvironmentSecretary', label: 'Environment Secretary', department: 'Environment', level: 1 },
-    { value: 'SpiritualSecretary', label: 'Spiritual Secretary', department: 'Spiritual', level: 1 },
-    { value: 'TechnologySecretary', label: 'Technology Secretary', department: 'Technology', level: 1 },
-  ];
+// Replace the existing councilPositions array with this updated version:
+const councilPositions = [
+  // Presidency
+  { value: 'President', label: 'President of the School', department: 'Presidency', level: 1 },
+  { value: 'DeputyPresident', label: 'Deputy President', department: 'Presidency', level: 2 },
+  
+  // School Leadership
+  { value: 'SchoolCaptain', label: 'School Captain', department: 'General', level: 1 },
+  { value: 'DeputyCaptain', label: 'Deputy Captain', department: 'General', level: 2 },
+  
+  // Academic Department
+  { value: 'AcademicsSecretary', label: 'Academics Secretary', department: 'Academics', level: 1 },
+  { value: 'Assistant', label: 'Academic Assistant', department: 'Academics', level: 2 },
+  
+  // Sports Department
+  { value: 'SportsSecretary', label: 'Sports Secretary', department: 'Sports', level: 1 },
+  { value: 'Assistant', label: 'Sports Assistant', department: 'Sports', level: 2 },
+  
+  // Entertainment Department
+  { value: 'EntertainmentSecretary', label: 'Entertainment Secretary', department: 'Entertainment', level: 1 },
+  { value: 'Assistant', label: 'Entertainment Assistant', department: 'Entertainment', level: 2 },
+  
+  // Cleaning Department
+  { value: 'CleaningSecretary', label: 'Cleaning Secretary', department: 'Cleaning', level: 1 },
+  { value: 'Assistant', label: 'Cleaning Assistant', department: 'Cleaning', level: 2 },
+  
+  // Meals Department
+  { value: 'MealsSecretary', label: 'Meals Secretary', department: 'Meals', level: 1 },
+  { value: 'Assistant', label: 'Meals Assistant', department: 'Meals', level: 2 },
+  
+  // Discipline Department
+  { value: 'DisciplineSecretary', label: 'Discipline Secretary', department: 'Discipline', level: 1 },
+  { value: 'Assistant', label: 'Discipline Assistant', department: 'Discipline', level: 2 },
+  
+  // Health Department
+  { value: 'HealthSecretary', label: 'Health Secretary', department: 'Health', level: 1 },
+  { value: 'Assistant', label: 'Health Assistant', department: 'Health', level: 2 },
+  
+  // Library Department
+  { value: 'LibrarySecretary', label: 'Library Secretary', department: 'Library', level: 1 },
+  { value: 'Assistant', label: 'Library Assistant', department: 'Library', level: 2 },
+  
+  // Class Leadership Positions
+  { value: 'ClassRepresentative', label: 'Class Representative', department: 'Class', level: 3, requiresClass: true },
+  { value: 'ClassAssistant', label: 'Class Assistant', department: 'Class', level: 3, requiresClass: true },
+  
+  // Other Departments
+  { value: 'BellRinger', label: 'Bell Ringer', department: 'General', level: 3 },
+  { value: 'TransportSecretary', label: 'Transport Secretary', department: 'Transport', level: 1 },
+  { value: 'EnvironmentSecretary', label: 'Environment Secretary', department: 'Environment', level: 1 },
+  { value: 'SpiritualSecretary', label: 'Spiritual Secretary', department: 'Spiritual', level: 1 },
+  { value: 'TechnologySecretary', label: 'Technology Secretary', department: 'Technology', level: 1 },
+];
 
-  const councilDepartments = [
-    { value: 'Presidency', label: 'Presidency', color: 'from-purple-500 to-pink-600', icon: FiAward },
-    { value: 'Academics', label: 'Academics', color: 'from-blue-500 to-cyan-600', icon: FiBook },
-    { value: 'Sports', label: 'Sports', color: 'from-green-500 to-emerald-600', icon: FiActivity },
-    { value: 'Entertainment', label: 'Entertainment', color: 'from-yellow-500 to-orange-600', icon: FiMusic },
-    { value: 'Cleaning', label: 'Cleaning', color: 'from-indigo-500 to-purple-600', icon: FiHome },
-    { value: 'Meals', label: 'Meals', color: 'from-red-500 to-pink-600', icon: FiCoffee },
-    { value: 'Discipline', label: 'Discipline', color: 'from-gray-500 to-gray-700', icon: FiShield },
-    { value: 'Health', label: 'Health', color: 'from-pink-500 to-rose-600', icon: FiHeart },
-    { value: 'Library', label: 'Library', color: 'from-teal-500 to-green-600', icon: FiBook },
-    { value: 'Transport', label: 'Transport', color: 'from-orange-500 to-red-600', icon: FiTruck },
-    { value: 'Environment', label: 'Environment', color: 'from-lime-500 to-green-600', icon: FiHome },
-    { value: 'Spiritual', label: 'Spiritual', color: 'from-violet-500 to-purple-600', icon: FiCloud },
-    { value: 'Technology', label: 'Technology', color: 'from-cyan-500 to-blue-600', icon: FiCpu },
-    { value: 'General', label: 'General', color: 'from-slate-500 to-gray-600', icon: FiUsers },
-  ];
-
+// Add this to your councilDepartments array:
+const councilDepartments = [
+  { value: 'Presidency', label: 'Presidency', color: 'from-purple-500 to-pink-600', icon: FiAward },
+  { value: 'Academics', label: 'Academics', color: 'from-blue-500 to-cyan-600', icon: FiBook },
+  { value: 'Sports', label: 'Sports', color: 'from-green-500 to-emerald-600', icon: FiActivity },
+  { value: 'Entertainment', label: 'Entertainment', color: 'from-yellow-500 to-orange-600', icon: FiMusic },
+  { value: 'Cleaning', label: 'Cleaning', color: 'from-indigo-500 to-purple-600', icon: FiHome },
+  { value: 'Meals', label: 'Meals', color: 'from-red-500 to-pink-600', icon: FiCoffee },
+  { value: 'Discipline', label: 'Discipline', color: 'from-gray-500 to-gray-700', icon: FiShield },
+  { value: 'Health', label: 'Health', color: 'from-pink-500 to-rose-600', icon: FiHeart },
+  { value: 'Library', label: 'Library', color: 'from-teal-500 to-green-600', icon: FiBook },
+  { value: 'Transport', label: 'Transport', color: 'from-orange-500 to-red-600', icon: FiTruck },
+  { value: 'Environment', label: 'Environment', color: 'from-lime-500 to-green-600', icon: FiHome },
+  { value: 'Spiritual', label: 'Spiritual', color: 'from-violet-500 to-purple-600', icon: FiCloud },
+  { value: 'Technology', label: 'Technology', color: 'from-cyan-500 to-blue-600', icon: FiCpu },
+  { value: 'Class', label: 'Class Leadership', color: 'from-amber-500 to-orange-600', icon: FiUsers },
+  { value: 'General', label: 'General', color: 'from-slate-500 to-gray-600', icon: FiUsers },
+];
   const statusOptions = [
     { value: 'Active', label: 'Active', color: 'from-green-500 to-emerald-600' },
     { value: 'Inactive', label: 'Inactive', color: 'from-gray-500 to-gray-600' },
     { value: 'Graduated', label: 'Graduated', color: 'from-blue-500 to-cyan-600' }
   ];
 
-  const [formData, setFormData] = useState({
-    position: '',
-    department: '',
-    startDate: '',
-    endDate: '',
-    responsibilities: '',
-    achievements: '',
-    status: 'Active'
-  });
+
+
+
+const [formData, setFormData] = useState({
+  position: '',
+  department: '',
+  startDate: '',
+  endDate: '',
+  responsibilities: '',
+  achievements: '',
+  status: 'Active',
+  form: '',
+  stream: ''
+});
 
 // Fetch council members
 const fetchCouncilMembers = async () => {
@@ -315,50 +325,65 @@ useEffect(() => {
     </div>
   );
 
-  const handleCreate = () => {
-    setFormData({
-      position: '',
-      department: '',
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: '',
-      responsibilities: '',
-      achievements: '',
-      status: 'Active'
-    });
-    setEditingMember(null);
-    setSelectedStudent(null);
-    setImagePreview(null);
-    setImageFile(null);
-    setShowStudentSearch(true);
-  };
+const handleCreate = () => {
+  setFormData({
+    position: '',
+    department: '',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: '',
+    responsibilities: '',
+    achievements: '',
+    status: 'Active',
+    form: '',
+    stream: ''
+  });
+  setEditingMember(null);
+  setSelectedStudent(null);
+  setImagePreview(null);
+  setImageFile(null);
+  setShowStudentSearch(true);
+};
 
-  const handleEdit = (member) => {
-    setFormData({
-      position: member.position,
-      department: member.department,
-      startDate: member.startDate.split('T')[0],
-      endDate: member.endDate ? member.endDate.split('T')[0] : '',
-      responsibilities: member.responsibilities,
-      achievements: member.achievements || '',
-      status: member.status
-    });
-    setEditingMember(member);
-    setSelectedStudent(member.student);
-    setImagePreview(member.image || null);
-    setImageFile(null);
-    setShowModal(true);
-  };
+// Update your handleEdit function:
+const handleEdit = (member) => {
+  setFormData({
+    position: member.position,
+    department: member.department,
+    startDate: member.startDate.split('T')[0],
+    endDate: member.endDate ? member.endDate.split('T')[0] : '',
+    responsibilities: member.responsibilities,
+    achievements: member.achievements || '',
+    status: member.status,
+    form: member.form || '',
+    stream: member.stream || ''
+  });
+  setEditingMember(member);
+  setSelectedStudent(member.student);
+  setImagePreview(member.image || null);
+  setImageFile(null);
+  setShowModal(true);
+};
 
   const handleViewDetails = (member) => {
     setSelectedMember(member);
     setShowDetailModal(true);
   };
 
-  const handleStudentSelect = (student) => {
-    setSelectedStudent(student);
-    setShowStudentSearch(false);
-    setShowModal(true);
-  };
+const handleStudentSelect = (student) => {
+  setSelectedStudent(student);
+  
+  // Auto-populate form and stream for class positions if they match the current formData
+  if (formData.position && ['ClassRepresentative', 'ClassAssistant'].includes(formData.position)) {
+    setFormData(prev => ({
+      ...prev,
+      form: student.form,
+      stream: student.stream
+    }));
+  }
+  
+  setShowStudentSearch(false);
+  setShowModal(true);
+};
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -397,36 +422,53 @@ const handleSubmit = async (e) => {
     toast.error('Please select a student');
     return;
   }
+    // Add validation for class positions
+  if (['ClassRepresentative', 'ClassAssistant'].includes(formData.position)) {
+    if (!formData.form || !formData.stream) {
+      toast.error('Form and stream are required for class positions');
+      return;
+    }
+    
+    // Validate that selected student is in the same class
+    if (selectedStudent && (selectedStudent.form !== formData.form || selectedStudent.stream !== formData.stream)) {
+      toast.error(`Selected student is in ${selectedStudent.form} ${selectedStudent.stream}, but position is for ${formData.form} ${formData.stream}`);
+      return;
+    }
+  }
 
   try {
     setSubmitting(true);
     
-    const formDataToSend = new FormData();
-    
-    if (editingMember) {
-      formDataToSend.append('position', formData.position);
-      formDataToSend.append('department', formData.department);
-      formDataToSend.append('startDate', formData.startDate);
-      formDataToSend.append('endDate', formData.endDate || '');
-      formDataToSend.append('responsibilities', formData.responsibilities);
-      formDataToSend.append('achievements', formData.achievements || '');
-      formDataToSend.append('status', formData.status);
-      
-      if (!imagePreview && editingMember.image) {
-        formDataToSend.append('removeImage', 'true');
-      }
-    } else {
-      // FOR NEW MEMBERS - Make sure studentId is correct
-      formDataToSend.append('studentId', selectedStudent.id);
-      formDataToSend.append('position', formData.position);
-      formDataToSend.append('department', formData.department);
-      formDataToSend.append('startDate', formData.startDate);
-      formDataToSend.append('endDate', formData.endDate || '');
-      formDataToSend.append('responsibilities', formData.responsibilities);
-      formDataToSend.append('achievements', formData.achievements || '');
-      formDataToSend.append('status', 'Active'); // Ensure status is set
-    }
+   
+   // In your handleSubmit function, update the formDataToSend section:
+const formDataToSend = new FormData();
 
+if (editingMember) {
+  formDataToSend.append('position', formData.position);
+  formDataToSend.append('department', formData.department);
+  formDataToSend.append('startDate', formData.startDate);
+  formDataToSend.append('endDate', formData.endDate || '');
+  formDataToSend.append('responsibilities', formData.responsibilities);
+  formDataToSend.append('achievements', formData.achievements || '');
+  formDataToSend.append('status', formData.status);
+  formDataToSend.append('form', formData.form || '');
+  formDataToSend.append('stream', formData.stream || '');
+  
+  if (!imagePreview && editingMember.image) {
+    formDataToSend.append('removeImage', 'true');
+  }
+} else {
+  formDataToSend.append('studentId', selectedStudent.id);
+  formDataToSend.append('position', formData.position);
+  formDataToSend.append('department', formData.department);
+  formDataToSend.append('startDate', formData.startDate);
+  formDataToSend.append('endDate', formData.endDate || '');
+  formDataToSend.append('responsibilities', formData.responsibilities);
+  formDataToSend.append('achievements', formData.achievements || '');
+  formDataToSend.append('status', 'Active');
+  formDataToSend.append('form', formData.form || '');
+  formDataToSend.append('stream', formData.stream || '');
+}
     // Append image file if selected
     if (imageFile) {
       formDataToSend.append('image', imageFile);
@@ -510,11 +552,17 @@ const handleSubmit = async (e) => {
     return stat ? stat.color : 'from-gray-500 to-gray-600';
   };
 
-  const getPositionLabel = (position, department) => {
-    const pos = councilPositions.find(p => p.value === position && p.department === department);
-    return pos ? pos.label : position;
-  };
-
+const getPositionLabel = (position, department, form = null, stream = null) => {
+  const pos = councilPositions.find(p => p.value === position && p.department === department);
+  const baseLabel = pos ? pos.label : position;
+  
+  // Add class info for class positions
+  if (form && stream && ['ClassRepresentative', 'ClassAssistant'].includes(position)) {
+    return `${baseLabel} - ${form} ${stream}`;
+  }
+  
+  return baseLabel;
+};
   const StatusBadge = ({ status }) => (
     <span className={`bg-gradient-to-r ${getStatusColor(status)} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
       {status}
@@ -773,8 +821,8 @@ const handleSubmit = async (e) => {
                         </div>
                         <div>
                           <div className="text-sm font-semibold text-gray-900">
-                            {getPositionLabel(member.position, member.department)}
-                          </div>
+  {getPositionLabel(member.position, member.department, member.form, member.stream)}
+</div>
                         </div>
                       </div>
                     </td>
@@ -1030,8 +1078,9 @@ const handleSubmit = async (e) => {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-gray-600">Admission: <span className="font-semibold text-gray-800">{selectedMember.student.admissionNumber}</span></p>
-                        <p className="text-gray-600">Position: <span className="font-semibold text-gray-800">{getPositionLabel(selectedMember.position, selectedMember.department)}</span></p>
-                      </div>
+<p className="text-gray-600">Position: <span className="font-semibold text-gray-800">
+  {getPositionLabel(selectedMember.position, selectedMember.department, selectedMember.form, selectedMember.stream)}
+</span></p>                      </div>
                       <div>
                         <p className="text-gray-600">Class: <span className="font-semibold text-gray-800">{selectedMember.student.form} {selectedMember.student.stream}</span></p>
                         <p className="text-gray-600">Gender: <span className="font-semibold text-gray-800">{selectedMember.student.gender}</span></p>
@@ -1289,6 +1338,46 @@ const handleSubmit = async (e) => {
                       <p className="text-xs text-gray-500 mt-1">Please select a department first</p>
                     )}
                   </div>
+
+                  {(formData.position === 'ClassRepresentative' || formData.position === 'ClassAssistant') && (
+  <>
+    <div>
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        Form *
+      </label>
+      <select
+        required
+        value={formData.form}
+        onChange={(e) => setFormData({ ...formData, form: e.target.value })}
+        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+      >
+        <option value="">Select Form</option>
+        <option value="Form 1">Form 1</option>
+        <option value="Form 2">Form 2</option>
+        <option value="Form 3">Form 3</option>
+        <option value="Form 4">Form 4</option>
+      </select>
+    </div>
+
+    <div>
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        Stream *
+      </label>
+      <select
+        required
+        value={formData.stream}
+        onChange={(e) => setFormData({ ...formData, stream: e.target.value })}
+        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+      >
+        <option value="">Select Stream</option>
+        <option value="East">East</option>
+        <option value="West">West</option>
+        <option value="North">North</option>
+        <option value="South">South</option>
+      </select>
+    </div>
+  </>
+)}
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">

@@ -29,6 +29,8 @@ import {
   IoRocketOutline,
   IoSchoolOutline
 } from 'react-icons/io5';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Import your local avatar images
 import male from "../../../images/avata/male.png";
@@ -87,11 +89,13 @@ export default function StaffManager() {
         console.error('Failed to fetch staff:', data.error);
         setStaff([]);
         setFilteredStaff([]);
+        toast.error('Failed to fetch staff data');
       }
     } catch (error) {
       console.error('Error fetching staff:', error);
       setStaff([]);
       setFilteredStaff([]);
+      toast.error('Error fetching staff data');
     } finally {
       setLoading(false);
     }
@@ -193,13 +197,13 @@ const handleDelete = async (id) => {
       
       if (result.success) {
         await fetchStaff(); // Refresh the list
-        alert('Staff member deleted successfully!');
+        toast.success('Staff member deleted successfully!');
       } else {
-        alert(result.error || 'Failed to delete staff member');
+        toast.error(result.error || 'Failed to delete staff member');
       }
     } catch (error) {
       console.error('Error deleting staff member:', error);
-      alert('Error deleting staff member');
+      toast.error('Error deleting staff member');
     }
   }
 };
@@ -257,12 +261,12 @@ const handleDelete = async (id) => {
   
   // Validation for unique roles
   if (formData.role === 'Principal' && principalExists && !editingStaff) {
-    alert('A Principal already exists. There can only be one Principal.');
+    toast.error('A Principal already exists. There can only be one Principal.');
     return;
   }
 
   if (formData.role === 'Deputy Principal' && deputyPrincipalsCount >= 2 && !editingStaff) {
-    alert('Maximum of two Deputy Principals allowed.');
+    toast.error('Maximum of two Deputy Principals allowed.');
     return;
   }
 
@@ -315,13 +319,13 @@ const handleDelete = async (id) => {
     if (result.success) {
       await fetchStaff(); // Refresh the list
       setShowModal(false);
-      alert(`Staff member ${editingStaff ? 'updated' : 'created'} successfully!`);
+      toast.success(`Staff member ${editingStaff ? 'updated' : 'created'} successfully!`);
     } else {
-      alert(result.error || `Failed to ${editingStaff ? 'update' : 'create'} staff member`);
+      toast.error(result.error || `Failed to ${editingStaff ? 'update' : 'create'} staff member`);
     }
   } catch (error) {
     console.error('Error saving staff member:', error);
-    alert('Error saving staff member');
+    toast.error('Error saving staff member');
   } finally {
     setSaving(false);
   }
@@ -412,6 +416,20 @@ const handleDelete = async (id) => {
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>

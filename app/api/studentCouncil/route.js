@@ -10,6 +10,57 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// Helper function to map string positions to CouncilPosition enum
+const mapPositionToEnum = (position) => {
+  const positionMap = {
+    'President': 'President',
+    'DeputyPresident': 'DeputyPresident',
+    'SchoolCaptain': 'SchoolCaptain',
+    'DeputyCaptain': 'DeputyCaptain',
+    'AcademicsSecretary': 'AcademicsSecretary',
+    'SportsSecretary': 'SportsSecretary',
+    'EntertainmentSecretary': 'EntertainmentSecretary',
+    'CleaningSecretary': 'CleaningSecretary',
+    'MealsSecretary': 'MealsSecretary',
+    'BellRinger': 'BellRinger',
+    'DisciplineSecretary': 'DisciplineSecretary',
+    'HealthSecretary': 'HealthSecretary',
+    'LibrarySecretary': 'LibrarySecretary',
+    'TransportSecretary': 'TransportSecretary',
+    'EnvironmentSecretary': 'EnvironmentSecretary',
+    'SpiritualSecretary': 'SpiritualSecretary',
+    'TechnologySecretary': 'TechnologySecretary',
+    'Assistant': 'Assistant',
+    'ClassRepresentative': 'ClassRepresentative',
+    'ClassAssistant': 'ClassAssistant'
+  };
+  
+  return positionMap[position];
+};
+
+// Helper function to map string departments to CouncilDepartment enum
+const mapDepartmentToEnum = (department) => {
+  const departmentMap = {
+    'Presidency': 'Presidency',
+    'Academics': 'Academics',
+    'Sports': 'Sports',
+    'Entertainment': 'Entertainment',
+    'Cleaning': 'Cleaning',
+    'Meals': 'Meals',
+    'Discipline': 'Discipline',
+    'Health': 'Health',
+    'Library': 'Library',
+    'Transport': 'Transport',
+    'Environment': 'Environment',
+    'Spiritual': 'Spiritual',
+    'Technology': 'Technology',
+    'Class': 'General', // Map 'Class' to 'General' since 'Class' doesn't exist in CouncilDepartment
+    'General': 'General'
+  };
+  
+  return departmentMap[department];
+};
+
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
@@ -92,11 +143,54 @@ export async function POST(req) {
     const responsibilities = formData.get('responsibilities');
     const achievements = formData.get('achievements');
     const imageFile = formData.get('image');
+    const form = formData.get('form');
+    const stream = formData.get('stream');
+
+    console.log('Received form data:', {
+      studentId, position, department, startDate, endDate, form, stream
+    });
 
     // Validate required fields
-    if (!studentId || !position || !department || !startDate || !responsibilities) {
+    if (!studentId || !position || !startDate || !responsibilities) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Map position to enum
+    const mappedPosition = mapPositionToEnum(position);
+    if (!mappedPosition) {
+      return NextResponse.json(
+        { success: false, error: "Invalid position" },
+        { status: 400 }
+      );
+    }
+
+    // Map department to enum
+    const mappedDepartment = department ? mapDepartmentToEnum(department) : null;
+    if (department && !mappedDepartment) {
+      return NextResponse.json(
+        { success: false, error: "Invalid department" },
+        { status: 400 }
+      );
+    }
+
+    console.log('Mapped position:', mappedPosition);
+    console.log('Mapped department:', mappedDepartment);
+
+    // Department is required for non-class roles
+    if (!['ClassRepresentative', 'ClassAssistant'].includes(mappedPosition) && !mappedDepartment) {
+      return NextResponse.json(
+        { success: false, error: "Department is required for this position" },
+        { status: 400 }
+      );
+    }
+
+    // Form and stream are required for class roles
+    if (['ClassRepresentative', 'ClassAssistant'].includes(mappedPosition) && (!form || !stream)) {
+      return NextResponse.json(
+        { success: false, error: "Form and stream are required for class roles" },
         { status: 400 }
       );
     }
@@ -104,7 +198,7 @@ export async function POST(req) {
     // Check if student exists and is active
     const student = await prisma.student.findUnique({
       where: { id: parseInt(studentId) },
-      select: { status: true, name: true }
+      select: { status: true, name: true, form: true, stream: true }
     });
 
     if (!student) {
@@ -121,34 +215,53 @@ export async function POST(req) {
       );
     }
 
-    // Check if student already has an active position in the same department
-    const existingPosition = await prisma.studentCouncil.findFirst({
-      where: {
-        studentId: parseInt(studentId),
-        department,
-        status: 'Active'
+    // For class roles, verify student is in the correct class
+    if (['ClassRepresentative', 'ClassAssistant'].includes(mappedPosition)) {
+      if (student.form !== form || student.stream !== stream) {
+        return NextResponse.json(
+          { success: false, error: `Student is in ${student.form} ${student.stream}, not ${form} ${stream}` },
+          { status: 400 }
+        );
       }
-    });
-
-    if (existingPosition) {
-      return NextResponse.json(
-        { success: false, error: `Student already has an active position in ${department} department` },
-        { status: 400 }
-      );
     }
 
-    // Check if position in department is already taken
+    // Check if position is already taken - USE MAPPED POSITION AND DEPARTMENT
     const positionTaken = await prisma.studentCouncil.findFirst({
       where: {
-        position,
-        department,
+        position: mappedPosition,
+        department: mappedDepartment, // Use mappedDepartment
+        form: form || null,
+        stream: stream || null,
         status: 'Active'
       }
     });
 
     if (positionTaken) {
+      const location = mappedDepartment ? `${mappedDepartment} department` : `${form} ${stream}`;
       return NextResponse.json(
-        { success: false, error: `${position} position in ${department} is already occupied` },
+        { success: false, error: `${position} position in ${location} is already occupied` },
+        { status: 400 }
+      );
+    }
+
+    // Check if student already has an active position in same scope
+    const existingPosition = await prisma.studentCouncil.findFirst({
+      where: {
+        studentId: parseInt(studentId),
+        OR: [
+          { department: mappedDepartment },
+          { AND: [{ form: form || null }, { stream: stream || null }] }
+        ],
+        status: 'Active'
+      }
+    });
+
+    if (existingPosition) {
+      const location = existingPosition.department ? 
+        `${existingPosition.department} department` : 
+        `${existingPosition.form} ${existingPosition.stream}`;
+      return NextResponse.json(
+        { success: false, error: `Student already has an active position in ${location}` },
         { status: 400 }
       );
     }
@@ -186,11 +299,14 @@ export async function POST(req) {
       imagePath = `/council/${fileName}`;
     }
 
+    // Create the council member - USE MAPPED POSITION AND DEPARTMENT
     const councilMember = await prisma.studentCouncil.create({
       data: {
         studentId: parseInt(studentId),
-        position,
-        department,
+        position: mappedPosition,
+        department: mappedDepartment, // Use mappedDepartment
+        form: form || null,
+        stream: stream || null,
         startDate: new Date(startDate),
         endDate: endDate ? new Date(endDate) : null,
         responsibilities,
