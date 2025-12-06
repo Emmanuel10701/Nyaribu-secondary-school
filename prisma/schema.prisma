@@ -369,3 +369,72 @@ model SchoolInfo {
 
 
 
+// Admission Application Model - Simplified
+model AdmissionApplication {
+  id                String   @id @default(cuid())
+  applicationNumber String   @unique
+  
+  // Personal Information
+  firstName         String
+  middleName        String?
+  lastName          String
+  gender            String
+  dateOfBirth       DateTime
+  nationality       String
+  county            String
+  constituency      String
+  ward              String
+  village           String?
+  
+  // Contact Information
+  email            String   @unique
+  phone            String
+  alternativePhone String?
+  postalAddress    String
+  postalCode       String?
+  
+  // Parent/Guardian Information
+  fatherName       String?
+  fatherPhone      String?
+  fatherEmail      String?
+  fatherOccupation String?
+  motherName       String?
+  motherPhone      String?
+  motherEmail      String?
+  motherOccupation String?
+  guardianName     String?
+  guardianPhone    String?
+  guardianEmail    String?
+  guardianOccupation String?
+  
+  // Academic Information
+  previousSchool   String
+  previousClass    String
+  kcpeYear         Int?
+  kcpeIndex        String?
+  kcpeMarks        Int?
+  meanGrade        String?
+  
+  // Stream Selection
+  preferredStream  String  // SCIENCE, ARTS, BUSINESS, TECHNICAL
+  
+  // Medical Information
+  medicalCondition String?
+  allergies        String?
+  bloodGroup       String?
+  
+  // Extracurricular
+  sportsInterests  String?
+  clubsInterests   String?
+  talents          String?
+  
+  // Timestamps
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Indexes
+  @@index([applicationNumber])
+  @@index([email])
+  @@index([phone])
+  @@index([createdAt])
+}
