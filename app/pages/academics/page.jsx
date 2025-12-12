@@ -79,7 +79,7 @@ const VideoModal = ({ videoTour, videoType, onClose }) => {
         className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden"
       >
         <div className="flex justify-between items-center p-4 border-b border-gray-200">
-          <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Katwanyaa High School Virtual Tour</h3>
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Nyaribu secondary School Virtual Tour</h3>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -95,14 +95,14 @@ const VideoModal = ({ videoTour, videoType, onClose }) => {
               className="w-full h-full"
               allowFullScreen
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              title="Katwanyaa High School Virtual Tour"
+              title="Nyaribu secondary School Virtual Tour"
             />
           ) : (
             <video
               controls
               className="w-full h-full"
               src={videoTour}
-              title="Katwanyaa High School Virtual Tour"
+              title="Nyaribu secondary School Virtual Tour"
             >
               Your browser does not support the video tag.
             </video>
@@ -575,14 +575,14 @@ export default function KatwanyaaAcademicsPage() {
 
   const academicStats = [
     { 
-      value: schoolInfo?.studentCount ? schoolInfo.studentCount.toLocaleString() : '1,300', 
+      value: schoolInfo?.studentCount ? schoolInfo.studentCount.toLocaleString() : '500+', 
       label: 'Total Students', 
       icon: FiUsers, 
       color: 'from-blue-500 to-cyan-500',
       description: 'Enrolled across all forms'
     },
     { 
-      value: schoolInfo?.staffCount ? schoolInfo.staffCount.toLocaleString() : '55', 
+      value: schoolInfo?.staffCount ? schoolInfo.staffCount.toLocaleString() : '15+', 
       label: 'Teaching Staff', 
       icon: FiBook, 
       color: 'from-purple-500 to-pink-500',
@@ -610,7 +610,7 @@ export default function KatwanyaaAcademicsPage() {
       description: 'Dual curriculum approach'
     },
     { 
-      value: '98%', 
+      value: '78%', 
       label: 'Success Rate', 
       icon: FiTrendingUp, 
       color: 'from-teal-500 to-green-500',
@@ -869,7 +869,7 @@ export default function KatwanyaaAcademicsPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 pt-20 flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner size={60} />
-          <p className="text-gray-600 mt-4 text-base sm:text-lg">Loading Katwanyaa High School Academics...</p>
+          <p className="text-gray-600 mt-4 text-base sm:text-lg">Loading Nyaribu secondary School Academics...</p>
         </div>
       </div>
     );
@@ -897,7 +897,7 @@ export default function KatwanyaaAcademicsPage() {
               </motion.div>
 
               <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-4 sm:mb-6">
-                {schoolInfo?.name || 'Katwanyaa Secondary School'}
+                {schoolInfo?.name || 'Nyaribu Secondary School'}
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 text-2xl sm:text-3xl lg:text-4xl xl:text-5xl mt-2">
                   Academic Excellence
                 </span>
@@ -956,7 +956,7 @@ export default function KatwanyaaAcademicsPage() {
                 <div className="relative h-48 sm:h-64 lg:h-80 rounded-xl sm:rounded-2xl overflow-hidden mb-4 sm:mb-6 lg:mb-8">
                   <Image
                     src={academicImages.classroom}
-                    alt="Katwanyaa High School Modern Classroom"
+                    alt="Nyaribu secondary School Modern Classroom"
                     fill
                     className="object-cover"
                     priority
@@ -1217,7 +1217,7 @@ export default function KatwanyaaAcademicsPage() {
                 Student <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Leadership</span>
               </h2>
               <p className="text-gray-600 text-base sm:text-lg lg:text-xl max-w-3xl mx-auto">
-                Meet our dedicated student leaders who represent and serve the Katwanyaa High School community across various departments and roles
+                Meet our dedicated student leaders who represent and serve the Nyaribu secondary School community across various departments and roles
               </p>
             </motion.div>
 
@@ -1362,7 +1362,7 @@ export default function KatwanyaaAcademicsPage() {
                 Curriculum <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Systems</span>
               </h2>
               <p className="text-gray-600 text-base sm:text-lg lg:text-xl max-w-3xl mx-auto">
-                Katwanyaa High School offers both 8-4-4 and Competency Based Curriculum (CBC) systems to cater to diverse learning needs and talents
+              Nyaribu secondary School offers both 8-4-4 and Competency Based Curriculum (CBC) systems to cater to diverse learning needs and talents
               </p>
             </motion.div>
 

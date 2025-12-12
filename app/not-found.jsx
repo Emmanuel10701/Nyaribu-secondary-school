@@ -137,15 +137,15 @@ const modern404 = () => {
                 </h3>
                 <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center">
                   <div>
-                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words">2,000+</div>
+                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words">500+</div>
                     <div className="text-gray-600 text-xs sm:text-xs break-words">Students</div>
                   </div>
                   <div>
-                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words">150+</div>
+                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words">15+</div>
                     <div className="text-gray-600 text-xs sm:text-xs break-words">Teachers</div>
                   </div>
                   <div>
-                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words">98%</div>
+                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words">78%+</div>
                     <div className="text-gray-600 text-xs sm:text-xs break-words">Success Rate</div>
                   </div>
                 </div>
@@ -156,7 +156,7 @@ const modern404 = () => {
           {/* Bottom Copyright */}
           <div className="text-center mt-8 sm:mt-12">
             <div className="text-gray-400 text-xs sm:text-sm break-words">
-              © {new Date().getFullYear()} Katwanyaa High School. All rights reserved.
+              © {new Date().getFullYear()}  Nyaribo Secondary School. All rights reserved.
             </div>
           </div>
         </div>

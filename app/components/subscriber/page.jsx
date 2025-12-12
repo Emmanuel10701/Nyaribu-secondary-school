@@ -60,17 +60,17 @@ export default function SubscriberManager() {
   const emailTemplates = {
     admission: {
       name: 'Admission Announcement',
-      subject: '🎓 Admissions Now Open for {schoolYear} - Tokatwanyaa Highschool',
+      subject: '🎓 Admissions Now Open for {schoolYear} - Nyaribu  Secondary school',
       description: 'Announce new admission opportunities'
     },
     newsletter: {
       name: 'Monthly Newsletter',
-      subject: '📰 {month} Newsletter - Tokatwanyaa Highschool',
+      subject: '📰 {month} Newsletter - Nyaribu  Secondary school',
       description: 'Share monthly updates and achievements'
     },
     event: {
       name: 'Event Invitation',
-      subject: '🎉 You\'re Invited: {eventName} - Tokatwanyaa Highschool',
+      subject: '🎉 You\'re Invited: {eventName} - Nyaribu  Secondary school',
       description: 'Invite to school events and functions'
     },
     custom: {

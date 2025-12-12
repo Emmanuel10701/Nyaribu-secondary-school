@@ -1,5 +1,5 @@
+'use client';
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { 
@@ -22,133 +22,688 @@ import {
   FiAward,
   FiZap,
   FiEdit,
-  FiTrash2
+  FiTrash2,
+  FiEye,
+  FiCheck,
+  FiCheckCircle,
+  FiGlobe,
+  FiBell
 } from 'react-icons/fi';
 import { 
   IoNewspaperOutline,
   IoCalendarClearOutline 
 } from 'react-icons/io5';
+import { Modal, Box, CircularProgress, Badge } from '@mui/material';
 
 // Import your local default images
 import newsDefault from "../../../images/i.jpg";
 import eventDefault from "../../../images/logo.jpg";
 
-// Modern loading spinner component
-const LoadingSpinner = ({ size = 'small', color = 'purple' }) => (
-  <div className={`animate-spin rounded-full border-2 border-${color}-200 border-t-${color}-600 ${
-    size === 'small' ? 'w-4 h-4' : 
-    size === 'medium' ? 'w-6 h-6' : 
-    'w-8 h-8'
-  }`} />
-);
+// Modern Loading Spinner Component
+function ModernLoadingSpinner({ message = "Loading...", size = "medium" }) {
+  const sizes = {
+    small: { outer: 60, inner: 24 },
+    medium: { outer: 100, inner: 40 },
+    large: { outer: 120, inner: 48 }
+  }
 
-// Modern badge component
-const ModernBadge = ({ children, color = 'purple', variant = 'solid' }) => (
-  <span className={`
-    inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-    ${variant === 'solid' 
-      ? `bg-${color}-100 text-${color}-800` 
-      : `bg-${color}-500 text-white`
-    }
-  `}>
-    {children}
-  </span>
-);
+  const { outer, inner } = sizes[size]
 
-// Modern card component
-const ModernCard = ({ children, className = '', hover = true, onClick }) => (
-  <div 
-    onClick={onClick}
-    className={`
-      bg-white rounded-2xl shadow-lg border border-gray-200/50 
-      backdrop-blur-sm bg-opacity-95 cursor-pointer
-      ${hover ? 'hover:shadow-xl hover:border-gray-300/50 transition-all duration-300' : ''}
-      ${className}
-    `}
-  >
-    {children}
-  </div>
-);
-
-// Modal component
-const CustomModal = ({ isOpen, onClose, title, children }) => (
-  <AnimatePresence>
-    {isOpen && (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="p-6 lg:p-8 border-b border-gray-200/60">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
-                  {title.includes('News') ? 
-                    <IoNewspaperOutline className="text-white text-xl" /> : 
-                    <IoCalendarClearOutline className="text-white text-xl" />
-                  }
-                </div>
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-800">
-                  {title}
-                </h2>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-xl transition-all duration-200"
-              >
-                <FiX className="text-xl text-gray-600" />
-              </button>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
+      <div className="text-center">
+        <div className="relative inline-block">
+          <div className="relative">
+            <CircularProgress 
+              size={outer} 
+              thickness={4}
+              className="text-purple-600"
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className={`bg-gradient-to-r from-purple-500 to-pink-600 rounded-full opacity-20`}
+                   style={{ width: inner, height: inner }}></div>
             </div>
           </div>
-          {children}
-        </motion.div>
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
+        </div>
+        <div className="mt-8 space-y-2">
+          <span className="block text-xl font-semibold text-gray-700 bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+            {message}
+          </span>
+          <div className="flex justify-center space-x-2">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="w-2 h-2 bg-purple-500 rounded-full" 
+                   style={{ animationDelay: `${i * 0.2}s` }}></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
-// Button component
-const CustomButton = ({ 
-  children, 
-  variant = 'primary', 
-  onClick, 
-  disabled = false,
-  loading = false,
-  className = '',
-  ...props 
-}) => {
-  const baseClasses = "px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed";
-  
-  const variants = {
-    primary: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/25",
-    secondary: "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400",
-    danger: "bg-red-500 hover:bg-red-600 text-white"
+// Modern Notification System Component
+function ModernNotificationSystem() {
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Mock notifications - replace with real API calls
+  const mockNotifications = [
+    {
+      id: 1,
+      type: 'news',
+      title: 'New News Article Published',
+      message: '"Annual Sports Day Results" has been published',
+      time: '2 minutes ago',
+      read: false,
+      icon: <IoNewspaperOutline className="text-purple-600" />
+    },
+    {
+      id: 2,
+      type: 'event',
+      title: 'Upcoming Event',
+      message: 'Parent-Teacher Meeting tomorrow at 10 AM',
+      time: '1 hour ago',
+      read: false,
+      icon: <IoCalendarClearOutline className="text-blue-600" />
+    },
+    {
+      id: 3,
+      type: 'system',
+      title: 'System Update',
+      message: 'New features added to News & Events Manager',
+      time: '3 hours ago',
+      read: true,
+      icon: <FiTrendingUp className="text-green-600" />
+    }
+  ];
+
+  useEffect(() => {
+    setNotifications(mockNotifications);
+    setUnreadCount(mockNotifications.filter(n => !n.read).length);
+  }, []);
+
+  const markAsRead = (id) => {
+    setNotifications(prev => 
+      prev.map(notification => 
+        notification.id === id ? { ...notification, read: true } : notification
+      )
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(prev => 
+      prev.map(notification => ({ ...notification, read: true }))
+    );
+    setUnreadCount(0);
+  };
+
+  const clearAll = () => {
+    setNotifications([]);
+    setUnreadCount(0);
+  };
+
+  const getNotificationColor = (type) => {
+    switch(type) {
+      case 'news': return 'bg-purple-100 text-purple-800';
+      case 'event': return 'bg-blue-100 text-blue-800';
+      case 'system': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
   return (
-    <motion.button
-      whileHover={{ scale: disabled ? 1 : 1.02 }}
-      whileTap={{ scale: disabled ? 1 : 0.98 }}
-      onClick={onClick}
-      disabled={disabled || loading}
-      className={`${baseClasses} ${variants[variant]} ${className}`}
-      {...props}
-    >
-      {loading && <LoadingSpinner size="small" />}
-      {children}
-    </motion.button>
-  );
-};
+    <div className="relative">
+      <button
+        onClick={() => setShowNotifications(!showNotifications)}
+        className="relative p-2 rounded-xl bg-white border border-gray-200 shadow-sm cursor-pointer"
+      >
+        <FiBell className="text-xl text-gray-600" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+            {unreadCount}
+          </span>
+        )}
+      </button>
 
+      {showNotifications && (
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-200 z-50">
+          {/* Header */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-900">Notifications</h3>
+              <div className="flex gap-2">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="text-xs text-blue-600 font-medium cursor-pointer"
+                  >
+                    Mark all read
+                  </button>
+                )}
+                <button
+                  onClick={clearAll}
+                  className="text-xs text-red-600 font-medium cursor-pointer"
+                >
+                  Clear all
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Notifications List */}
+          <div className="max-h-96 overflow-y-auto">
+            {notifications.length > 0 ? (
+              notifications.map(notification => (
+                <div
+                  key={notification.id}
+                  className={`p-4 border-b border-gray-100 ${!notification.read ? 'bg-blue-50' : ''}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-white rounded-xl border border-gray-200">
+                      {notification.icon}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-bold text-gray-900 text-sm">
+                          {notification.title}
+                        </h4>
+                        {!notification.read && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        )}
+                      </div>
+                      <p className="text-gray-600 text-xs mb-2">
+                        {notification.message}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          {notification.time}
+                        </span>
+                        {!notification.read && (
+                          <button
+                            onClick={() => markAsRead(notification.id)}
+                            className="text-xs text-blue-600 font-medium cursor-pointer"
+                          >
+                            Mark read
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-8 text-center">
+                <FiBell className="text-3xl text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">No notifications</p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="p-3 bg-gray-50 rounded-b-2xl">
+            <button
+              onClick={() => setShowNotifications(false)}
+              className="w-full text-center text-sm text-gray-600 font-medium cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Modern News/Event Card Component
+function ModernItemCard({ item, type, onEdit, onDelete, onView }) {
+  const [imageError, setImageError] = useState(false)
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return type === 'news' ? newsDefault : eventDefault
+    if (imagePath.startsWith('http')) return imagePath
+    return imagePath.startsWith('/') ? imagePath : `/${imagePath}`
+  }
+
+  const categories = {
+    news: [
+      { value: 'achievement', label: 'Achievements', color: 'emerald' },
+      { value: 'sports', label: 'Sports', color: 'blue' },
+      { value: 'academic', label: 'Academic', color: 'purple' },
+      { value: 'infrastructure', label: 'Infrastructure', color: 'orange' },
+      { value: 'community', label: 'Community', color: 'rose' }
+    ],
+    events: [
+      { value: 'academic', label: 'Academic', color: 'purple' },
+      { value: 'sports', label: 'Sports', color: 'blue' },
+      { value: 'cultural', label: 'Cultural', color: 'emerald' },
+      { value: 'social', label: 'Social', color: 'orange' }
+    ]
+  }
+
+  const categoryInfo = categories[type].find(c => c.value === item.category)
+  const imageUrl = getImageUrl(item.image)
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200">
+      <div className="relative h-48 overflow-hidden">
+        {imageUrl && !imageError ? (
+          <img 
+            src={imageUrl} 
+            alt={item.title} 
+            onClick={() => onView(item)}
+            className="w-full h-full object-cover cursor-pointer" 
+            onError={() => setImageError(true)} 
+          />
+        ) : (
+          <div 
+            onClick={() => onView(item)} 
+            className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center text-gray-400 cursor-pointer"
+          >
+            {type === 'news' ? (
+              <IoNewspaperOutline className="text-2xl mb-2" />
+            ) : (
+              <IoCalendarClearOutline className="text-2xl mb-2" />
+            )}
+            <span className="text-sm">No Image</span>
+          </div>
+        )}
+        
+        <div className="absolute top-2 left-2 flex gap-1">
+          <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+            categoryInfo ? `bg-${categoryInfo.color}-100 text-${categoryInfo.color}-800` : 'bg-gray-100 text-gray-800'
+          }`}>
+            {categoryInfo?.label}
+          </span>
+          {item.featured && (
+            <span className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+              Featured
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="p-4">
+        <h3 
+          onClick={() => onView(item)} 
+          className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-purple-800 text-base mb-2 line-clamp-2 cursor-pointer"
+        >
+          {item.title}
+        </h3>
+        
+        <p className="text-gray-600 text-sm mb-3 line-clamp-2 font-medium">
+          {item.excerpt || item.description}
+        </p>
+
+        <div className="space-y-2 mb-3">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1 text-purple-600 font-bold">
+              <FiCalendar className="text-xs" />
+              <span>{new Date(item.date).toLocaleDateString()}</span>
+            </div>
+            {type === 'events' && item.time && (
+              <div className="flex items-center gap-1 text-blue-600 font-bold">
+                <FiClock className="text-xs" />
+                <span className="text-xs">{item.time}</span>
+              </div>
+            )}
+          </div>
+          
+          {type === 'events' && item.location && (
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-1 text-green-600 font-bold">
+                <FiMapPin className="text-xs" />
+                <span className="text-xs truncate max-w-[120px]">{item.location}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={() => onView(item)} 
+              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-xl shadow-md cursor-pointer text-xs font-bold"
+            >
+              View
+            </button>
+          </div>
+          
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={() => onEdit(item)} 
+              className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-2 py-1 rounded-xl shadow-md cursor-pointer text-xs font-bold"
+            >
+              Edit
+            </button>
+            <button 
+              onClick={() => onDelete(item.id)} 
+              className="bg-gradient-to-r from-red-500 to-red-600 text-white px-2 py-1 rounded-xl shadow-md cursor-pointer text-xs font-bold"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Modern Item Modal Component
+function ModernItemModal({ onClose, onSave, item, type, loading }) {
+  const [formData, setFormData] = useState({
+    title: item?.title || '',
+    date: item?.date || new Date().toISOString().split('T')[0],
+    time: item?.time || '',
+    location: item?.location || '',
+    category: item?.category || (type === 'news' ? 'achievement' : 'academic'),
+    description: item?.description || (item?.excerpt || ''),
+    content: item?.content || (item?.fullContent || ''),
+    author: item?.author || 'School Administration',
+    image: item?.image || '',
+    featured: item?.featured || false,
+    status: item?.status || 'draft'
+  });
+
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState(item?.image || (type === 'news' ? newsDefault : eventDefault))
+
+  const categories = {
+    news: [
+      { value: 'achievement', label: 'Achievements', color: 'emerald' },
+      { value: 'sports', label: 'Sports', color: 'blue' },
+      { value: 'academic', label: 'Academic', color: 'purple' },
+      { value: 'infrastructure', label: 'Infrastructure', color: 'orange' },
+      { value: 'community', label: 'Community', color: 'rose' }
+    ],
+    events: [
+      { value: 'academic', label: 'Academic', color: 'purple' },
+      { value: 'sports', label: 'Sports', color: 'blue' },
+      { value: 'cultural', label: 'Cultural', color: 'emerald' },
+      { value: 'social', label: 'Social', color: 'orange' }
+    ]
+  }
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await onSave(formData, item?.id);
+  };
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  return (
+    <Modal open={true} onClose={onClose}>
+      <Box sx={{
+        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+        width: '90%',
+        maxWidth: '1000px',
+        maxHeight: '95vh', bgcolor: 'background.paper',
+        borderRadius: 3, boxShadow: 24, overflow: 'hidden',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #faf5ff 100%)'
+      }}>
+        {/* Header */}
+        <div className={`p-6 text-white ${
+          type === 'news' 
+            ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-rose-700'
+            : 'bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-700'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-white bg-opacity-20 rounded-2xl">
+                {type === 'news' ? 
+                  <IoNewspaperOutline className="text-xl" /> : 
+                  <IoCalendarClearOutline className="text-xl" />
+                }
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold">{item ? 'Edit' : 'Create'} {type === 'news' ? 'News' : 'Event'}</h2>
+                <p className="text-white/90 opacity-90 mt-1">
+                  Manage {type === 'news' ? 'news article' : 'event'} information
+                </p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-xl cursor-pointer">
+              <FiX className="text-xl" />
+            </button>
+          </div>
+        </div>
+
+        <div className="max-h-[calc(95vh-200px)] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column */}
+              <div className="space-y-6">
+                {/* Image Upload */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-purple-50 to-pink-50 p-3 rounded-xl border border-purple-200">
+                    <FiImage className="text-purple-600 text-lg" /> 
+                    Featured Image
+                  </label>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-shrink-0">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-20 h-20 rounded-2xl object-cover shadow-lg border border-gray-200"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="hidden"
+                          />
+                          <div className="px-4 py-3 border-2 border-gray-200 rounded-xl cursor-pointer flex items-center gap-2 bg-gray-50">
+                            <FiUpload className="text-purple-500" />
+                            <span className="text-sm font-bold text-gray-700">
+                              {imageFile ? 'Change Image' : 'Upload Image'}
+                            </span>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 p-3 rounded-xl border border-blue-200">
+                    <FiBook className="text-blue-600 text-lg" /> 
+                    Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.title}
+                    onChange={(e) => handleChange('title', e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
+                    placeholder={`Enter ${type === 'news' ? 'news' : 'event'} title`}
+                  />
+                </div>
+
+                {/* Category and Date */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-3">Category *</label>
+                    <select
+                      required
+                      value={formData.category}
+                      onChange={(e) => handleChange('category', e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50"
+                    >
+                      {categories[type].map(category => (
+                        <option key={category.value} value={category.value}>
+                          {category.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-3">Date *</label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.date}
+                      onChange={(e) => handleChange('date', e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50"
+                    />
+                  </div>
+                </div>
+
+                {/* Event Specific Fields */}
+                {type === 'events' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-xl border border-green-200">
+                        <FiClock className="text-green-600 text-lg" /> 
+                        Time
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.time}
+                        onChange={(e) => handleChange('time', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50"
+                        placeholder="e.g., 9:00 AM - 5:00 PM"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-orange-50 to-amber-50 p-3 rounded-xl border border-orange-200">
+                        <FiMapPin className="text-orange-600 text-lg" /> 
+                        Location
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.location}
+                        onChange={(e) => handleChange('location', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50"
+                        placeholder="Enter event location"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Right Column */}
+              <div className="space-y-6">
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-purple-50 to-pink-50 p-3 rounded-xl border border-purple-200">
+                    <FiBook className="text-purple-600 text-lg" /> 
+                    Description *
+                  </label>
+                  <textarea
+                    required
+                    value={formData.description}
+                    onChange={(e) => handleChange('description', e.target.value)}
+                    rows="4"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50"
+                    placeholder={`Write a brief description...`}
+                  />
+                </div>
+
+                {/* Full Content (News only) */}
+                {type === 'news' && (
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-indigo-50 to-blue-50 p-3 rounded-xl border border-indigo-200">
+                      <FiBook className="text-indigo-600 text-lg" /> 
+                      Full Content
+                    </label>
+                    <textarea
+                      value={formData.content}
+                      onChange={(e) => handleChange('content', e.target.value)}
+                      rows="4"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50"
+                      placeholder="Write the full article content..."
+                    />
+                  </div>
+                )}
+
+                {/* Author (News only) */}
+                {type === 'news' && (
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-3">Author</label>
+                    <input
+                      type="text"
+                      value={formData.author}
+                      onChange={(e) => handleChange('author', e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50"
+                      placeholder="Enter author name"
+                    />
+                  </div>
+                )}
+
+                {/* Featured */}
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.featured}
+                      onChange={(e) => handleChange('featured', e.target.checked)}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-bold text-gray-700">Featured Item</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Form Actions */}
+            <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+              <button 
+                type="button"
+                onClick={onClose}
+                className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-8 py-3 rounded-2xl font-bold shadow-lg cursor-pointer"
+              >
+                Cancel
+              </button>
+              
+              <button 
+                type="submit"
+                disabled={loading}
+                className={`px-8 py-3 text-white rounded-2xl font-bold shadow-lg disabled:opacity-50 cursor-pointer flex items-center gap-2 ${
+                  type === 'news' 
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600' 
+                    : 'bg-gradient-to-r from-blue-600 to-cyan-600'
+                }`}
+              >
+                {loading ? (
+                  <>
+                    <CircularProgress size={16} className="text-white" />
+                    {item ? 'Updating...' : 'Creating...'}
+                  </>
+                ) : (
+                  <>
+                    <FiCheck />
+                    {item ? 'Update' : 'Create'} {type === 'news' ? 'News' : 'Event'}
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </Box>
+    </Modal>
+  )
+}
+
+// Main News & Events Manager Component
 export default function NewsEventsManager() {
   const [activeSection, setActiveSection] = useState('news');
   const [news, setNews] = useState([]);
@@ -164,46 +719,26 @@ export default function NewsEventsManager() {
   const [itemsPerPage] = useState(6);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
+  const [stats, setStats] = useState(null);
+  const [selectedPosts, setSelectedPosts] = useState(new Set());
 
-  const [formData, setFormData] = useState({
-    type: 'news',
-    title: '',
-    date: '',
-    time: '',
-    location: '',
-    category: 'academic',
-    description: '',
-    content: '',
-    image: '',
-    featured: false,
-    registration: false,
-    attendees: '',
-    speaker: '',
-    author: '',
-    status: 'draft'
-  });
-
-  // Enhanced categories with icons
   const categories = {
     news: [
-      { value: 'achievement', label: 'Achievements', color: 'emerald', icon: FiAward },
-      { value: 'sports', label: 'Sports', color: 'blue', icon: FiZap },
-      { value: 'academic', label: 'Academic', color: 'purple', icon: FiBook },
-      { value: 'infrastructure', label: 'Infrastructure', color: 'orange', icon: FiTrendingUp },
-      { value: 'community', label: 'Community', color: 'rose', icon: FiUsers }
+      { value: 'achievement', label: 'Achievements', color: 'emerald' },
+      { value: 'sports', label: 'Sports', color: 'blue' },
+      { value: 'academic', label: 'Academic', color: 'purple' },
+      { value: 'infrastructure', label: 'Infrastructure', color: 'orange' },
+      { value: 'community', label: 'Community', color: 'rose' }
     ],
     events: [
-      { value: 'academic', label: 'Academic', color: 'purple', icon: FiBook },
-      { value: 'sports', label: 'Sports', color: 'blue', icon: FiZap },
-      { value: 'cultural', label: 'Cultural', color: 'emerald', icon: FiAward },
-      { value: 'social', label: 'Social', color: 'orange', icon: FiUsers }
+      { value: 'academic', label: 'Academic', color: 'purple' },
+      { value: 'sports', label: 'Sports', color: 'blue' },
+      { value: 'cultural', label: 'Cultural', color: 'emerald' },
+      { value: 'social', label: 'Social', color: 'orange' }
     ]
   };
 
-  // Enhanced fetch with modern error handling
+  // Fetch news from API
   const fetchNews = async () => {
     try {
       const response = await fetch('/api/news');
@@ -215,11 +750,11 @@ export default function NewsEventsManager() {
       }
     } catch (error) {
       console.error('Error fetching news:', error);
-      toast.error(`📰 ${error.message}`);
       setNews([]);
     }
   };
 
+  // Fetch events from API
   const fetchEvents = async () => {
     try {
       const response = await fetch('/api/events');
@@ -231,31 +766,18 @@ export default function NewsEventsManager() {
       }
     } catch (error) {
       console.error('Error fetching events:', error);
-      toast.error(`📅 ${error.message}`);
       setEvents([]);
     }
   };
 
-  const fetchData = async (showRefresh = false) => {
-    if (showRefresh) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-    
+  const fetchData = async () => {
+    setLoading(true);
     try {
       await Promise.all([fetchNews(), fetchEvents()]);
-      if (showRefresh) {
-        toast.success('🔄 Data refreshed successfully!');
-      }
     } catch (error) {
       console.error('Error fetching data:', error);
-      if (showRefresh) {
-        toast.error('❌ Failed to refresh data');
-      }
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -283,7 +805,6 @@ export default function NewsEventsManager() {
     setCurrentPage(1);
   }, [activeSection, searchTerm, selectedCategory, news, events]);
 
-  // Enhanced pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
@@ -291,55 +812,12 @@ export default function NewsEventsManager() {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Modern file upload handler
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error('📁 Image size must be less than 5MB');
-        return;
-      }
-      setImageFile(file);
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
-      toast.info('🖼️ Image selected successfully');
-    }
-  };
-
-  // Enhanced CRUD Operations
   const handleCreate = () => {
-    setFormData({
-      type: activeSection,
-      title: '',
-      date: new Date().toISOString().split('T')[0], // Today's date as default
-      time: '',
-      location: '',
-      category: activeSection === 'news' ? 'achievement' : 'academic',
-      description: '',
-      content: '',
-      image: '',
-      featured: false,
-      registration: false,
-      attendees: '',
-      speaker: '',
-      author: 'School Administration',
-      status: 'draft'
-    });
-    setImageFile(null);
-    setImagePreview('');
     setEditingItem(null);
     setShowModal(true);
   };
 
   const handleEdit = (item) => {
-    setFormData({ 
-      ...item,
-      description: item.excerpt || item.description,
-      content: item.fullContent || item.content,
-      author: item.author || 'School Administration'
-    });
-    setImagePreview(item.image || '');
-    setImageFile(null);
     setEditingItem(item);
     setShowModal(true);
   };
@@ -361,25 +839,22 @@ export default function NewsEventsManager() {
         
         if (result.success) {
           await fetchData();
-          toast.success(`🗑️ ${activeSection === 'news' ? 'News' : 'Event'} deleted successfully!`);
+          toast.success(`${activeSection === 'news' ? 'News' : 'Event'} deleted successfully!`);
         } else {
           throw new Error(result.error);
         }
       } catch (error) {
         console.error(`Error deleting ${activeSection}:`, error);
-        toast.error(`❌ Failed to delete ${activeSection}`);
+        toast.error(`Failed to delete ${activeSection}`);
       }
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (formData, id) => {
     setSaving(true);
-
     try {
       const submitData = new FormData();
       
-      // Enhanced form data with validation
       submitData.append('title', formData.title.trim());
       submitData.append('category', formData.category);
       submitData.append('date', formData.date);
@@ -393,20 +868,13 @@ export default function NewsEventsManager() {
         submitData.append('description', formData.description.trim());
         submitData.append('time', formData.time.trim());
         submitData.append('location', formData.location.trim());
-        submitData.append('type', formData.category);
-        submitData.append('attendees', formData.attendees || 'students');
-        submitData.append('speaker', formData.speaker.trim());
-      }
-
-      if (imageFile) {
-        submitData.append('image', imageFile);
       }
 
       let response;
       let endpoint;
       
-      if (editingItem) {
-        endpoint = activeSection === 'news' ? `/api/news/${editingItem.id}` : `/api/events/${editingItem.id}`;
+      if (id) {
+        endpoint = activeSection === 'news' ? `/api/news/${id}` : `/api/events/${id}`;
         response = await fetch(endpoint, {
           method: 'PUT',
           body: submitData,
@@ -425,8 +893,8 @@ export default function NewsEventsManager() {
         await fetchData();
         setShowModal(false);
         toast.success(
-          `✅ ${activeSection === 'news' ? 'News' : 'Event'} ${
-            editingItem ? 'updated' : 'created'
+          `${activeSection === 'news' ? 'News' : 'Event'} ${
+            id ? 'updated' : 'created'
           } successfully!`
         );
       } else {
@@ -434,48 +902,36 @@ export default function NewsEventsManager() {
       }
     } catch (error) {
       console.error(`Error saving ${activeSection}:`, error);
-      toast.error(`❌ ${error.message || `Failed to ${editingItem ? 'update' : 'create'} ${activeSection}`}`);
+      toast.error(error.message || `Failed to ${id ? 'update' : 'create'} ${activeSection}`);
     } finally {
       setSaving(false);
     }
   };
 
-  // Modern helper functions
-  const getCategoryColor = (category) => {
-    const categoryList = categories[activeSection];
-    const cat = categoryList.find(c => c.value === category);
-    return cat ? cat.color : 'gray';
-  };
+  useEffect(() => {
+    const calculatedStats = {
+      totalNews: news.length,
+      totalEvents: events.length,
+      featuredNews: news.filter(n => n.featured).length,
+      featuredEvents: events.filter(e => e.featured).length,
+      todayNews: news.filter(n => new Date(n.date).toDateString() === new Date().toDateString()).length,
+      upcomingEvents: events.filter(e => new Date(e.date) >= new Date()).length,
+    };
+    setStats(calculatedStats);
+  }, [news, events]);
 
-  const getImageUrl = (item) => {
-    if (item.image) return item.image;
-    return activeSection === 'news' ? newsDefault : eventDefault;
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'published': return 'emerald';
-      case 'upcoming': return 'blue';
-      case 'draft': return 'amber';
-      case 'completed': return 'gray';
-      default: return 'gray';
-    }
-  };
-
-  // Modern Pagination Component
   const Pagination = () => (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
-      <p className="text-sm text-gray-600">
-        Showing <span className="font-semibold">{indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredItems.length)}</span> of{' '}
-        <span className="font-semibold">{filteredItems.length}</span> items
+      <p className="text-sm text-gray-700 font-medium">
+        Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredItems.length)} of {filteredItems.length} items
       </p>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         <button
           onClick={() => paginate(currentPage - 1)}
           disabled={currentPage === 1}
-          className="p-2 rounded-xl border border-gray-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all duration-200"
+          className="p-2 rounded-xl border-2 border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          <FiChevronLeft className="text-lg text-gray-600" />
+          <FiChevronLeft className="text-lg" />
         </button>
         
         {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -487,14 +943,14 @@ export default function NewsEventsManager() {
           .map((page, index, array) => (
             <div key={page} className="flex items-center">
               {index > 0 && array[index - 1] !== page - 1 && (
-                <span className="px-2 text-gray-400">•••</span>
+                <span className="px-2 text-gray-500">...</span>
               )}
               <button
                 onClick={() => paginate(page)}
-                className={`px-3.5 py-2 rounded-xl font-semibold transition-all duration-200 ${
+                className={`px-3 py-2 rounded-xl font-bold ${
                   currentPage === page
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                    : 'text-gray-700'
                 }`}
               >
                 {page}
@@ -506,634 +962,234 @@ export default function NewsEventsManager() {
         <button
           onClick={() => paginate(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="p-2 rounded-xl border border-gray-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all duration-200"
+          className="p-2 rounded-xl border-2 border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          <FiChevronRight className="text-lg text-gray-600" />
+          <FiChevronRight className="text-lg" />
         </button>
       </div>
     </div>
   );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/20 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="relative">
-            <LoadingSpinner size="large" color="purple" />
-            <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full opacity-20 blur-xl"
-            />
-          </div>
-          <p className="text-gray-600 text-lg mt-4 font-medium">Loading News & Events...</p>
-          <p className="text-gray-400 text-sm mt-2">Preparing your content</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading && news.length === 0 && events.length === 0) return <ModernLoadingSpinner message="Loading News & Events..." size="medium" />
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/20 p-4 lg:p-6 space-y-6">
-      <ToastContainer 
-        position="top-right" 
-        autoClose={4000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
+    <div className="space-y-6 p-4 min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50">
+      <ToastContainer position="top-right" autoClose={5000} />
 
-      {/* Enhanced Header */}
-      <ModernCard hover={false}>
-        <div className="p-6 lg:p-8">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
-                  {activeSection === 'news' ? 
-                    <IoNewspaperOutline className="text-white text-xl" /> : 
-                    <IoCalendarClearOutline className="text-white text-xl" />
-                  }
-                </div>
-                <div>
-                  <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    News & Events Manager
-                  </h1>
-                  <p className="text-gray-600 mt-1">Manage and organize school communications</p>
-                </div>
+      {/* Header Section with Notification Bell */}
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl shadow-lg border border-purple-200 p-6">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">News & Events Manager</h1>
+            <p className="text-gray-600 text-sm lg:text-base">Manage school news articles and events</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <ModernNotificationSystem />
+            <button onClick={fetchData} className="flex items-center gap-2 bg-gray-600 text-white px-4 lg:px-6 py-2 lg:py-3 rounded-2xl font-bold shadow-lg cursor-pointer text-sm">
+              <FiRotateCw className={`text-xs ${loading ? 'animate-spin' : ''}`} /> Refresh
+            </button>
+            <button onClick={handleCreate} className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 lg:px-6 py-2 lg:py-3 rounded-2xl font-bold shadow-lg cursor-pointer text-sm">
+              <FiPlus className="text-xs" /> Create {activeSection === 'news' ? 'News' : 'Event'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Overview */}
+      {stats && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs lg:text-sm font-bold text-gray-600 mb-1">Total News</p>
+                <p className="text-xl lg:text-2xl font-bold text-gray-900">{stats.totalNews}</p>
+              </div>
+              <div className="p-3 bg-purple-100 text-purple-600 rounded-2xl">
+                <IoNewspaperOutline className="text-lg" />
               </div>
             </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-              <CustomButton
-                variant="secondary"
-                onClick={() => fetchData(true)}
-                disabled={refreshing}
-                loading={refreshing}
-              >
-                <FiRotateCw className="text-lg" />
-                {refreshing ? 'Refreshing...' : 'Refresh'}
-              </CustomButton>
-              
-              <CustomButton
-                variant="primary"
-                onClick={handleCreate}
-              >
-                <FiPlus className="text-lg" />
-                Create {activeSection === 'news' ? 'News' : 'Event'}
-              </CustomButton>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs lg:text-sm font-bold text-gray-600 mb-1">Total Events</p>
+                <p className="text-xl lg:text-2xl font-bold text-gray-900">{stats.totalEvents}</p>
+              </div>
+              <div className="p-3 bg-blue-100 text-blue-600 rounded-2xl">
+                <IoCalendarClearOutline className="text-lg" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs lg:text-sm font-bold text-gray-600 mb-1">Featured News</p>
+                <p className="text-xl lg:text-2xl font-bold text-gray-900">{stats.featuredNews}</p>
+              </div>
+              <div className="p-3 bg-yellow-100 text-yellow-600 rounded-2xl">
+                <FiAward className="text-lg" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs lg:text-sm font-bold text-gray-600 mb-1">Featured Events</p>
+                <p className="text-xl lg:text-2xl font-bold text-gray-900">{stats.featuredEvents}</p>
+              </div>
+              <div className="p-3 bg-orange-100 text-orange-600 rounded-2xl">
+                <FiTrendingUp className="text-lg" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs lg:text-sm font-bold text-gray-600 mb-1">Today's News</p>
+                <p className="text-xl lg:text-2xl font-bold text-gray-900">{stats.todayNews}</p>
+              </div>
+              <div className="p-3 bg-green-100 text-green-600 rounded-2xl">
+                <FiClock className="text-lg" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs lg:text-sm font-bold text-gray-600 mb-1">Upcoming Events</p>
+                <p className="text-xl lg:text-2xl font-bold text-gray-900">{stats.upcomingEvents}</p>
+              </div>
+              <div className="p-3 bg-cyan-100 text-cyan-600 rounded-2xl">
+                <FiCalendar className="text-lg" />
+              </div>
             </div>
           </div>
         </div>
-      </ModernCard>
+      )}
 
-      {/* Enhanced Tabs */}
-      <ModernCard>
-        <div className="p-4">
-          <div className="flex space-x-1 bg-gray-100/50 p-1 rounded-xl w-full max-w-md">
-            {[
-              { id: 'news', label: 'News Articles', count: news.length, icon: IoNewspaperOutline },
-              { id: 'events', label: 'Events', count: events.length, icon: IoCalendarClearOutline }
-            ].map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveSection(tab.id)}
-                  className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-300 ${
-                    activeSection === tab.id
-                      ? 'bg-white text-purple-600 shadow-lg shadow-purple-500/10'
-                      : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 justify-center">
-                    <Icon className={`text-lg ${
-                      activeSection === tab.id ? 'text-purple-500' : 'text-gray-400'
-                    }`} />
-                    <span>{tab.label}</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      activeSection === tab.id ? 'bg-purple-100 text-purple-600' : 'bg-gray-200 text-gray-600'
-                    }`}>
-                      {tab.count}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </ModernCard>
-
-      {/* Enhanced Filters */}
-      <ModernCard>
-        <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <div className="lg:col-span-2 relative">
-              <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg" />
-              <input
-                type="text"
-                placeholder={`Search ${activeSection} by title, description, or author...`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
-              />
-            </div>
-
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm appearance-none cursor-pointer"
-            >
-              <option value="all">All Categories</option>
-              {categories[activeSection].map(category => {
-                const Icon = category.icon;
-                return (
-                  <option key={category.value} value={category.value}>
-                    {category.label}
-                  </option>
-                );
-              })}
-            </select>
-
-            <CustomButton variant="secondary">
-              <FiShare2 className="text-lg" />
-              <span className="hidden lg:inline">Export Data</span>
-            </CustomButton>
-          </div>
-        </div>
-      </ModernCard>
-
-      {/* Enhanced Items Grid */}
-      {currentItems.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {currentItems.map((item) => {
-            const categoryInfo = categories[activeSection].find(c => c.value === item.category);
-            const CategoryIcon = categoryInfo?.icon;
-            
+      {/* Tabs */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4">
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-full max-w-md">
+          {[
+            { id: 'news', label: 'News Articles', count: news.length, icon: IoNewspaperOutline },
+            { id: 'events', label: 'Events', count: events.length, icon: IoCalendarClearOutline }
+          ].map((tab) => {
+            const Icon = tab.icon;
             return (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileHover={{ y: -8, scale: 1.02 }}
-                className="group"
+              <button
+                key={tab.id}
+                onClick={() => setActiveSection(tab.id)}
+                className={`flex-1 py-3 px-4 rounded-lg font-bold ${
+                  activeSection === tab.id
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                    : 'text-gray-600'
+                }`}
               >
-                <ModernCard 
-                  className="h-full overflow-hidden"
-                  onClick={() => handleView(item)}
-                >
-                  <div className="relative h-48 overflow-hidden">
-                    <img
-                      src={getImageUrl(item)}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                    
-                    {/* Enhanced Badges */}
-                    <div className="absolute top-4 left-4 flex gap-2">
-                      <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-black/40 backdrop-blur-sm rounded-full text-white text-xs font-medium">
-                        {CategoryIcon && <CategoryIcon className="text-xs" />}
-                        <span>{categoryInfo?.label}</span>
-                      </div>
-                      {item.featured && (
-                        <div className="px-2.5 py-1.5 bg-yellow-500/90 backdrop-blur-sm text-white rounded-full text-xs font-medium flex items-center gap-1">
-                          <FiAward className="text-xs" />
-                          <span>Featured</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Date */}
-                    <div className="absolute bottom-4 left-4 text-white">
-                      <div className="flex items-center gap-1.5 text-sm font-medium">
-                        <FiCalendar className="text-xs opacity-80" />
-                        <span>
-                          {new Date(item.date).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric',
-                            year: activeSection === 'news' ? 'numeric' : undefined
-                          })}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="p-5 lg:p-6">
-                    <h3 className="font-bold text-gray-800 mb-3 line-clamp-2 group-hover:text-purple-600 transition-colors text-base lg:text-lg leading-tight">
-                      {item.title}
-                    </h3>
-                    
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
-                      {item.excerpt || item.description}
-                    </p>
-                    
-                    {activeSection === 'events' && (
-                      <div className="space-y-2 mb-4 text-sm">
-                        {item.time && (
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <FiClock className="text-gray-400 text-sm" />
-                            <span>{item.time}</span>
-                          </div>
-                        )}
-                        {item.location && (
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <FiMapPin className="text-gray-400 text-sm" />
-                            <span className="line-clamp-1">{item.location}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-1">
-                        <CustomButton
-                          variant="secondary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(item);
-                          }}
-                          className="p-2"
-                        >
-                          <FiEdit className="text-base" />
-                        </CustomButton>
-                        <CustomButton
-                          variant="danger"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(item.id);
-                          }}
-                          className="p-2"
-                        >
-                          <FiTrash2 className="text-base" />
-                        </CustomButton>
-                      </div>
-                      
-                      <ModernBadge color={getStatusColor(item.status)}>
-                        {item.status || 'published'}
-                      </ModernBadge>
-                    </div>
-                  </div>
-                </ModernCard>
-              </motion.div>
+                <div className="flex items-center gap-2 justify-center">
+                  <Icon className="text-lg" />
+                  <span>{tab.label}</span>
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-white/20">
+                    {tab.count}
+                  </span>
+                </div>
+              </button>
             );
           })}
         </div>
-      ) : (
-        <ModernCard>
-          <div className="text-center py-16">
-            <div className="w-20 h-20 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <FiBook className="text-3xl text-purple-500" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">No {activeSection} found</h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              {searchTerm || selectedCategory !== 'all' 
-                ? 'Try adjusting your search terms or filters to find what you\'re looking for.' 
-                : `Get started by creating your first ${activeSection === 'news' ? 'news article' : 'event'}.`
-              }
-            </p>
-            <CustomButton
-              variant="primary"
-              onClick={handleCreate}
-            >
-              <FiPlus className="text-lg" />
-              Create {activeSection === 'news' ? 'News' : 'Event'}
-            </CustomButton>
-          </div>
-        </ModernCard>
-      )}
+      </div>
 
-      {/* Enhanced Pagination */}
-      {filteredItems.length > 0 && (
-        <ModernCard>
-          <div className="p-6">
-            <Pagination />
-          </div>
-        </ModernCard>
-      )}
-
-      {/* Create/Edit Modal */}
-      <CustomModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title={`${editingItem ? 'Edit' : 'Create'} ${activeSection === 'news' ? 'News' : 'Event'}`}
-      >
-        <form onSubmit={handleSubmit} className="p-6 lg:p-8 space-y-6">
-          {/* Enhanced Image Upload */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Featured Image
-            </label>
-            <div className="flex items-center gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-300 overflow-hidden bg-gray-50">
-                  <img
-                    src={imagePreview || getImageUrl(formData)}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-              <div className="flex-1">
-                <label className="block cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
-                  <div className="px-6 py-4 border-2 border-dashed border-gray-300 rounded-xl hover:border-purple-400 hover:bg-purple-50/50 transition-all duration-200 flex items-center gap-3">
-                    <FiUpload className="text-purple-500 text-xl" />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-700">
-                        {imageFile ? 'Change Image' : 'Upload Image'}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        PNG, JPG, WEBP up to 5MB
-                      </p>
-                    </div>
-                  </div>
-                </label>
-                {imageFile && (
-                  <p className="text-xs text-green-600 mt-2 font-medium">
-                    ✓ {imageFile.name}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="lg:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Title *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/50"
-                placeholder="Enter a compelling title..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Category *
-              </label>
-              <select
-                required
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-4 py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/50 appearance-none cursor-pointer"
-              >
-                {categories[activeSection].map(category => {
-                  const Icon = category.icon;
-                  return (
-                    <option key={category.value} value={category.value}>
-                      {category.label}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Date *
-              </label>
-              <input
-                type="date"
-                required
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full px-4 py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/50"
-              />
-            </div>
-
-            {activeSection === 'events' && (
-              <>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Time
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.time}
-                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                    className="w-full px-4 py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/50"
-                    placeholder="e.g., 9:00 AM - 5:00 PM"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-4 py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/50"
-                    placeholder="Enter event location"
-                  />
-                </div>
-              </>
-            )}
-
-            {activeSection === 'news' && (
-              <div className="lg:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Author
-                </label>
-                <input
-                  type="text"
-                  value={formData.author}
-                  onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                  className="w-full px-4 py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/50"
-                  placeholder="Enter author name"
-                />
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Description *
-            </label>
-            <textarea
-              required
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows="3"
-              className="w-full px-4 py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/50 resize-none"
-              placeholder="Write a brief description..."
+      {/* Filters */}
+      <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-200">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <div className="lg:col-span-2 relative">
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder={`Search ${activeSection} by title or description...`}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-gray-50"
             />
           </div>
 
-          {activeSection === 'news' && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Full Content
-              </label>
-              <textarea
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                rows="4"
-                className="w-full px-4 py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/50 resize-none"
-                placeholder="Write the full article content..."
-              />
-            </div>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50 cursor-pointer text-sm"
+          >
+            <option value="all">All Categories</option>
+            {categories[activeSection].map(category => (
+              <option key={category.value} value={category.value}>
+                {category.label}
+              </option>
+            ))}
+          </select>
+
+          <button className="px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-700 font-bold text-sm flex items-center justify-center gap-2 cursor-pointer">
+            <FiShare2 /> Export
+          </button>
+        </div>
+      </div>
+
+      {/* Items Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        {currentItems.map((item) => (
+          <ModernItemCard 
+            key={item.id} 
+            item={item} 
+            type={activeSection}
+            onEdit={handleEdit} 
+            onDelete={handleDelete} 
+            onView={handleView}
+          />
+        ))}
+      </div>
+
+      {/* Empty State */}
+      {currentItems.length === 0 && !loading && (
+        <div className="text-center py-12 bg-white rounded-2xl shadow-lg border border-gray-200">
+          {activeSection === 'news' ? (
+            <IoNewspaperOutline className="text-4xl lg:text-5xl text-gray-300 mx-auto mb-4" />
+          ) : (
+            <IoCalendarClearOutline className="text-4xl lg:text-5xl text-gray-300 mx-auto mb-4" />
           )}
+          <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-3">
+            {searchTerm ? 'No items found' : `No ${activeSection} available`}
+          </h3>
+          <p className="text-gray-600 text-sm lg:text-base mb-6 max-w-md mx-auto">
+            {searchTerm ? 'Try adjusting your search criteria' : `Start by creating your first ${activeSection === 'news' ? 'news article' : 'event'}`}
+          </p>
+          <button 
+            onClick={handleCreate} 
+            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl font-bold shadow-lg flex items-center gap-2 mx-auto text-sm lg:text-base cursor-pointer"
+          >
+            <FiPlus /> Create {activeSection === 'news' ? 'News' : 'Event'}
+          </button>
+        </div>
+      )}
 
-          <div className="flex items-center gap-6">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  checked={formData.featured}
-                  onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                  className="sr-only"
-                />
-                <div className={`w-11 h-6 rounded-full transition-all duration-200 ${
-                  formData.featured ? 'bg-purple-500' : 'bg-gray-300'
-                }`}>
-                  <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform duration-200 ${
-                    formData.featured ? 'transform translate-x-5' : ''
-                  }`} />
-                </div>
-              </div>
-              <span className="text-sm font-semibold text-gray-700">Featured Item</span>
-            </label>
-          </div>
+      {/* Pagination */}
+      {filteredItems.length > 0 && (
+        <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-200">
+          <Pagination />
+        </div>
+      )}
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200/60">
-            <CustomButton
-              type="button"
-              variant="secondary"
-              onClick={() => setShowModal(false)}
-              className="flex-1"
-            >
-              <FiX className="text-lg" />
-              Cancel
-            </CustomButton>
-            <CustomButton
-              type="submit"
-              variant="primary"
-              loading={saving}
-              disabled={saving}
-              className="flex-1"
-            >
-              {editingItem ? <FiEdit className="text-lg" /> : <FiPlus className="text-lg" />}
-              {editingItem ? 'Update' : 'Create'} {activeSection === 'news' ? 'News' : 'Event'}
-            </CustomButton>
-          </div>
-        </form>
-      </CustomModal>
-
-      {/* View Item Modal */}
-      <CustomModal
-        isOpen={showViewModal}
-        onClose={() => setShowViewModal(false)}
-        title={selectedItem?.title || 'View Details'}
-      >
-        {selectedItem && (
-          <div className="p-6 lg:p-8 space-y-6">
-            <div className="relative h-64 rounded-xl overflow-hidden">
-              <img
-                src={getImageUrl(selectedItem)}
-                alt={selectedItem.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="flex items-center gap-2 text-gray-600">
-                <FiCalendar className="text-gray-400" />
-                <span>
-                  {new Date(selectedItem.date).toLocaleDateString('en-US', { 
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 text-gray-600">
-                <FiTag className="text-gray-400" />
-                <ModernBadge color={getCategoryColor(selectedItem.category)}>
-                  {categories[activeSection].find(c => c.value === selectedItem.category)?.label}
-                </ModernBadge>
-              </div>
-
-              {selectedItem.time && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <FiClock className="text-gray-400" />
-                  <span>{selectedItem.time}</span>
-                </div>
-              )}
-
-              {selectedItem.location && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <FiMapPin className="text-gray-400" />
-                  <span>{selectedItem.location}</span>
-                </div>
-              )}
-
-              {selectedItem.author && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <FiUsers className="text-gray-400" />
-                  <span>By {selectedItem.author}</span>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Description</h3>
-              <p className="text-gray-600 leading-relaxed">
-                {selectedItem.excerpt || selectedItem.description}
-              </p>
-            </div>
-
-            {selectedItem.fullContent && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">Full Content</h3>
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line">
-                  {selectedItem.fullContent}
-                </p>
-              </div>
-            )}
-
-            <div className="flex gap-4 pt-6 border-t border-gray-200/60">
-              <CustomButton
-                variant="secondary"
-                onClick={() => {
-                  setShowViewModal(false);
-                  handleEdit(selectedItem);
-                }}
-                className="flex-1"
-              >
-                <FiEdit className="text-lg" />
-                Edit
-              </CustomButton>
-              <CustomButton
-                variant="primary"
-                onClick={() => setShowViewModal(false)}
-                className="flex-1"
-              >
-                Close
-              </CustomButton>
-            </div>
-          </div>
-        )}
-      </CustomModal>
+      {/* Modals */}
+      {showModal && (
+        <ModernItemModal 
+          onClose={() => setShowModal(false)} 
+          onSave={handleSubmit} 
+          item={editingItem} 
+          type={activeSection}
+          loading={saving} 
+        />
+      )}
     </div>
   );
 }

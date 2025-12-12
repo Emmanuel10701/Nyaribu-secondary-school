@@ -618,7 +618,7 @@ const StudentCouncil = () => {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Katwanyaa High School Student Council
+            Nyaribu  Secondary School Student Council
           </h1>
           <p className="text-gray-600 mt-2">Manage student leadership positions and departmental responsibilities</p>
         </div>

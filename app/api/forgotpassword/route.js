@@ -12,6 +12,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// School Information
+const SCHOOL_NAME = 'Nyaribu Secondary School';
+const SCHOOL_LOCATION = 'Kiganjo, Nyeri County';
+const SCHOOL_MOTTO = 'Soaring for Excellence';
+const CONTACT_EMAIL = 'info@nyaribusecondary.sc.ke';
+
 export async function POST(req) {
   try {
     const { email } = await req.json();
@@ -56,7 +62,7 @@ export async function POST(req) {
     const resetLink = `${baseUrl}/pages/resetpassword?token=${token}`;
     
     // For debugging
-    console.log('🔐 Password Reset Request');
+    console.log('🔐 Password Reset Request -', SCHOOL_NAME);
     console.log('User email:', email);
     console.log('Generated token (raw):', token);
     console.log('Generated token (hashed):', hashedToken);
@@ -66,18 +72,18 @@ export async function POST(req) {
     // Enhanced email template
     await transporter.sendMail({
       from: {
-        name: 'Katwanyaa Highschool Support',
+        name: `${SCHOOL_NAME} Support`,
         address: process.env.EMAIL_USER
       },
       to: email,
-      subject: 'Password Reset Request - Katwanyaa Highschool',
+      subject: `Password Reset Request - ${SCHOOL_NAME}`,
       html: `
         <!DOCTYPE html>
         <html lang="en">
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Password Reset - Katwanyaa Highschool</title>
+          <title>Password Reset - ${SCHOOL_NAME}</title>
           <style>
             body {
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -94,7 +100,7 @@ export async function POST(req) {
               box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
             }
             .header {
-              background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+              background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
               color: white;
               padding: 40px 30px;
               text-align: center;
@@ -108,6 +114,11 @@ export async function POST(req) {
               margin: 10px 0 0;
               opacity: 0.9;
               font-size: 16px;
+            }
+            .school-info {
+              margin: 5px 0 0;
+              font-size: 14px;
+              opacity: 0.8;
             }
             .content {
               padding: 40px 30px;
@@ -126,7 +137,7 @@ export async function POST(req) {
             }
             .reset-button {
               display: inline-block;
-              background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+              background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
               color: white;
               padding: 16px 32px;
               text-decoration: none;
@@ -139,7 +150,7 @@ export async function POST(req) {
             }
             .reset-button:hover {
               transform: translateY(-2px);
-              box-shadow: 0 8px 20px rgba(27, 94, 32, 0.2);
+              box-shadow: 0 8px 20px rgba(30, 60, 114, 0.2);
             }
             .warning {
               background-color: #fff8e1;
@@ -183,6 +194,18 @@ export async function POST(req) {
               color: #7b1fa2;
               border-left: 4px solid #9c27b0;
             }
+            .school-details {
+              background-color: #f0f9ff;
+              padding: 15px;
+              border-radius: 8px;
+              margin: 20px 0;
+              border-left: 4px solid #1e3c72;
+            }
+            .school-details p {
+              margin: 0;
+              font-size: 13px;
+              color: #1e40af;
+            }
             @media (max-width: 600px) {
               .container {
                 margin: 10px;
@@ -203,27 +226,33 @@ export async function POST(req) {
         <body>
           <div class="container">
             <div class="header">
-              <h1>🏫 Katwanyaa Highschool</h1>
-              <p>Password Reset Request</p>
+              <h1>🏫 ${SCHOOL_NAME}</h1>
+              <p>${SCHOOL_MOTTO}</p>
+              <p class="school-info">${SCHOOL_LOCATION}</p>
             </div>
             
             <div class="content">
               <h2>Hello ${user.name || 'User'},</h2>
               
-              <p>We received a request to reset the password for your Katwanyaa Highschool account associated with <strong>${email}</strong>.</p>
+              <p>We received a request to reset the password for your <strong>${SCHOOL_NAME}</strong> account associated with <strong>${email}</strong>.</p>
+              
+              <div class="school-details">
+                <p><strong>School Portal:</strong> ${SCHOOL_NAME} Administrative System<br>
+                <strong>Account Type:</strong> ${user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User'}<br>
+                <strong>Request Time:</strong> ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Nairobi' })}</p>
+              </div>
               
               <p>To set a new password, please click the button below:</p>
               
               <div style="text-align: center;">
-  <a 
-    href="${resetLink}" 
-    class="reset-button"
-    style="color: white; text-decoration: none;"
-  >
-    🔑 Reset Your Password
-  </a>
-</div>
-
+                <a 
+                  href="${resetLink}" 
+                  class="reset-button"
+                  style="color: white; text-decoration: none;"
+                >
+                  🔑 Reset Your Password
+                </a>
+              </div>
               
               <div class="expiry-note">
                 <p><strong>⚠️ Link Expires:</strong> This link will expire in <strong>1 hour</strong> for security reasons.</p>
@@ -242,37 +271,43 @@ export async function POST(req) {
               <p>For security reasons, this link is one-time use only and will be invalidated after you reset your password.</p>
               
               <p>Best regards,<br>
-              <strong>The Katwanyaa Highschool Team</strong></p>
+              <strong>The ${SCHOOL_NAME} Administration Team</strong><br>
+              <span style="font-size: 14px; color: #6b7280;">${SCHOOL_LOCATION}</span></p>
             </div>
             
             <div class="footer">
-              <p>© ${new Date().getFullYear()} Katwanyaa Highschool. All rights reserved.</p>
-              <p>This email was sent to ${email}. Please do not reply to this email.</p>
-              <p>If you need assistance, contact our school administration.</p>
+              <p>© ${new Date().getFullYear()} ${SCHOOL_NAME}. All rights reserved.</p>
+              <p>This email was sent to ${email} for ${SCHOOL_NAME} portal password reset.</p>
+              <p>If you need assistance, contact school administration at ${CONTACT_EMAIL}</p>
+              <p style="font-size: 12px; color: #9ca3af; margin-top: 15px;">
+                Public Day School | 400+ Students | 8-4-4 Curriculum System
+              </p>
             </div>
           </div>
         </body>
         </html>
       `,
-      text: `Password Reset Request - Katwanyaa Highschool\n\nHello ${user.name || 'User'},\n\nWe received a request to reset your password. Please use this link to reset your password:\n\n${resetLink}\n\nThis link expires in 1 hour.\n\nIf you didn't request this, please ignore this email.\n\nBest regards,\nThe Katwanyaa Highschool Team`
+      text: `Password Reset Request - ${SCHOOL_NAME}\n\nHello ${user.name || 'User'},\n\nWe received a request to reset your password for ${SCHOOL_NAME} portal.\n\nPlease use this link to reset your password:\n\n${resetLink}\n\nThis link expires in 1 hour.\n\nIf you didn't request this, please ignore this email.\n\nBest regards,\nThe ${SCHOOL_NAME} Administration Team\n${SCHOOL_LOCATION}`
     });
 
-    console.log('✅ Password reset email sent successfully to:', email);
+    console.log(`✅ Password reset email sent successfully to ${email} for ${SCHOOL_NAME}`);
 
     return NextResponse.json({ 
       message: 'Password reset link sent successfully.',
       details: {
         emailSent: true,
         tokenGenerated: true,
-        expiresAt: expires
+        expiresAt: expires,
+        school: SCHOOL_NAME
       }
     });
 
   } catch (error) {
-    console.error('❌ Error in password reset API:', error);
+    console.error(`❌ Error in password reset API for ${SCHOOL_NAME}:`, error);
     return NextResponse.json({ 
       message: 'Internal server error',
-      error: error.message 
+      error: error.message,
+      school: SCHOOL_NAME
     }, { status: 500 });
   }
 }

@@ -743,7 +743,7 @@ export default function ComprehensiveAdmissions() {
                   className="text-center max-w-4xl mx-auto"
                 >
                   <h2 className="text-4xl font-bold text-white mb-6">
-                    Welcome to Katwanyaa High School Admissions
+                    Welcome to Nyaribu secondary School Admissions
                   </h2>
                   <p className="text-xl text-white/70 leading-relaxed">
                     Where tradition meets innovation in education. We are committed to nurturing 
@@ -816,7 +816,7 @@ export default function ComprehensiveAdmissions() {
                 {/* Key Features Section */}
                 <div className="bg-white/5 backdrop-blur-md rounded-3xl p-12 border border-white/20">
                   <h3 className="text-3xl font-bold text-white mb-12 text-center">
-                    Why Choose Katwanyaa High?
+                    Why Choose  Nyaribu secondary?
                   </h3>
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {[

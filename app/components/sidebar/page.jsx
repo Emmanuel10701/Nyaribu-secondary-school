@@ -1,4 +1,5 @@
 'use client';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { 
@@ -23,7 +24,17 @@ import {
   FiCheckCircle,
   FiDownload,
   FiFilter,
-  FiSearch
+  FiSearch,
+  FiFolder,
+  FiFile,
+  FiVideo,
+  FiMusic,
+  FiArchive,
+  FiTrendingUp,
+  FiDatabase,
+  FiPieChart,
+  FiLayers,
+  FiUpload
 } from 'react-icons/fi';
 
 import { 
@@ -40,6 +51,8 @@ import {
   MdPersonOutline
 } from 'react-icons/md';
 import { useEffect, useState } from 'react';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen, tabs }) {
   const [isMobile, setIsMobile] = useState(false);
@@ -59,7 +72,16 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
     totalApplications: 0,
     pendingApplications: 0,
     acceptedApplications: 0,
-    rejectedApplications: 0
+    rejectedApplications: 0,
+    totalResources: 0,
+    recentResources: 0,
+    activeResources: 0,
+    resourcesByType: {
+      documents: 0,
+      videos: 0,
+      pdfs: 0,
+      presentations: 0
+    }
   });
 
   // Get user data from localStorage same way as dashboard
@@ -153,7 +175,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
     initializeUser();
   }, []);
 
-  // Fetch real counts from APIs
+  // Fetch real counts from APIs including resources
   const fetchRealCounts = async () => {
     try {
       const [
@@ -166,7 +188,8 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
         assignmentsRes,
         galleryRes,
         guidanceRes,
-        admissionsRes
+        admissionsRes,
+        resourcesRes
       ] = await Promise.allSettled([
         fetch('/api/student'),
         fetch('/api/staff'),
@@ -177,7 +200,8 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
         fetch('/api/assignment'),
         fetch('/api/gallery'),
         fetch('/api/guidance'),
-        fetch('/api/admissions/applications')
+        fetch('/api/admissions/applications'),
+        fetch('/api/resources?accessLevel=admin&limit=100'),
       ]);
 
       // Process responses and get actual counts
@@ -191,8 +215,9 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
       const gallery = galleryRes.status === 'fulfilled' ? await galleryRes.value.json() : { galleries: [] };
       const guidance = guidanceRes.status === 'fulfilled' ? await guidanceRes.value.json() : { events: [] };
       const admissions = admissionsRes.status === 'fulfilled' ? await admissionsRes.value.json() : { applications: [] };
+      const resources = resourcesRes.status === 'fulfilled' ? await resourcesRes.value.json() : { resources: [] };
 
-      // Calculate real counts
+      // Calculate real counts for existing data
       const activeStudents = students.students?.filter(s => s.status === 'Active').length || 0;
       const activeCouncil = council.councilMembers?.filter(c => c.status === 'Active').length || 0;
       const upcomingEvents = events.events?.filter(e => new Date(e.date) > new Date()).length || 0;
@@ -203,6 +228,25 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
       const pendingApps = admissionsData.filter(app => app.status === 'PENDING').length || 0;
       const acceptedApps = admissionsData.filter(app => app.status === 'ACCEPTED').length || 0;
       const rejectedApps = admissionsData.filter(app => app.status === 'REJECTED').length || 0;
+
+      // Resource statistics
+      const resourcesData = resources.resources || [];
+      const activeResources = resourcesData.filter(r => r.isActive !== false).length || 0;
+      
+      // Calculate resources by type
+      const resourcesByType = {
+        documents: resourcesData.filter(r => r.type === 'document' || r.type === 'worksheet').length || 0,
+        videos: resourcesData.filter(r => r.type === 'video').length || 0,
+        pdfs: resourcesData.filter(r => r.type === 'pdf').length || 0,
+        presentations: resourcesData.filter(r => r.type === 'presentation').length || 0
+      };
+
+      // Calculate recent resources (last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const recentResources = resourcesData.filter(r => 
+        r.createdAt && new Date(r.createdAt) > sevenDaysAgo
+      ).length || 0;
 
       setRealStats({
         totalStudents: students.students?.length || 0,
@@ -218,7 +262,11 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
         totalApplications: admissionsData.length || 0,
         pendingApplications: pendingApps,
         acceptedApplications: acceptedApps,
-        rejectedApplications: rejectedApps
+        rejectedApplications: rejectedApps,
+        totalResources: resourcesData.length || 0,
+        recentResources,
+        activeResources,
+        resourcesByType
       });
 
     } catch (error) {
@@ -332,21 +380,21 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
     }
   };
 
-  // Enhanced quick stats with real data
+  // Enhanced quick stats with real data including resources
   const quickStats = [
     { 
       label: 'Students', 
       value: realStats.totalStudents?.toLocaleString() || '0', 
       icon: FiUser, 
       color: 'blue', 
-      change: '+12%' 
+      change: `${realStats.activeStudents || 0} active` 
     },
     { 
-      label: 'Staff', 
-      value: realStats.totalStaff?.toLocaleString() || '0', 
-      icon: IoStatsChart, 
-      color: 'green', 
-      change: '+5%' 
+      label: 'Resources', 
+      value: realStats.totalResources?.toLocaleString() || '0', 
+      icon: FiFolder, 
+      color: 'emerald', 
+      change: `${realStats.recentResources || 0} recent` 
     },
     { 
       label: 'Applications', 
@@ -356,15 +404,43 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
       change: realStats.pendingApplications > 0 ? `${realStats.pendingApplications} pending` : '+8%' 
     },
     { 
-      label: 'Council', 
-      value: realStats.studentCouncil?.toLocaleString() || '0', 
-      icon: IoSparkles, 
-      color: 'orange', 
-      change: '+3%' 
+      label: 'Staff', 
+      value: realStats.totalStaff?.toLocaleString() || '0', 
+      icon: IoStatsChart, 
+      color: 'green', 
+      change: '+5%' 
     }
   ];
 
-  // Define default tabs if none provided - now with real counts including admissions
+  // Resource specific stats for the expanded view
+  const resourceStats = [
+    { 
+      label: 'Documents', 
+      value: realStats.resourcesByType?.documents?.toLocaleString() || '0', 
+      icon: FiFileText, 
+      color: 'blue' 
+    },
+    { 
+      label: 'Videos', 
+      value: realStats.resourcesByType?.videos?.toLocaleString() || '0', 
+      icon: FiVideo, 
+      color: 'purple' 
+    },
+    { 
+      label: 'PDFs', 
+      value: realStats.resourcesByType?.pdfs?.toLocaleString() || '0', 
+      icon: FiFileText, 
+      color: 'red' 
+    },
+    { 
+      label: 'Presentations', 
+      value: realStats.resourcesByType?.presentations?.toLocaleString() || '0', 
+      icon: FiFolder, 
+      color: 'orange' 
+    }
+  ];
+
+  // Define default tabs if none provided - now with resource tab
   const defaultTabs = [
     { 
       id: 'overview', 
@@ -416,6 +492,15 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
       badge: 'red'
     },
     { 
+      id: 'resources', 
+      label: 'Learning Resources', 
+      icon: FiFolder,
+      count: realStats.totalResources,
+      badge: 'emerald',
+      showBadge: realStats.totalResources > 0,
+      recentCount: realStats.recentResources
+    },
+    { 
       id: 'admissions', 
       label: 'Admission Applications', 
       icon: FiClipboard,
@@ -464,8 +549,8 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
   // Use provided tabs if non-empty, otherwise fall back to defaults
   const safeTabs = Array.isArray(tabs) && tabs.length > 0 ? tabs : defaultTabs;
 
-  // Count badge component with pending indicator
-  const CountBadge = ({ count, color = 'blue', showPending = false, pendingCount = 0 }) => {
+  // Enhanced CountBadge component with resource specific badges
+  const CountBadge = ({ count, color = 'blue', showPending = false, pendingCount = 0, showBadge = false, recentCount = 0 }) => {
     if (count === null || count === undefined) return null;
     
     if (showPending && pendingCount > 0) {
@@ -484,6 +569,27 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
             className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-red-100 text-red-600 border border-red-200"
           >
             {pendingCount} pending
+          </motion.span>
+        </div>
+      );
+    }
+    
+    if (showBadge && recentCount > 0) {
+      return (
+        <div className="ml-auto flex flex-col items-end gap-1">
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className={`px-2 py-1 text-xs font-bold rounded-full bg-${color}-100 text-${color}-600 border border-${color}-200`}
+          >
+            {count > 99 ? '99+' : count}
+          </motion.span>
+          <motion.span
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-600 border border-blue-200"
+          >
+            {recentCount} new
           </motion.span>
         </div>
       );
@@ -655,7 +761,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/30">
                   <Image
                     src="/logo.jpg"
-                    alt="Katwanyaa High School Logo"
+                    alt="Nyaribu Secondary School Logo"
                     width={26}
                     height={26}
                     className="filter brightness-0 invert drop-shadow-lg"
@@ -676,8 +782,8 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
                 />
               </motion.div>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">
-                  Katwanyaa High
+                <h1 className="text-lg font-bold text-gray-800">
+                  Nyaribu Secondary School
                 </h1>
                 <p className="text-gray-600 text-sm font-medium">Admin Portal</p>
               </div>
@@ -751,13 +857,15 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
                       {tab.label}
                     </span>
                     
-                    {/* Count Badge with pending indicator for admissions */}
+                    {/* Count Badge with pending indicator */}
                     {tab.count !== null && tab.count !== undefined && (
                       <CountBadge 
                         count={tab.count} 
                         color={tab.badge} 
                         showPending={tab.showPending}
                         pendingCount={tab.pendingCount}
+                        showBadge={tab.showBadge}
+                        recentCount={tab.recentCount}
                       />
                     )}
                   </div>
@@ -782,36 +890,81 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="mt-8 p-5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200 backdrop-blur-sm"
+              className="mt-8 space-y-4"
             >
-              <div className="flex items-center gap-2 text-blue-600 mb-4">
-                <IoSparkles className="text-lg" />
-                <span className="font-semibold text-sm">Live Stats</span>
+              {/* Main Stats */}
+              <div className="p-5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200 backdrop-blur-sm">
+                <div className="flex items-center gap-2 text-blue-600 mb-4">
+                  <IoSparkles className="text-lg" />
+                  <span className="font-semibold text-sm">Live Stats</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {quickStats.map((stat, index) => {
+                    const StatIcon = stat.icon || FiUser;
+                    return (
+                     <motion.div
+                       key={stat.label}
+                       initial={{ opacity: 0, scale: 0.8 }}
+                       animate={{ opacity: 1, scale: 1 }}
+                       transition={{ delay: 0.4 + index * 0.1 }}
+                       whileHover={{ scale: 1.05, y: -2 }}
+                       className="text-center p-3 bg-white rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 group cursor-pointer shadow-sm"
+                     >
+                      <div className={`w-8 h-8 rounded-lg bg-${stat.color}-100 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform`}>
+                        <StatIcon className={`text-${stat.color}-600 text-sm`} />
+                      </div>
+                      <div className="text-gray-800 font-bold text-sm">{stat.value}</div>
+                      <div className="text-gray-600 text-xs mt-1">{stat.label}</div>
+                      <div className={`text-${stat.color}-600 text-xs font-semibold mt-1`}>
+                        {stat.change}
+                      </div>
+                     </motion.div>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                {quickStats.map((stat, index) => {
-                  const StatIcon = stat.icon || FiUser;
-                  return (
-                   <motion.div
-                     key={stat.label}
-                     initial={{ opacity: 0, scale: 0.8 }}
-                     animate={{ opacity: 1, scale: 1 }}
-                     transition={{ delay: 0.4 + index * 0.1 }}
-                     whileHover={{ scale: 1.05, y: -2 }}
-                     className="text-center p-3 bg-white rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 group cursor-pointer shadow-sm"
-                   >
-                    <div className={`w-8 h-8 rounded-lg bg-${stat.color}-100 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform`}>
-                      <StatIcon className={`text-${stat.color}-600 text-sm`} />
+
+              {/* Resource Type Breakdown */}
+              {realStats.totalResources > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl border border-emerald-200 backdrop-blur-sm"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-emerald-600">
+                      <FiFolder className="text-lg" />
+                      <span className="font-semibold text-sm">Resource Types</span>
                     </div>
-                    <div className="text-gray-800 font-bold text-sm">{stat.value}</div>
-                    <div className="text-gray-600 text-xs mt-1">{stat.label}</div>
-                    <div className={`text-${stat.color}-600 text-xs font-semibold mt-1`}>
-                       {stat.change}
-                     </div>
-                   </motion.div>
-                  );
-                })}
-              </div>
+                    <span className="text-emerald-600 text-xs font-bold">
+                      {realStats.totalResources} total
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {resourceStats.map((stat, index) => {
+                      const StatIcon = stat.icon;
+                      return (
+                        <motion.div
+                          key={stat.label}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.6 + index * 0.1 }}
+                          className="flex items-center gap-2 p-2 bg-white/80 rounded-lg border border-emerald-100"
+                        >
+                          <div className={`w-7 h-7 rounded-lg bg-${stat.color}-100 flex items-center justify-center`}>
+                            <StatIcon className={`text-${stat.color}-600 text-xs`} />
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-emerald-800 font-bold text-sm">{stat.value}</div>
+                            <div className="text-gray-600 text-xs">{stat.label}</div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           </nav>
 
@@ -819,7 +972,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.6 }}
             className="p-6 border-t border-gray-200 flex-shrink-0"
           >
             {/* User Profile */}
@@ -910,7 +1063,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
               className="text-center mt-4 pt-4 border-t border-gray-200"
             >
               <p className="text-gray-400 text-xs">
-                v2.1.0 • Katwanyaa High
+                v2.1.0 • Nyaribu Secondary School
               </p>
             </motion.div>
           </motion.div>

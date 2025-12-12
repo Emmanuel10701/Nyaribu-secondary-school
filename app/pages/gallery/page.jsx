@@ -67,7 +67,7 @@ export default function ModernGallery() {
   const [favorites, setFavorites] = useState(() => {
     // Load favorites from localStorage on initial render
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('katwanyaa-gallery-favorites');
+      const saved = localStorage.getItem('Nyaribu-gallery-favorites');
       return saved ? new Set(JSON.parse(saved)) : new Set();
     }
     return new Set();
@@ -92,7 +92,7 @@ export default function ModernGallery() {
 
   // School Information
   const schoolInfo = {
-    name: "Katwanyaa High School",
+    name: "Nyaribu Secondary School",
     motto: "Discipline, Diligence, Excellence",
     established: 1982,
     students: 1450,
@@ -104,7 +104,7 @@ export default function ModernGallery() {
   // Save favorites to localStorage whenever they change
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('katwanyaa-gallery-favorites', JSON.stringify(Array.from(favorites)));
+      localStorage.setItem('Nyaribu-gallery-favorites', JSON.stringify(Array.from(favorites)));
     }
   }, [favorites]);
 
@@ -659,7 +659,7 @@ export default function ModernGallery() {
   // Share functions
   const shareOnWhatsApp = () => {
     if (!selectedMedia) return;
-    const text = `Check out "${selectedMedia.title}" from Katwanyaa High School Gallery!`;
+    const text = `Check out "${selectedMedia.title}" from Nyaribu Secondary School Gallery!`;
     const url = window.location.href;
     window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
   };
@@ -671,7 +671,7 @@ export default function ModernGallery() {
 
   const shareOnTwitter = () => {
     if (!selectedMedia) return;
-    const text = `Check out "${selectedMedia.title}" from Katwanyaa High School Gallery!`;
+    const text = `Check out "${selectedMedia.title}" from Nyaribu Secondary School Gallery!`;
     const url = window.location.href;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
   };
@@ -696,7 +696,7 @@ export default function ModernGallery() {
       <div className="text-center">
         <CircularProgress color="inherit" size={60} thickness={4} />
         <div className="mt-4 text-white text-lg font-semibold">
-          Loading Katwanyaa High School Gallery...
+          Loading Nyaribu Secondary School Gallery...
         </div>
       </div>
     </Backdrop>
@@ -898,7 +898,7 @@ export default function ModernGallery() {
                 <div className="lg:w-2/3 mb-4 lg:mb-0">
                   <div className="flex items-center justify-between lg:block">
                     <h1 className="text-xl lg:text-3xl font-bold mb-2 lg:mb-3">
-                      Katwanyaa High School Gallery
+                      Nyaribu secondary School Gallery
                     </h1>
                     <button
                       onClick={() => setShowSidebar(!showSidebar)}
@@ -1436,7 +1436,7 @@ export default function ModernGallery() {
             </div>
             
             <p className="text-blue-700 mb-5 text-center text-sm">
-              Share "{selectedMedia.title}" from Katwanyaa High School Gallery
+              Share "{selectedMedia.title}" from Nyaribu Secondary School Gallery
             </p>
             
             <div className="grid grid-cols-2 gap-3 mb-5">

@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiUsers, 
   FiBook, 
@@ -48,6 +47,7 @@ import {
   IoSchool,
   IoDocumentText
 } from 'react-icons/io5';
+import { Modal, Box, CircularProgress } from '@mui/material';
 
 export default function DashboardOverview() {
   const [stats, setStats] = useState({
@@ -544,303 +544,268 @@ export default function DashboardOverview() {
 
   // Enhanced Analytics Modal with Admission Analytics
   const AnalyticsModal = () => (
-    <AnimatePresence>
-      {showAnalyticsModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-lg z-50 flex items-center justify-center p-4"
-          onClick={() => setShowAnalyticsModal(false)}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-2xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                <IoAnalytics className="text-blue-500" />
-                Advanced Analytics Dashboard
-              </h2>
-              <button
-                onClick={() => setShowAnalyticsModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
-              >
-                <FiX className="text-xl text-gray-600" />
-              </button>
-            </div>
+    showAnalyticsModal && (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-lg z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+              <IoAnalytics className="text-blue-500" />
+              Advanced Analytics Dashboard
+            </h2>
+            <button
+              onClick={() => setShowAnalyticsModal(false)}
+              className="p-2 hover:bg-gray-100 rounded-xl cursor-pointer"
+            >
+              <FiX className="text-xl text-gray-600" />
+            </button>
+          </div>
 
-            {/* Admission Analytics Section */}
-            <div className="mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <FiClipboard className="text-purple-500" />
-                Admission Application Analytics
-              </h3>
-              
-              <div className="grid lg:grid-cols-2 gap-6 mb-6">
-                {/* Admission Overview */}
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
-                  <h4 className="text-lg font-semibold text-purple-800 mb-4">Application Overview</h4>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white rounded-lg p-4 border border-purple-200">
-                        <p className="text-sm text-purple-600 font-medium">Total Applications</p>
-                        <p className="text-2xl font-bold text-purple-800">{stats.totalApplications}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-green-200">
-                        <p className="text-sm text-green-600 font-medium">Conversion Rate</p>
-                        <p className="text-2xl font-bold text-green-800">{stats.applicationConversionRate}%</p>
-                      </div>
+          {/* Admission Analytics Section */}
+          <div className="mb-8">
+            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <FiClipboard className="text-purple-500" />
+              Admission Application Analytics
+            </h3>
+            
+            <div className="grid lg:grid-cols-2 gap-6 mb-6">
+              {/* Admission Overview */}
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+                <h4 className="text-lg font-semibold text-purple-800 mb-4">Application Overview</h4>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white rounded-lg p-4 border border-purple-200">
+                      <p className="text-sm text-purple-600 font-medium">Total Applications</p>
+                      <p className="text-2xl font-bold text-purple-800">{stats.totalApplications}</p>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white rounded-lg p-4 border border-blue-200">
-                        <p className="text-sm text-blue-600 font-medium">Monthly Growth</p>
-                        <p className="text-2xl font-bold text-blue-800">{stats.monthlyApplications}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-orange-200">
-                        <p className="text-sm text-orange-600 font-medium">Avg Processing Time</p>
-                        <p className="text-2xl font-bold text-orange-800">{stats.averageProcessingTime} days</p>
-                      </div>
+                    <div className="bg-white rounded-lg p-4 border border-green-200">
+                      <p className="text-sm text-green-600 font-medium">Conversion Rate</p>
+                      <p className="text-2xl font-bold text-green-800">{stats.applicationConversionRate}%</p>
                     </div>
                   </div>
-                </div>
-
-                {/* Stream Distribution */}
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-                  <h4 className="text-lg font-semibold text-blue-800 mb-4">Stream Preference Analysis</h4>
-                  <div className="space-y-3">
-                    {[
-                      { label: 'Science', value: stats.scienceApplications, color: 'blue' },
-                      { label: 'Arts', value: stats.artsApplications, color: 'purple' },
-                      { label: 'Business', value: stats.businessApplications, color: 'green' },
-                      { label: 'Technical', value: stats.technicalApplications, color: 'orange' }
-                    ].map((stream) => (
-                      <div key={stream.label} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full bg-${stream.color}-500`}></div>
-                          <span className="text-sm text-gray-700">{stream.label}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-32 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className={`bg-${stream.color}-500 h-2 rounded-full`}
-                              style={{ 
-                                width: `${(stream.value / stats.totalApplications) * 100 || 0}%` 
-                              }}
-                            />
-                          </div>
-                          <span className="text-sm font-semibold text-gray-800">{stream.value}</span>
-                        </div>
-                      </div>
-                    ))}
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white rounded-lg p-4 border border-blue-200">
+                      <p className="text-sm text-blue-600 font-medium">Monthly Growth</p>
+                      <p className="text-2xl font-bold text-blue-800">{stats.monthlyApplications}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-orange-200">
+                      <p className="text-sm text-orange-600 font-medium">Avg Processing Time</p>
+                      <p className="text-2xl font-bold text-orange-800">{stats.averageProcessingTime} days</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Status Breakdown */}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200 mb-6">
-                <h4 className="text-lg font-semibold text-gray-800 mb-4">Application Status Breakdown</h4>
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Stream Distribution */}
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                <h4 className="text-lg font-semibold text-blue-800 mb-4">Stream Preference Analysis</h4>
+                <div className="space-y-3">
                   {[
-                    { label: 'Pending', value: stats.pendingApplications, color: 'yellow', icon: FiClock },
-                    { label: 'Under Review', value: stats.underReviewApplications, color: 'blue', icon: FiEye },
-                    { label: 'Interviewed', value: stats.interviewedApplications, color: 'purple', icon: FiCalendar },
-                    { label: 'Accepted', value: stats.acceptedApplications, color: 'green', icon: FiCheckCircle },
-                    { label: 'Rejected', value: stats.rejectedApplications, color: 'red', icon: FiX },
-                    { label: 'Waitlisted', value: stats.waitlistedApplications, color: 'orange', icon: FiClock },
-                    { label: 'Conditional', value: stats.conditionalApplications, color: 'teal', icon: FiAlertCircle },
-                    { label: 'Withdrawn', value: stats.withdrawnApplications, color: 'gray', icon: FiUser }
-                  ].map((status) => (
-                    <div key={status.label} className="bg-white rounded-lg p-4 border border-gray-200">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className={`p-2 bg-${status.color}-100 rounded-lg`}>
-                          <status.icon className={`text-${status.color}-600`} />
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">{status.label}</p>
-                          <p className="text-xl font-bold text-gray-800">{status.value}</p>
-                        </div>
+                    { label: 'Science', value: stats.scienceApplications, color: 'blue' },
+                    { label: 'Arts', value: stats.artsApplications, color: 'purple' },
+                    { label: 'Business', value: stats.businessApplications, color: 'green' },
+                    { label: 'Technical', value: stats.technicalApplications, color: 'orange' }
+                  ].map((stream) => (
+                    <div key={stream.label} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full bg-${stream.color}-500`}></div>
+                        <span className="text-sm text-gray-700">{stream.label}</span>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {Math.round((status.value / stats.totalApplications) * 100) || 0}% of total
+                      <div className="flex items-center gap-3">
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className={`bg-${stream.color}-500 h-2 rounded-full`}
+                            style={{ 
+                              width: `${(stream.value / stats.totalApplications) * 100 || 0}%` 
+                            }}
+                          />
+                        </div>
+                        <span className="text-sm font-semibold text-gray-800">{stream.value}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-
-              {/* Demographic Analysis */}
-              <div className="grid lg:grid-cols-3 gap-6 mb-6">
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
-                  <h4 className="text-lg font-semibold text-green-800 mb-4 flex items-center gap-2">
-                    <FiGlobe className="text-green-600" />
-                    Top County
-                  </h4>
-                  <div className="text-center">
-                    <p className="text-3xl font-bold text-green-800 mb-2">{stats.topCountyApplications}</p>
-                    <p className="text-sm text-green-600">Most applications received</p>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-6 border border-pink-200">
-                  <h4 className="text-lg font-semibold text-pink-800 mb-4 flex items-center gap-2">
-                    <FiUser className="text-pink-600" />
-                    Gender Distribution
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-pink-700">Male</span>
-                      <span className="font-semibold text-pink-800">{stats.maleApplications}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-pink-700">Female</span>
-                      <span className="font-semibold text-pink-800">{stats.femaleApplications}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 border border-orange-200">
-                  <h4 className="text-lg font-semibold text-orange-800 mb-4 flex items-center gap-2">
-                    <FiBookOpen className="text-orange-600" />
-                    Academic Profile
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-orange-700">Avg KCPE Score</span>
-                      <span className="font-semibold text-orange-800">{stats.averageKCPEScore}/500</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-orange-700">Avg Age</span>
-                      <span className="font-semibold text-orange-800">{stats.averageAge} years</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* Performance Metrics Chart */}
-            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-6 border border-indigo-200">
-              <h4 className="text-lg font-semibold text-indigo-800 mb-4">Admission Performance Metrics</h4>
-              <div className="space-y-4">
-                {performanceData.map((metric, index) => (
-                  <div key={index} className="flex items-center justify-between py-2">
-                    <div className="flex-1">
-                      <span className="font-medium text-gray-700 text-sm">{metric.label}</span>
-                      <span className="text-xs text-gray-500 block">{metric.description}</span>
+            {/* Status Breakdown */}
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200 mb-6">
+              <h4 className="text-lg font-semibold text-gray-800 mb-4">Application Status Breakdown</h4>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { label: 'Pending', value: stats.pendingApplications, color: 'yellow', icon: FiClock },
+                  { label: 'Under Review', value: stats.underReviewApplications, color: 'blue', icon: FiEye },
+                  { label: 'Interviewed', value: stats.interviewedApplications, color: 'purple', icon: FiCalendar },
+                  { label: 'Accepted', value: stats.acceptedApplications, color: 'green', icon: FiCheckCircle },
+                  { label: 'Rejected', value: stats.rejectedApplications, color: 'red', icon: FiX },
+                  { label: 'Waitlisted', value: stats.waitlistedApplications, color: 'orange', icon: FiClock },
+                  { label: 'Conditional', value: stats.conditionalApplications, color: 'teal', icon: FiAlertCircle },
+                  { label: 'Withdrawn', value: stats.withdrawnApplications, color: 'gray', icon: FiUser }
+                ].map((status) => (
+                  <div key={status.label} className="bg-white rounded-lg p-4 border border-gray-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`p-2 bg-${status.color}-100 rounded-lg`}>
+                        <status.icon className={`text-${status.color}-600`} />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">{status.label}</p>
+                        <p className="text-xl font-bold text-gray-800">{status.value}</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 w-64">
-                      <div className="flex-1 bg-gray-200 rounded-full h-2">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${metric.value}%` }}
-                          transition={{ duration: 1, delay: 0.2 }}
-                          className={`bg-${metric.color}-500 h-2 rounded-full`}
-                        />
-                      </div>
-                      <div className="flex items-center gap-2 w-20">
-                        <span className="text-sm font-bold text-gray-800">{metric.value}%</span>
-                        {metric.change > 0 ? (
-                          <FiTrendingUp className="text-green-500 text-sm" />
-                        ) : (
-                          <FiTrendingDown className="text-red-500 text-sm" />
-                        )}
-                      </div>
+                    <div className="text-xs text-gray-500">
+                      {Math.round((status.value / stats.totalApplications) * 100) || 0}% of total
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+
+            {/* Demographic Analysis */}
+            <div className="grid lg:grid-cols-3 gap-6 mb-6">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+                <h4 className="text-lg font-semibold text-green-800 mb-4 flex items-center gap-2">
+                  <FiGlobe className="text-green-600" />
+                  Top County
+                </h4>
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-green-800 mb-2">{stats.topCountyApplications}</p>
+                  <p className="text-sm text-green-600">Most applications received</p>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-6 border border-pink-200">
+                <h4 className="text-lg font-semibold text-pink-800 mb-4 flex items-center gap-2">
+                  <FiUser className="text-pink-600" />
+                  Gender Distribution
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-pink-700">Male</span>
+                    <span className="font-semibold text-pink-800">{stats.maleApplications}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-pink-700">Female</span>
+                    <span className="font-semibold text-pink-800">{stats.femaleApplications}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 border border-orange-200">
+                <h4 className="text-lg font-semibold text-orange-800 mb-4 flex items-center gap-2">
+                  <FiBookOpen className="text-orange-600" />
+                  Academic Profile
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-orange-700">Avg KCPE Score</span>
+                    <span className="font-semibold text-orange-800">{stats.averageKCPEScore}/500</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-orange-700">Avg Age</span>
+                    <span className="font-semibold text-orange-800">{stats.averageAge} years</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Performance Metrics Chart */}
+          <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-6 border border-indigo-200">
+            <h4 className="text-lg font-semibold text-indigo-800 mb-4">Admission Performance Metrics</h4>
+            <div className="space-y-4">
+              {performanceData.map((metric, index) => (
+                <div key={index} className="flex items-center justify-between py-2">
+                  <div className="flex-1">
+                    <span className="font-medium text-gray-700 text-sm">{metric.label}</span>
+                    <span className="text-xs text-gray-500 block">{metric.description}</span>
+                  </div>
+                  <div className="flex items-center gap-4 w-64">
+                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                      <div 
+                        style={{ width: `${metric.value}%` }}
+                        className={`bg-${metric.color}-500 h-2 rounded-full`}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 w-20">
+                      <span className="text-sm font-bold text-gray-800">{metric.value}%</span>
+                      {metric.change > 0 ? (
+                        <FiTrendingUp className="text-green-500 text-sm" />
+                      ) : (
+                        <FiTrendingDown className="text-red-500 text-sm" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   );
 
   // Quick Tour Modal Component
   const QuickTourModal = () => (
-    <AnimatePresence>
-      {showQuickTour && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-lg z-50 flex items-center justify-center p-4"
-          onClick={() => setShowQuickTour(false)}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-2xl p-6 max-w-4xl w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                <FiPlay className="text-blue-500" />
-                School Virtual Tour
-              </h2>
-              <button
-                onClick={() => setShowQuickTour(false)}
-                className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
-              >
-                <FiX className="text-xl text-gray-600" />
-              </button>
-            </div>
+    showQuickTour && (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-lg z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-6 max-w-4xl w-full">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+              <FiPlay className="text-blue-500" />
+              School Virtual Tour
+            </h2>
+            <button
+              onClick={() => setShowQuickTour(false)}
+              className="p-2 hover:bg-gray-100 rounded-xl cursor-pointer"
+            >
+              <FiX className="text-xl text-gray-600" />
+            </button>
+          </div>
 
-            {schoolVideo ? (
-              <div className="aspect-video bg-black rounded-xl overflow-hidden">
-                {schoolVideo.type === 'youtube' ? (
-                  <iframe
-                    src={schoolVideo.url.replace('watch?v=', 'embed/')}
-                    className="w-full h-full"
-                    allowFullScreen
-                    title="School Virtual Tour"
-                  />
-                ) : (
-                  <video
-                    src={schoolVideo.url}
-                    controls
-                    className="w-full h-full"
-                    poster="/school-poster.jpg"
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <FiPlay className="text-6xl text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 text-lg">No school tour video available</p>
-                <p className="text-gray-500">Please upload a video in School Information section</p>
-              </div>
-            )}
-
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setShowQuickTour(false)}
-                className="bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition-colors"
-              >
-                Close Tour
-              </button>
+          {schoolVideo ? (
+            <div className="aspect-video bg-black rounded-xl overflow-hidden">
+              {schoolVideo.type === 'youtube' ? (
+                <iframe
+                  src={schoolVideo.url.replace('watch?v=', 'embed/')}
+                  className="w-full h-full"
+                  allowFullScreen
+                  title="School Virtual Tour"
+                />
+              ) : (
+                <video
+                  src={schoolVideo.url}
+                  controls
+                  className="w-full h-full"
+                  poster="/school-poster.jpg"
+                >
+                  Your browser does not support the video tag.
+                </video>
+              )}
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          ) : (
+            <div className="text-center py-12">
+              <FiPlay className="text-6xl text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 text-lg">No school tour video available</p>
+              <p className="text-gray-500">Please upload a video in School Information section</p>
+            </div>
+          )}
+
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={() => setShowQuickTour(false)}
+              className="bg-blue-600 text-white px-6 py-2 rounded-xl cursor-pointer font-semibold"
+            >
+              Close Tour
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   );
 
   const StatCard = ({ icon: Icon, label, value, change, color, subtitle, trend }) => (
-    <motion.div
-      whileHover={{ y: -8, scale: 1.02 }}
-      className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 shadow-lg border border-gray-200/50 relative overflow-hidden group"
-    >
-      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full -translate-y-10 translate-x-10 opacity-50 group-hover:opacity-70 transition-opacity"></div>
-      
-      <div className="flex items-center justify-between relative z-10">
+    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 relative overflow-hidden">
+      <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600 mb-1">{label}</p>
           <p className="text-3xl font-bold text-gray-900 mb-2">{value.toLocaleString()}</p>
@@ -858,11 +823,11 @@ export default function DashboardOverview() {
             </div>
           )}
         </div>
-        <div className={`p-4 rounded-2xl bg-${color}-500/10 group-hover:scale-110 transition-transform duration-300`}>
+        <div className={`p-4 rounded-2xl bg-${color}-100`}>
           <Icon className={`text-2xl text-${color}-600`} />
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 
   const PerformanceBar = ({ label, value, change, color, description }) => (
@@ -873,10 +838,8 @@ export default function DashboardOverview() {
       </div>
       <div className="flex items-center gap-4 flex-1 max-w-xs">
         <div className="flex-1 bg-gray-200 rounded-full h-2">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${value}%` }}
-            transition={{ duration: 1, delay: 0.2 }}
+          <div 
+            style={{ width: `${value}%` }}
             className={`bg-${color}-500 h-2 rounded-full shadow-sm`}
           />
         </div>
@@ -892,34 +855,12 @@ export default function DashboardOverview() {
     </div>
   );
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1
-    }
-  };
-
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center min-h-96">
         <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
-          />
-          <p className="text-gray-600">Loading dashboard data...</p>
+          <CircularProgress className="text-blue-500" size={40} />
+          <p className="text-gray-600 mt-4">Loading dashboard data...</p>
         </div>
       </div>
     );
@@ -930,24 +871,12 @@ export default function DashboardOverview() {
       <AnalyticsModal />
       <QuickTourModal />
       
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="p-6 space-y-6 overflow-hidden"
-      >
+      <div className="p-6 space-y-6">
         {/* Welcome Section */}
-        <motion.div
-          variants={itemVariants}
-          className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 rounded-2xl p-8 text-white overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
-          
+        <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 rounded-2xl p-8 text-white overflow-hidden">
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+              <div className="p-2 bg-white/20 rounded-xl">
                 <IoSparkles className="text-2xl text-yellow-300" />
               </div>
               <h1 className="text-3xl font-bold">Welcome back, Admin!</h1>
@@ -957,33 +886,29 @@ export default function DashboardOverview() {
             </p>
             
             <div className="flex items-center gap-4 mt-6">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => setShowAnalyticsModal(true)}
-                className="bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg"
+                className="bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg cursor-pointer"
               >
                 <FiBarChart2 className="text-lg" />
                 View Analytics
                 <FiArrowUpRight className="text-lg" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              </button>
+              <button
                 onClick={() => setShowQuickTour(true)}
-                className="text-white/80 hover:text-white px-6 py-3 rounded-xl font-semibold border border-white/20 hover:border-white/40 transition-colors flex items-center gap-2"
+                className="text-white/80 hover:text-white px-6 py-3 rounded-xl font-semibold border border-white/20 flex items-center gap-2 cursor-pointer"
               >
                 <FiPlay />
                 Quick Tour
-              </motion.button>
+              </button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Quick Stats */}
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {quickStats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
+            <div key={index} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm mb-2">{stat.label}</p>
@@ -1007,10 +932,10 @@ export default function DashboardOverview() {
               </div>
             </div>
           ))}
-        </motion.div>
+        </div>
 
         {/* Main Stats Grid */}
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard 
             icon={FiUserPlus} 
             label="Total Students" 
@@ -1092,20 +1017,17 @@ export default function DashboardOverview() {
             color="amber" 
             subtitle="Published news" 
           />
-        </motion.div>
+        </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Recent Activity */}
-          <motion.div
-            variants={itemVariants}
-            className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50"
-          >
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                 <FiStar className="text-yellow-500" />
                 Recent Activity
               </h2>
-              <button className="text-blue-600 hover:text-blue-700 font-semibold text-sm flex items-center gap-1">
+              <button className="text-blue-600 font-semibold text-sm flex items-center gap-1 cursor-pointer">
                 View All
                 <FiArrowUpRight className="text-sm" />
               </button>
@@ -1113,12 +1035,11 @@ export default function DashboardOverview() {
             <div className="space-y-4 max-h-[400px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {recentActivity.length > 0 ? (
                 recentActivity.map((activity) => (
-                  <motion.div
+                  <div
                     key={activity.id}
-                    whileHover={{ x: 4 }}
-                    className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-xl transition-all duration-200 group"
+                    className="flex items-center gap-4 p-3 rounded-xl"
                   >
-                    <div className={`w-12 h-12 rounded-xl bg-${activity.color}-100 flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                    <div className={`w-12 h-12 rounded-xl bg-${activity.color}-100 flex items-center justify-center`}>
                       <activity.icon className={`text-xl text-${activity.color}-600`} />
                     </div>
                     <div className="flex-1">
@@ -1128,19 +1049,16 @@ export default function DashboardOverview() {
                     <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                       {activity.time}
                     </span>
-                  </motion.div>
+                  </div>
                 ))
               ) : (
                 <p className="text-gray-500 text-center py-8">No recent activity</p>
               )}
             </div>
-          </motion.div>
+          </div>
 
           {/* Performance Metrics */}
-          <motion.div
-            variants={itemVariants}
-            className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50"
-          >
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
             <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
               <FiTrendingUp className="text-green-500" />
               Performance Metrics
@@ -1175,9 +1093,9 @@ export default function DashboardOverview() {
                 <span className="font-semibold text-blue-600">{studentGrowthData.councilParticipation}%</span>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </>
   );
 }

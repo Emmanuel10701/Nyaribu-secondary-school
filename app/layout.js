@@ -1,7 +1,7 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import ClientLayoutWrapper from "./-app";
-import { SessionProvider } from './session/sessionwrapper'; 
+import { SessionProvider } from './session/sessiowrapper'; 
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -21,10 +21,10 @@ export const metadata = {
     "Official website for Nyaribu Secondary School. Guided by our motto 'Soaring for Excellence,' we provide quality education, academic programs, and holistic development for our students.",
   icons: {
     icon: [
-      { url: "/logo.png", type: "image/png", sizes: "32x32" },
-      { url: "/logo.png", type: "image/png", sizes: "32x32" },
+      { url: "/llil.png", type: "image/png", sizes: "32x32" },
+      { url: "/llil.png", type: "image/png", sizes: "32x32" },
     ],
-    apple: "/logo.png",
+    apple: "/llil.png",
   },
 };
 

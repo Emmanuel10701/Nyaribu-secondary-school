@@ -14,7 +14,6 @@ import {
   FiStar,
   FiShield,
   FiMusic,
-  FiPray,
   FiHeart,
   FiAlertTriangle,
   FiPhone,
@@ -43,7 +42,7 @@ const getCategoryIcon = (category) => {
     health: FiUsers,
     relationship: FiUsers,
     worship: FiMusic,
-    devotion: FiPray,
+    devotion: FiHeart,
     support: FiPhoneCall,
     default: FiBookOpen
   };
@@ -174,7 +173,7 @@ export default function StudentCounseling() {
       type: 'Spiritual Session',
       category: 'devotion',
       status: 'scheduled',
-      description: 'Weekly devotion session to strengthen students in religious study and worship God in AIC Katwanyaa Church. Strengthen your faith and build spiritual resilience.',
+      description: 'Weekly devotion session to strengthen students in religious study and worship God in  Church. Strengthen your faith and build spiritual resilience.',
       notes: 'Focus on spiritual growth and moral development. Bring your Bible and notebook.',
       priority: 'high',
       image: worship,
@@ -195,7 +194,7 @@ export default function StudentCounseling() {
       priority: 'high',
       image: worship,
       featured: true,
-      location: 'AIC Katwanyaa Church'
+      location: 'Nyaribu Church'
     },
     {
       id: 3,

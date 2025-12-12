@@ -94,6 +94,43 @@ model Assignment {
   updatedAt          DateTime   @updatedAt
 }
 
+
+
+
+
+// ==========================================
+// RESOURCE MODEL
+// ==========================================
+model Resource {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(255)
+  subject     String   @db.VarChar(100)
+  className   String   @db.VarChar(50)   // ADDED: Class field
+  description String?  @db.Text
+  category    String   @default("general") @db.VarChar(100)
+  type        String   @default("document") @db.VarChar(50)
+  fileUrl     String   @db.VarChar(500)
+  fileName    String   @db.VarChar(255)
+  fileSize    String   @db.VarChar(50)
+  extension   String   @db.VarChar(20)
+  accessLevel String   @default("student") @db.VarChar(20)
+  uploadedBy  String   @default("System") @db.VarChar(100)
+  gradeLevel  String?  @db.VarChar(50)
+  downloads   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([subject])
+  @@index([className])  // ADDED: Index for class
+  @@index([category])
+  @@index([type])
+  @@index([accessLevel])
+  @@index([gradeLevel])
+  @@index([createdAt])
+  @@map("resources")
+}
+
 model CounselingEvent {
   id            Int      @id @default(autoincrement())
   counselor     String
@@ -367,14 +404,19 @@ model SchoolInfo {
   updatedAt        DateTime  @updatedAt
 }
 
-
-
-// Admission Application Model - Simplified
+// =====================================================
+// SIMPLIFIED HIGH SCHOOL ADMISSION SCHEMA
+// =====================================================
 model AdmissionApplication {
+  // ====================
+  // IDENTIFICATION
+  // ====================
   id                String   @id @default(cuid())
   applicationNumber String   @unique
   
-  // Personal Information
+  // ====================
+  // PERSONAL INFORMATION
+  // ====================
   firstName         String
   middleName        String?
   lastName          String
@@ -386,55 +428,124 @@ model AdmissionApplication {
   ward              String
   village           String?
   
-  // Contact Information
-  email            String   @unique
-  phone            String
-  alternativePhone String?
-  postalAddress    String
-  postalCode       String?
+  // ====================
+  // CONTACT INFORMATION
+  // ====================
+  email             String   @unique
+  phone             String
+  alternativePhone  String?
+  postalAddress     String
+  postalCode        String?
   
-  // Parent/Guardian Information
-  fatherName       String?
-  fatherPhone      String?
-  fatherEmail      String?
-  fatherOccupation String?
-  motherName       String?
-  motherPhone      String?
-  motherEmail      String?
-  motherOccupation String?
-  guardianName     String?
-  guardianPhone    String?
-  guardianEmail    String?
+  // ====================
+  // PARENT/GUARDIAN INFORMATION
+  // ====================
+  fatherName        String?
+  fatherPhone       String?
+  fatherEmail       String?
+  fatherOccupation  String?
+  motherName        String?
+  motherPhone       String?
+  motherEmail       String?
+  motherOccupation  String?
+  guardianName      String?
+  guardianPhone     String?
+  guardianEmail     String?
   guardianOccupation String?
   
-  // Academic Information
-  previousSchool   String
-  previousClass    String
-  kcpeYear         Int?
-  kcpeIndex        String?
-  kcpeMarks        Int?
-  meanGrade        String?
+  // ====================
+  // ACADEMIC INFORMATION
+  // ====================
+  previousSchool    String
+  previousClass     String
+  kcpeYear          Int?
+  kcpeIndex         String?
+  kcpeMarks         Int?
+  meanGrade         String?
   
-  // Stream Selection
-  preferredStream  String  // SCIENCE, ARTS, BUSINESS, TECHNICAL
+  // ====================
+  // PREFERENCES
+  // ====================
+  preferredStream   String  // SCIENCE, ARTS, BUSINESS, TECHNICAL
   
-  // Medical Information
-  medicalCondition String?
-  allergies        String?
-  bloodGroup       String?
+  // ====================
+  // MEDICAL INFORMATION
+  // ====================
+  medicalCondition  String?
+  allergies         String?
+  bloodGroup        String?
   
-  // Extracurricular
-  sportsInterests  String?
-  clubsInterests   String?
-  talents          String?
+  // ====================
+  // EXTRACURRICULAR
+  // ====================
+  sportsInterests   String?
+  clubsInterests    String?
+  talents           String?
   
-  // Timestamps
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  // ==========================================
+  // ADMISSION DECISION FIELDS
+  // ==========================================
   
-  // Indexes
+  // STATUS
+  status            String?      @default("PENDING")  
+  // PENDING, UNDER_REVIEW, INTERVIEW_SCHEDULED, INTERVIEWED, 
+  // ACCEPTED, CONDITIONAL_ACCEPTANCE, WAITLISTED, REJECTED, WITHDRAWN
+  
+  // DECISION DETAILS
+  decisionNotes     String?
+  admissionOfficer  String?
+  decisionDate      DateTime?
+  
+  // ACCEPTANCE DETAILS
+  admissionDate     DateTime?
+  assignedStream    String?
+  reportingDate     DateTime?
+  admissionLetterSent Boolean?   @default(false)
+  
+  // REJECTION DETAILS
+  rejectionDate     DateTime?
+  rejectionReason   String?
+  alternativeSuggestions String?
+  
+  // WAITLIST DETAILS
+  waitlistPosition  Int?
+  waitlistNotes     String?
+  
+  // INTERVIEW DETAILS
+  interviewDate     DateTime?
+  interviewTime     String?
+  interviewVenue    String?
+  interviewNotes    String?
+  
+  // CONDITIONAL ACCEPTANCE
+  conditions        String?
+  conditionDeadline DateTime?
+  
+  // SCHOOL-SPECIFIC INFO
+  houseAssigned     String?      // School house assignment
+  admissionClass    String?      // Form 1A, Form 1B, etc
+  admissionType     String?      // Regular, Special Needs, etc
+  
+  // DOCUMENT TRACKING
+  documentsVerified Boolean?     @default(false)
+  documentsNotes    String?
+  
+  // ====================
+  // TIMESTAMPS
+  // ====================
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  
+  // ====================
+  // INDEXES
+  // ====================
   @@index([applicationNumber])
   @@index([email])
   @@index([phone])
+  @@index([status])
   @@index([createdAt])
+  @@index([decisionDate])
+  @@index([county])
+  @@index([preferredStream])
+  @@index([kcpeMarks])
 }

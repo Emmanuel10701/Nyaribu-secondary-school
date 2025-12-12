@@ -10,10 +10,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// School information
+const SCHOOL_NAME = 'Nyaribu Secondary School';
+const SCHOOL_LOCATION = 'Kiganjo, Nyeri County';
+const SCHOOL_MOTTO = 'Soaring for Excellence';
+
 // Email templates
 const emailTemplates = {
   admission: (data) => ({
-    subject: `🎓 Admissions Now Open for ${data.schoolYear || '2025'} - Tokatwanyaa Highschool`,
+    subject: `🎓 Admissions Now Open for ${data.schoolYear || '2025'} - ${SCHOOL_NAME}`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -34,25 +39,42 @@ const emailTemplates = {
         <div class="container">
           <div class="header">
             <h1 style="color:white; font-size: 28px; font-weight: 700; margin: 0;">🎓 Admissions Open</h1>
-            <p style="color:rgba(255,255,255,0.9); font-size: 16px; margin: 8px 0 0;">Tokatwanyaa Highschool</p>
+            <p style="color:rgba(255,255,255,0.9); font-size: 16px; margin: 8px 0 0;">${SCHOOL_NAME}</p>
+            <p style="color:rgba(255,255,255,0.8); font-size: 14px; margin: 4px 0 0;">${SCHOOL_LOCATION}</p>
           </div>
           
           <div class="content">
             <h2 style="color:#1e293b; font-size: 24px; font-weight: 600; margin: 0 0 20px;">Begin Your Educational Journey</h2>
             <p style="color:#475569; font-size: 16px; line-height: 1.6;">
               We are thrilled to announce that admissions for the <strong>${data.schoolYear || '2025'}</strong> academic year are now open! 
-              Join our community of excellence and embark on an educational journey that shapes futures.
+              Join our community of excellence and embark on an educational journey that shapes futures at our public day school.
             </p>
-            ${data.deadline ? `<p style="color:#059669; font-size: 16px; font-weight: 600;">Application Deadline: ${data.deadline}</p>` : ''}
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="#" class="cta-button">Apply Now →</a>
+            
+            <div style="background: #f0f9ff; border-radius: 12px; padding: 20px; margin: 25px 0; border-left: 4px solid #3b82f6;">
+              <h3 style="color:#1e40af; font-size: 18px; font-weight: 600; margin: 0 0 10px;">Quick Facts:</h3>
+              <ul style="color:#475569; font-size: 14px; line-height: 1.6; margin: 0; padding-left: 20px;">
+                <li>Public Day School in Kiganjo, Nyeri</li>
+                <li>400+ students community</li>
+                <li>8-4-4 Curriculum System</li>
+                <li>Quality education for all</li>
+              </ul>
             </div>
+            
+            ${data.deadline ? `<p style="color:#059669; font-size: 16px; font-weight: 600;">📅 Application Deadline: ${data.deadline}</p>` : ''}
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="/pages/admissions" class="cta-button">Apply Now →</a>
+            </div>
+            
+            <p style="color:#64748b; font-size: 14px; line-height: 1.6; margin: 20px 0 0;">
+              For more information, contact our admissions office at <strong>+254720123456</strong> or email <strong>admissions@nyaribusecondary.sc.ke</strong>
+            </p>
           </div>
 
           <div class="footer">
-            <p style="color:#1e293b; font-size: 18px; font-weight: 600; margin: 0 0 8px;">Tokatwanyaa Highschool</p>
-            <p style="color:#64748b; font-size: 14px; margin: 0 0 8px;">Excellence in Education</p>
-            <p style="color:#94a3b8; font-size: 12px; margin: 8px 0 0;">© 2024 Tokatwanyaa Highschool. All rights reserved.</p>
+            <p style="color:#1e293b; font-size: 18px; font-weight: 600; margin: 0 0 8px;">${SCHOOL_NAME}</p>
+            <p style="color:#64748b; font-size: 14px; margin: 0 0 8px;">${SCHOOL_MOTTO}</p>
+            <p style="color:#94a3b8; font-size: 12px; margin: 8px 0 0;">© 2024 ${SCHOOL_NAME}. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -61,7 +83,7 @@ const emailTemplates = {
   }),
 
   newsletter: (data) => ({
-    subject: `📰 ${data.month || 'November'} Newsletter - Tokatwanyaa Highschool`,
+    subject: `📰 ${data.month || 'November'} Newsletter - ${SCHOOL_NAME}`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -82,18 +104,38 @@ const emailTemplates = {
           <div class="header">
             <h1 style="color:white; font-size: 28px; font-weight: 700; margin: 0;">📰 Monthly Newsletter</h1>
             <p style="color:rgba(255,255,255,0.9); font-size: 16px; margin: 8px 0 0;">${data.month || 'November'} Updates</p>
+            <p style="color:rgba(255,255,255,0.8); font-size: 14px; margin: 4px 0 0;">${SCHOOL_NAME}</p>
           </div>
           
           <div class="content">
             <h2 style="color:#1e293b; font-size: 24px; font-weight: 600; margin: 0 0 20px;">What's Happening at Our School</h2>
             <p style="color:#475569; font-size: 16px; line-height: 1.6;">
-              ${data.customMessage || 'Stay updated with the latest news, events, and achievements from our school community.'}
+              ${data.customMessage || 'Stay updated with the latest news, events, and achievements from our school community of 400+ students.'}
             </p>
+            
+            ${data.events ? `
+            <div style="background: #fef3c7; border-radius: 12px; padding: 20px; margin: 25px 0;">
+              <h3 style="color:#92400e; font-size: 18px; font-weight: 600; margin: 0 0 10px;">Upcoming Events:</h3>
+              <div style="color:#92400e; font-size: 14px; line-height: 1.6;">
+                ${data.events}
+              </div>
+            </div>
+            ` : ''}
+            
+            ${data.achievements ? `
+            <div style="background: #f0f9ff; border-radius: 12px; padding: 20px; margin: 25px 0;">
+              <h3 style="color:#1e40af; font-size: 18px; font-weight: 600; margin: 0 0 10px;">Recent Achievements:</h3>
+              <div style="color:#1e40af; font-size: 14px; line-height: 1.6;">
+                ${data.achievements}
+              </div>
+            </div>
+            ` : ''}
           </div>
 
           <div class="footer">
-            <p style="color:#1e293b; font-size: 18px; font-weight: 600; margin: 0 0 8px;">Tokatwanyaa Highschool</p>
-            <p style="color:#64748b; font-size: 14px; margin: 0 0 8px;">Building Future Leaders</p>
+            <p style="color:#1e293b; font-size: 18px; font-weight: 600; margin: 0 0 8px;">${SCHOOL_NAME}</p>
+            <p style="color:#64748b; font-size: 14px; margin: 0 0 8px;">${SCHOOL_LOCATION}</p>
+            <p style="color:#94a3b8; font-size: 12px; margin: 8px 0 0;">© 2024 ${SCHOOL_NAME}. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -102,7 +144,7 @@ const emailTemplates = {
   }),
 
   event: (data) => ({
-    subject: `🎉 You're Invited: ${data.eventName || 'School Event'} - Tokatwanyaa Highschool`,
+    subject: `🎉 You're Invited: ${data.eventName || 'School Event'} - ${SCHOOL_NAME}`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -123,19 +165,32 @@ const emailTemplates = {
           <div class="header">
             <h1 style="color:white; font-size: 28px; font-weight: 700; margin: 0;">🎉 You're Invited!</h1>
             <p style="color:rgba(255,255,255,0.9); font-size: 16px; margin: 8px 0 0;">${data.eventName || 'School Event'}</p>
+            <p style="color:rgba(255,255,255,0.8); font-size: 14px; margin: 4px 0 0;">${SCHOOL_NAME}</p>
           </div>
           
           <div class="content">
             <h2 style="color:#1e293b; font-size: 24px; font-weight: 600; margin: 0 0 20px;">Join Us for a Special Event</h2>
             <p style="color:#475569; font-size: 16px; line-height: 1.6;">
-              ${data.customMessage || 'We cordially invite you to join us for this special occasion. Your presence would mean a lot to us.'}
+              ${data.customMessage || `We cordially invite you to join us for this special occasion at our school in ${SCHOOL_LOCATION}. Your presence would mean a lot to our community of 400+ students.`}
             </p>
-            ${data.date ? `<p style="color:#7c3aed; font-size: 16px; font-weight: 600;">📅 Date: ${data.date}</p>` : ''}
-            ${data.time ? `<p style="color:#7c3aed; font-size: 16px; font-weight: 600;">⏰ Time: ${data.time}</p>` : ''}
+            
+            <div style="background: #faf5ff; border-radius: 12px; padding: 20px; margin: 25px 0; border-left: 4px solid #7c3aed;">
+              <h3 style="color:#6b21a8; font-size: 18px; font-weight: 600; margin: 0 0 10px;">Event Details:</h3>
+              ${data.date ? `<p style="color:#6b21a8; font-size: 16px; margin: 5px 0;"><strong>📅 Date:</strong> ${data.date}</p>` : ''}
+              ${data.time ? `<p style="color:#6b21a8; font-size: 16px; margin: 5px 0;"><strong>⏰ Time:</strong> ${data.time}</p>` : ''}
+              ${data.location ? `<p style="color:#6b21a8; font-size: 16px; margin: 5px 0;"><strong>📍 Location:</strong> ${data.location}</p>` : ''}
+              <p style="color:#6b21a8; font-size: 16px; margin: 5px 0;"><strong>🏫 Venue:</strong> ${SCHOOL_NAME}, ${SCHOOL_LOCATION}</p>
+            </div>
+            
+            <p style="color:#64748b; font-size: 14px; line-height: 1.6; margin: 20px 0 0;">
+              Please RSVP by calling <strong>+254720123456</strong> or emailing <strong>info@nyaribusecondary.sc.ke</strong>
+            </p>
           </div>
 
           <div class="footer">
-            <p style="color:#1e293b; font-size: 18px; font-weight: 600; margin: 0 0 8px;">Tokatwanyaa Highschool</p>
+            <p style="color:#1e293b; font-size: 18px; font-weight: 600; margin: 0 0 8px;">${SCHOOL_NAME}</p>
+            <p style="color:#64748b; font-size: 14px; margin: 0 0 8px;">${SCHOOL_MOTTO}</p>
+            <p style="color:#94a3b8; font-size: 12px; margin: 8px 0 0;">© 2024 ${SCHOOL_NAME}. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -144,7 +199,7 @@ const emailTemplates = {
   }),
 
   custom: (data) => ({
-    subject: data.subject,
+    subject: data.subject || `Important Update - ${SCHOOL_NAME}`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -163,8 +218,9 @@ const emailTemplates = {
       <body>
         <div class="container">
           <div class="header">
-            <h1 style="color:white; font-size: 28px; font-weight: 700; margin: 0;">${data.subject}</h1>
-            <p style="color:rgba(255,255,255,0.9); font-size: 16px; margin: 8px 0 0;">Tokatwanyaa Highschool</p>
+            <h1 style="color:white; font-size: 28px; font-weight: 700; margin: 0;">${data.subject || 'Important Update'}</h1>
+            <p style="color:rgba(255,255,255,0.9); font-size: 16px; margin: 8px 0 0;">${SCHOOL_NAME}</p>
+            <p style="color:rgba(255,255,255,0.8); font-size: 14px; margin: 4px 0 0;">${SCHOOL_LOCATION}</p>
           </div>
           
           <div class="content">
@@ -174,8 +230,9 @@ const emailTemplates = {
           </div>
 
           <div class="footer">
-            <p style="color:#1e293b; font-size: 18px; font-weight: 600; margin: 0 0 8px;">Tokatwanyaa Highschool</p>
-            <p style="color:#64748b; font-size: 14px; margin: 0 0 8px;">Excellence in Education</p>
+            <p style="color:#1e293b; font-size: 18px; font-weight: 600; margin: 0 0 8px;">${SCHOOL_NAME}</p>
+            <p style="color:#64748b; font-size: 14px; margin: 0 0 8px;">${SCHOOL_MOTTO}</p>
+            <p style="color:#94a3b8; font-size: 12px; margin: 8px 0 0;">© 2024 ${SCHOOL_NAME}. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -199,7 +256,7 @@ export async function POST(request) {
     const emailTemplate = emailTemplates[template] || emailTemplates.custom;
     const emailContent = emailTemplate({
       ...templateData,
-      subject: subject || 'Important Update - Tokatwanyaa Highschool',
+      subject: subject || `Important Update - ${SCHOOL_NAME}`,
       customMessage
     });
 
@@ -207,7 +264,7 @@ export async function POST(request) {
     const emailPromises = subscribers.map(async (subscriber) => {
       try {
         await transporter.sendMail({
-          from: process.env.EMAIL_USER,
+          from: `"${SCHOOL_NAME}" <${process.env.EMAIL_USER}>`,
           to: subscriber.email,
           subject: emailContent.subject,
           html: emailContent.html,

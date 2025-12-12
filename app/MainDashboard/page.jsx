@@ -42,6 +42,7 @@ import AdminsProfileManager from '../components/adminsandprofile/page';
 import GuidanceCounselingTab from '../components/guidance/page';
 import SchoolInfoTab from '../components/schoolinfo/page';
 import ApplicationsManager from '../components/applications/page'; // You'll need to create this component
+import Resources from '../components/resources/page';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -59,7 +60,8 @@ export default function AdminDashboard() {
     galleryItems: 0,
     guidanceSessions: 0,
     totalApplications: 0, // Added applications count
-    pendingApplications: 0 // Added pending applications count
+    pendingApplications: 0,// Added pending applications count
+    Resources: 0
   });
 
   // Fetch real counts from all APIs
@@ -75,7 +77,8 @@ export default function AdminDashboard() {
         assignmentsRes,
         galleryRes,
         guidanceRes,
-        admissionsRes // Added admissions API
+        admissionsRes, // Added admissions API
+        resourcesRes // Added resources API
       ] = await Promise.allSettled([
         fetch('/api/student'),
         fetch('/api/staff'),
@@ -86,7 +89,8 @@ export default function AdminDashboard() {
         fetch('/api/assignment'),
         fetch('/api/gallery'),
         fetch('/api/guidance'),
-        fetch('/api/admissions/applications') // Added
+        fetch('/api/admissions/applications'), // Added
+        fetch('/api/resources') // Added resources API
       ]);
 
       // Process responses and get actual counts
@@ -100,6 +104,7 @@ export default function AdminDashboard() {
       const gallery = galleryRes.status === 'fulfilled' ? await galleryRes.value.json() : { galleries: [] };
       const guidance = guidanceRes.status === 'fulfilled' ? await guidanceRes.value.json() : { events: [] };
       const admissions = admissionsRes.status === 'fulfilled' ? await admissionsRes.value.json() : { applications: [] };
+      const resources = resourcesRes.status === 'fulfilled' ? await resourcesRes.value.json() : { resources: [] };
 
       // Calculate real counts
       const activeStudents = students.students?.filter(s => s.status === 'Active').length || 0;
@@ -127,7 +132,8 @@ export default function AdminDashboard() {
         totalApplications: admissionsData.length || 0,
         pendingApplications: pendingApps,
         acceptedApplications: acceptedApps,
-        rejectedApplications: rejectedApps
+        rejectedApplications: rejectedApps,
+        Resources: resources.resources?.length || 0,
       });
 
     } catch (error) {
@@ -266,6 +272,8 @@ export default function AdminDashboard() {
         return <AssignmentsManager />;
       case 'admissions': // Added case for admissions
         return <ApplicationsManager />;
+       case 'resources':
+        return <Resources />;
       case 'newsevents':
         return <NewsEventsManager />;
       case 'gallery':
@@ -340,6 +348,13 @@ export default function AdminDashboard() {
       badge: 'purple',
       showPending: realStats.pendingApplications > 0,
       pendingCount: realStats.pendingApplications
+    },
+    { 
+      id: 'resources', 
+      label: 'Resources',
+      icon: FiFileText,
+      count: realStats.Resources,
+      badge: 'cyan' 
     },
     { 
       id: 'newsevents', 
@@ -427,7 +442,7 @@ export default function AdminDashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="text-2xl font-bold text-gray-800 mb-2"
           >
-            Katwanyaa High School
+            Nyaribu Secondary School
           </motion.h1>
           <p className="text-gray-600 text-lg">Initializing Admin Portal...</p>
           <motion.div
@@ -493,6 +508,7 @@ export default function AdminDashboard() {
                         staff: 'Staff & BOM Management',
                         assignments: 'Assignments Manager',
                         admissions: 'Admission Applications', // Added
+                        resources: 'Resources',
                         newsevents: 'News & Events',
                         gallery: 'Media Gallery',
                         subscribers: 'Subscriber Management',
@@ -503,7 +519,7 @@ export default function AdminDashboard() {
                     })()}
                   </motion.h1>
                   <p className="text-sm text-gray-500 hidden sm:block">
-                    Katwanyaa High School • Excellence in Education
+                    Nyaribu Secondary School • Excellence in Education
                   </p>
                 </div>
               </div>

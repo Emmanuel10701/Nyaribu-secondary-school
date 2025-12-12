@@ -31,7 +31,7 @@ const generateStaffStructuredData = (staffMember) => {
     'jobTitle': staffMember.position,
     'worksFor': {
       '@type': 'EducationalOrganization',
-      'name': 'Katwanyaa High School',
+      'name': 'Nyaribu  Secondary School',
       'url': process.env.NEXT_PUBLIC_SITE_URL
     },
     'department': staffMember.department,
@@ -173,8 +173,8 @@ export default function StaffDetailPage() {
     return (
       <>
         <Head>
-          <title>Staff Not Found | Katwanyaa High School</title>
-          <meta name="description" content="The requested staff member profile was not found at Katwanyaa High School." />
+          <title>Staff Not Found | Nyaribu  Secondary School</title>
+          <meta name="description" content="The requested staff member profile was not found at Nyaribu  Secondary  School." />
           <meta name="robots" content="noindex, follow" />
         </Head>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 pt-20 flex items-center justify-center px-4">
@@ -206,8 +206,8 @@ export default function StaffDetailPage() {
 
   const experienceYears = getExperienceYears(staffMember.bio);
   const structuredData = generateStaffStructuredData(staffMember);
-  const pageTitle = `${staffMember.name} - ${staffMember.position} at Katwanyaa High School`;
-  const pageDescription = `${staffMember.name} is a ${staffMember.position} in the ${staffMember.department} department at Katwanyaa High School. ${staffMember.bio?.substring(0, 155)}...`;
+  const pageTitle = `${staffMember.name} - ${staffMember.position} at Nyaribu  Secondary  School`;
+  const pageDescription = `${staffMember.name} is a ${staffMember.position} in the ${staffMember.department} department at Nyaribu  Secondary School. ${staffMember.bio?.substring(0, 155)}...`;
   const canonicalUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/staff/${generateSlug(staffMember.name, staffMember.id)}`;
 
   return (
@@ -221,14 +221,14 @@ export default function StaffDetailPage() {
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:image" content={getImageSrc(staffMember)} />
-        <meta property="og:site_name" content="Katwanyaa High School" />
+        <meta property="og:site_name" content="Nyaribu  Secondary  School" />
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content={canonicalUrl} />
         <meta property="twitter:title" content={pageTitle} />
         <meta property="twitter:description" content={pageDescription} />
         <meta property="twitter:image" content={getImageSrc(staffMember)} />
         <meta name="author" content={staffMember.name} />
-        <meta name="keywords" content={`${staffMember.name}, ${staffMember.position}, ${staffMember.department}, Katwanyaa High School, teacher, educator, ${staffMember.expertise?.join(', ')}`} />
+        <meta name="keywords" content={`${staffMember.name}, ${staffMember.position}, ${staffMember.department}, Nyaribu  Secondary School, teacher, educator, ${staffMember.expertise?.join(', ')}`} />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         
         <script
@@ -323,7 +323,7 @@ export default function StaffDetailPage() {
                     </p>
                     
                     <p className="text-gray-600 mb-6 max-w-3xl leading-relaxed text-base">
-                      {staffMember.role} at Katwanyaa High School - Dedicated educator committed to student success and academic excellence.
+                      {staffMember.role} at Nyaribu  Secondary  School - Dedicated educator committed to student success and academic excellence.
                     </p>
 
                     {/* Quick Stats */}
