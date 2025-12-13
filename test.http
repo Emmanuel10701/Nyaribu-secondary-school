@@ -27,7 +27,7 @@ GET http://localhost:3000/api/applyadmission/NSS/2024/ABC123
 Content-Type: application/json
 
 ### 7. CREATE NEW APPLICATION (VALID)
-POST http://localhost:3000/api/applyadmission
+POST http://localhost:3001/api/applyadmission
 Content-Type: application/json
 
 {
@@ -41,7 +41,7 @@ Content-Type: application/json
   "constituency": "Kieni",
   "ward": "Kiganjo",
   "village": "Muthinga",
-  "email": "john.doe@example.com",
+  "email": "emmanuelmakau53@gmail.com",
   "phone": "0712345678",
   "alternativePhone": "0723456789",
   "postalAddress": "P.O Box 123-10100",
@@ -367,7 +367,7 @@ Content-Type: application/json
   "constituency": "Ainabkoi",
   "ward": "Kapseret",
   "village": "Ziwa",
-  "email": "comprehensive.test@example.com",
+  "email": "emmanuelmakau90@gmail.com",
   "phone": "0766666666",
   "alternativePhone": "0777777777",
   "postalAddress": "P.O Box 444-30100",
@@ -417,7 +417,7 @@ Access-Control-Request-Method: POST
 Access-Control-Request-Headers: Content-Type
 
 ### 34. TEST WITH MALFORMED JSON
-POST http://localhost:3000/api/applyadmission
+POST http://localhost:3001/api/applyadmission
 Content-Type: application/json
 
 {

@@ -1,9 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { 
   FiSearch, 
   FiUser, 
@@ -22,7 +19,11 @@ import {
   FiMail,
   FiPhone,
   FiRefreshCw,
-  FiLogOut
+  FiLogOut,
+  FiCheckCircle,
+  FiAlertCircle,
+  FiXCircle,
+  FiInfo
 } from 'react-icons/fi';
 
 export default function AdminManager() {
@@ -44,6 +45,14 @@ export default function AdminManager() {
   const [refreshing, setRefreshing] = useState(false);
   const itemsPerPage = 8;
 
+  // Notification state
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '',
+    type: 'info', // 'success', 'error', 'info'
+    icon: null
+  });
+
   const [adminData, setAdminData] = useState({
     name: '',
     email: '',
@@ -59,6 +68,27 @@ export default function AdminManager() {
     status: 'active'
   });
 
+  // Show notification function
+  const showNotification = (message, type = 'info', duration = 3000) => {
+    const icons = {
+      success: <FiCheckCircle className="text-green-500 text-xl" />,
+      error: <FiXCircle className="text-red-500 text-xl" />,
+      info: <FiInfo className="text-blue-500 text-xl" />
+    };
+
+    setNotification({
+      show: true,
+      message,
+      type,
+      icon: icons[type]
+    });
+
+    // Auto hide after duration
+    setTimeout(() => {
+      setNotification(prev => ({ ...prev, show: false }));
+    }, duration);
+  };
+
   // Check authentication on component mount
   useEffect(() => {
     const checkAuth = () => {
@@ -71,7 +101,7 @@ export default function AdminManager() {
           setStatus('authenticated');
         } else {
           setStatus('unauthenticated');
-          toast.error('Please login to access this page');
+          showNotification('Please login to access this page', 'error');
           router.push('/adminLogin');
         }
       } catch (error) {
@@ -127,11 +157,11 @@ export default function AdminManager() {
       }
 
       if (showRefresh) {
-        toast.success('🔄 Admins refreshed successfully!');
+        showNotification('Admins refreshed successfully!', 'success');
       }
     } catch (error) {
       console.error('Error fetching admins:', error);
-      toast.error('❌ Failed to load admins');
+      showNotification('Failed to load admins', 'error');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -226,7 +256,7 @@ export default function AdminManager() {
   // Handle admin deletion
   const handleDelete = (admin) => {
     if (session?.user && admin.id === session.user.id) {
-      toast.error('❌ You cannot delete your own account');
+      showNotification('You cannot delete your own account', 'error');
       return;
     }
     setAdminToDelete(admin);
@@ -241,10 +271,10 @@ export default function AdminManager() {
       setAdmins(updatedAdmins);
       localStorage.setItem('adminList', JSON.stringify(updatedAdmins));
       
-      toast.success('🗑️ Admin deleted successfully!');
+      showNotification('Admin deleted successfully!', 'success');
     } catch (error) {
       console.error('Error deleting admin:', error);
-      toast.error('❌ Failed to delete admin');
+      showNotification('Failed to delete admin', 'error');
     } finally {
       setShowDeleteConfirm(false);
       setAdminToDelete(null);
@@ -328,7 +358,7 @@ export default function AdminManager() {
         );
         setAdmins(updatedAdmins);
         localStorage.setItem('adminList', JSON.stringify(updatedAdmins));
-        toast.success('✅ Admin updated successfully!');
+        showNotification('Admin updated successfully!', 'success');
       } else {
         response = await fetch('/api/register', {
           method: 'POST',
@@ -358,7 +388,7 @@ export default function AdminManager() {
           const updatedAdmins = [...admins, newAdmin];
           setAdmins(updatedAdmins);
           localStorage.setItem('adminList', JSON.stringify(updatedAdmins));
-          toast.success('✅ Admin created successfully!');
+          showNotification('Admin created successfully!', 'success');
         } else {
           throw new Error(data.error || 'Failed to create admin');
         }
@@ -382,7 +412,7 @@ export default function AdminManager() {
       
     } catch (error) {
       console.error('Error saving admin:', error);
-      toast.error(`❌ ${error.message}`);
+      showNotification(error.message, 'error');
     } finally {
       setSavingAdmin(false);
     }
@@ -427,10 +457,10 @@ export default function AdminManager() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      toast.success('📊 CSV exported successfully!');
+      showNotification('CSV exported successfully!', 'success');
     } catch (error) {
       console.error('Error exporting CSV:', error);
-      toast.error('❌ Failed to export CSV');
+      showNotification('Failed to export CSV', 'error');
     }
   };
 
@@ -438,7 +468,7 @@ export default function AdminManager() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    toast.info('👋 Logged out successfully');
+    showNotification('Logged out successfully', 'info');
     router.push('/adminLogin');
   };
 
@@ -471,7 +501,25 @@ export default function AdminManager() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 p-4 lg:p-8 space-y-8">
-      <ToastContainer position="top-right" />
+      {/* Notification */}
+      {notification.show && (
+        <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-lg border ${
+          notification.type === 'success' 
+            ? 'bg-green-50 border-green-200 text-green-800' 
+            : notification.type === 'error'
+            ? 'bg-red-50 border-red-200 text-red-800'
+            : 'bg-blue-50 border-blue-200 text-blue-800'
+        } transition-all duration-300 animate-slideIn`}>
+          {notification.icon}
+          <span className="font-medium">{notification.message}</span>
+          <button 
+            onClick={() => setNotification(prev => ({ ...prev, show: false }))}
+            className="ml-4 hover:opacity-70 transition-opacity"
+          >
+            <FiX className="text-lg" />
+          </button>
+        </div>
+      )}
 
       {/* Current Admin Profile Card */}
       {session?.user && (
@@ -493,20 +541,18 @@ export default function AdminManager() {
                   Active
                 </span>
               </div>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-all duration-300 flex items-center gap-2"
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 hover:scale-100 active:scale-95"
               >
                 <FiLogOut className="text-lg" />
                 Logout
-              </motion.button>
+              </button>
             </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
+            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-200">
               <FiUser className="text-gray-600 text-xl" />
               <div>
                 <p className="text-sm text-gray-500">Name</p>
@@ -514,7 +560,7 @@ export default function AdminManager() {
               </div>
             </div>
             
-            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
+            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-200">
               <FiMail className="text-gray-600 text-xl" />
               <div>
                 <p className="text-sm text-gray-500">Email</p>
@@ -522,7 +568,7 @@ export default function AdminManager() {
               </div>
             </div>
             
-            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
+            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-200">
               <FiPhone className="text-gray-600 text-xl" />
               <div>
                 <p className="text-sm text-gray-500">Phone</p>
@@ -551,12 +597,10 @@ export default function AdminManager() {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-            <motion.button
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               onClick={() => fetchAdmins(true)}
               disabled={refreshing}
-              className="px-6 py-4 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 rounded-2xl font-semibold flex items-center gap-3 transition-all duration-300 shadow-sm"
+              className="px-6 py-4 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 rounded-2xl font-semibold flex items-center gap-3 transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5"
             >
               {refreshing ? (
                 <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
@@ -564,41 +608,33 @@ export default function AdminManager() {
                 <FiRefreshCw className="text-xl" />
               )}
               {refreshing ? 'Refreshing...' : 'Refresh'}
-            </motion.button>
+            </button>
             
-            <motion.button
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               onClick={exportToCSV}
-              className="px-6 py-4 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 rounded-2xl font-semibold flex items-center gap-3 transition-all duration-300 shadow-sm"
+              className="px-6 py-4 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 rounded-2xl font-semibold flex items-center gap-3 transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5"
             >
               <FiDownload className="text-xl" />
               Export CSV
-            </motion.button>
+            </button>
             
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={handleCreateAdmin}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 rounded-2xl font-semibold flex items-center gap-3 transition-all duration-300 shadow-lg shadow-purple-500/25"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 rounded-2xl font-semibold flex items-center gap-3 transition-all duration-200 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:-translate-y-0.5"
             >
               <FiPlus className="text-xl" />
               Add Admin
-            </motion.button>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Modern Stats Cards */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl p-6 shadow-lg border border-gray-200/50 relative overflow-hidden group hover:shadow-xl transition-all duration-300"
-        >
+        <div className="bg-white rounded-3xl p-6 shadow-lg border border-gray-200/50 relative overflow-hidden group hover:shadow-xl transition-all duration-200">
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-50 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 bg-blue-50 rounded-2xl transition-colors duration-200 group-hover:bg-blue-100">
                 <FiUsers className="text-blue-600 text-2xl" />
               </div>
               <div className="text-right">
@@ -608,18 +644,13 @@ export default function AdminManager() {
             </div>
             <div className="text-gray-600 text-sm">All administrators</div>
           </div>
-          <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-blue-100 rounded-full opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-        </motion.div>
+          <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-blue-100 rounded-full opacity-50 group-hover:opacity-70 transition-opacity duration-200"></div>
+        </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-3xl p-6 shadow-lg border border-gray-200/50 relative overflow-hidden group hover:shadow-xl transition-all duration-300"
-        >
+        <div className="bg-white rounded-3xl p-6 shadow-lg border border-gray-200/50 relative overflow-hidden group hover:shadow-xl transition-all duration-200">
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-green-50 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 bg-green-50 rounded-2xl transition-colors duration-200 group-hover:bg-green-100">
                 <FiUser className="text-green-600 text-2xl" />
               </div>
               <div className="text-right">
@@ -629,18 +660,13 @@ export default function AdminManager() {
             </div>
             <div className="text-gray-600 text-sm">Active administrators</div>
           </div>
-          <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-green-100 rounded-full opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-        </motion.div>
+          <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-green-100 rounded-full opacity-50 group-hover:opacity-70 transition-opacity duration-200"></div>
+        </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-3xl p-6 shadow-lg border border-gray-200/50 relative overflow-hidden group hover:shadow-xl transition-all duration-300"
-        >
+        <div className="bg-white rounded-3xl p-6 shadow-lg border border-gray-200/50 relative overflow-hidden group hover:shadow-xl transition-all duration-200">
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-orange-50 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 bg-orange-50 rounded-2xl transition-colors duration-200 group-hover:bg-orange-100">
                 <FiTrendingUp className="text-orange-600 text-2xl" />
               </div>
               <div className="text-right">
@@ -652,8 +678,8 @@ export default function AdminManager() {
             </div>
             <div className="text-gray-600 text-sm">Growth rate</div>
           </div>
-          <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-orange-100 rounded-full opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-        </motion.div>
+          <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-orange-100 rounded-full opacity-50 group-hover:opacity-70 transition-opacity duration-200"></div>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -667,7 +693,7 @@ export default function AdminManager() {
               placeholder="Search admins by name, email, or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+              className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             />
           </div>
           
@@ -705,11 +731,9 @@ export default function AdminManager() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {currentAdmins.map((admin) => (
-                <motion.tr
+                <tr
                   key={admin.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="hover:bg-gray-50 transition-all duration-300 group"
+                  className="hover:bg-gray-50 transition-colors duration-200 group"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -763,27 +787,23 @@ export default function AdminManager() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                      <button
                         onClick={() => handleEditAdmin(admin)}
-                        className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-all duration-300 border border-blue-200"
+                        className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-all duration-200 border border-blue-200 hover:scale-100 active:scale-95"
                       >
                         <FiEdit3 className="text-lg" />
-                      </motion.button>
+                      </button>
                       {session?.user && admin.id !== session.user.id && (
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                        <button
                           onClick={() => handleDelete(admin)}
-                          className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all duration-300 border border-red-200"
+                          className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all duration-200 border border-red-200 hover:scale-100 active:scale-95"
                         >
                           <FiTrash2 className="text-lg" />
-                        </motion.button>
+                        </button>
                       )}
                     </div>
                   </td>
-                </motion.tr>
+                </tr>
               ))}
             </tbody>
           </table>
@@ -798,7 +818,7 @@ export default function AdminManager() {
           )}
         </div>
 
-        {/* Modern Pagination */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
             <div className="text-gray-600 text-sm">
@@ -806,308 +826,286 @@ export default function AdminManager() {
             </div>
             
             <div className="flex items-center gap-2">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="p-3 bg-white hover:bg-gray-50 border border-gray-300 rounded-2xl text-gray-700 disabled:opacity-30 transition-all duration-300"
+                className="p-3 bg-white hover:bg-gray-50 border border-gray-300 rounded-2xl text-gray-700 disabled:opacity-30 transition-all duration-200 hover:scale-100 active:scale-95 disabled:hover:scale-100"
               >
                 <FiChevronLeft className="text-lg" />
-              </motion.button>
+              </button>
 
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 const pageNum = i + 1;
                 return (
-                  <motion.button
+                  <button
                     key={pageNum}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`px-4 py-3 rounded-2xl font-semibold transition-all duration-300 ${
+                    className={`px-4 py-3 rounded-2xl font-semibold transition-all duration-200 hover:scale-100 active:scale-95 ${
                       currentPage === pageNum
                         ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
                         : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'
                     }`}
                   >
                     {pageNum}
-                  </motion.button>
+                  </button>
                 );
               })}
 
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="p-3 bg-white hover:bg-gray-50 border border-gray-300 rounded-2xl text-gray-700 disabled:opacity-30 transition-all duration-300"
+                className="p-3 bg-white hover:bg-gray-50 border border-gray-300 rounded-2xl text-gray-700 disabled:opacity-30 transition-all duration-200 hover:scale-100 active:scale-95 disabled:hover:scale-100"
               >
                 <FiChevronRight className="text-lg" />
-              </motion.button>
+              </button>
             </div>
           </div>
         )}
       </div>
 
       {/* Admin Modal */}
-      <AnimatePresence>
-        {showAdminModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-            onClick={() => setShowAdminModal(false)}
+      {showAdminModal && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity duration-200"
+          onClick={() => setShowAdminModal(false)}
+        >
+          <div 
+            className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl border border-gray-200 transform transition-all duration-200 scale-100"
+            onClick={(e) => e.stopPropagation()}
           >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl border border-gray-200"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div className="p-8 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl">
-                      <FiUser className="text-white text-2xl" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900">
-                        {editingAdmin ? 'Edit Admin' : 'Add New Admin'}
-                      </h2>
-                      <p className="text-gray-600 mt-1">Manage admin details and permissions</p>
-                    </div>
+            {/* Header */}
+            <div className="p-8 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl">
+                    <FiUser className="text-white text-2xl" />
                   </div>
-                  <button
-                    onClick={() => setShowAdminModal(false)}
-                    className="p-3 hover:bg-gray-100 rounded-2xl transition-all duration-200 text-gray-600 hover:text-gray-900"
-                  >
-                    <FiX className="text-xl" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Content */}
-              <form onSubmit={handleSaveAdmin} className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
-                {/* Basic Information */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-gray-900 font-semibold mb-3">Full Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={adminData.name}
-                      onChange={(e) => setAdminData({ ...adminData, name: e.target.value })}
-                      className="w-full px-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                      placeholder="Enter full name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-900 font-semibold mb-3">Email *</label>
-                    <input
-                      type="email"
-                      required
-                      value={adminData.email}
-                      onChange={(e) => setAdminData({ ...adminData, email: e.target.value })}
-                      className="w-full px-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                      placeholder="Enter email address"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-900 font-semibold mb-3">
-                      {editingAdmin ? 'New Password (leave blank to keep current)' : 'Password *'}
-                    </label>
-                    <input
-                      type="password"
-                      required={!editingAdmin}
-                      value={adminData.password}
-                      onChange={(e) => setAdminData({ ...adminData, password: e.target.value })}
-                      className="w-full px-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                      placeholder="Enter password"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-900 font-semibold mb-3">Phone *</label>
-                    <input
-                      type="tel"
-                      required
-                      value={adminData.phone}
-                      onChange={(e) => setAdminData({ ...adminData, phone: e.target.value })}
-                      className="w-full px-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                      placeholder="+254700000000"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-900 font-semibold mb-3">Role *</label>
-                    <select
-                      required
-                      value={adminData.role}
-                      onChange={(e) => setAdminData({ ...adminData, role: e.target.value })}
-                      className="w-full px-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                    >
-                      <option value="ADMIN">Admin</option>
-                      <option value="SUPER_ADMIN">Super Admin</option>
-                      <option value="MODERATOR">Moderator</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-900 font-semibold mb-3">Status *</label>
-                    <select
-                      required
-                      value={adminData.status}
-                      onChange={(e) => setAdminData({ ...adminData, status: e.target.value })}
-                      className="w-full px-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {editingAdmin ? 'Edit Admin' : 'Add New Admin'}
+                    </h2>
+                    <p className="text-gray-600 mt-1">Manage admin details and permissions</p>
                   </div>
                 </div>
-
-                {/* Permissions */}
-                <div>
-                  <label className="block text-gray-900 font-semibold mb-4">Permissions</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200">
-                      <input
-                        type="checkbox"
-                        checked={adminData.permissions.manageUsers}
-                        onChange={(e) => updatePermission('manageUsers', e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <div>
-                        <p className="font-semibold text-gray-900">Manage Users</p>
-                        <p className="text-sm text-gray-600">Create, edit, and delete users</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200">
-                      <input
-                        type="checkbox"
-                        checked={adminData.permissions.manageContent}
-                        onChange={(e) => updatePermission('manageContent', e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <div>
-                        <p className="font-semibold text-gray-900">Manage Content</p>
-                        <p className="text-sm text-gray-600">Create and edit website content</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200">
-                      <input
-                        type="checkbox"
-                        checked={adminData.permissions.manageSettings}
-                        onChange={(e) => updatePermission('manageSettings', e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <div>
-                        <p className="font-semibold text-gray-900">Manage Settings</p>
-                        <p className="text-sm text-gray-600">Modify system settings</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200">
-                      <input
-                        type="checkbox"
-                        checked={adminData.permissions.viewReports}
-                        onChange={(e) => updatePermission('viewReports', e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <div>
-                        <p className="font-semibold text-gray-900">View Reports</p>
-                        <p className="text-sm text-gray-600">Access analytics and reports</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-4 pt-6 border-t border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => setShowAdminModal(false)}
-                    className="flex-1 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-6 py-4 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-3"
-                  >
-                    <FiX className="text-lg" />
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={savingAdmin}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg shadow-purple-500/25 disabled:opacity-50 flex items-center justify-center gap-3"
-                  >
-                    {savingAdmin ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <FiUser className="text-lg" />
-                        {editingAdmin ? 'Update Admin' : 'Create Admin'}
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {showDeleteConfirm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-            onClick={cancelDelete}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white rounded-3xl w-full max-w-md p-8 border border-gray-200 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center mb-6">
-                <div className="w-20 h-20 bg-red-100 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-red-200">
-                  <FiTrash2 className="text-3xl text-red-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Delete Admin</h3>
-                <p className="text-gray-600 text-lg">
-                  Are you sure you want to delete <strong className="text-gray-900">{adminToDelete?.name}</strong>?
-                </p>
-                <p className="text-gray-500 text-sm mt-3">This action cannot be undone.</p>
-              </div>
-              <div className="flex gap-4">
                 <button
-                  onClick={cancelDelete}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-6 py-4 rounded-2xl font-semibold transition-all duration-300"
+                  onClick={() => setShowAdminModal(false)}
+                  className="p-3 hover:bg-gray-100 rounded-2xl transition-all duration-200 text-gray-600 hover:text-gray-900 hover:scale-110"
                 >
+                  <FiX className="text-xl" />
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <form onSubmit={handleSaveAdmin} className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-gray-900 font-semibold mb-3">Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={adminData.name}
+                    onChange={(e) => setAdminData({ ...adminData, name: e.target.value })}
+                    className="w-full px-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Enter full name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-900 font-semibold mb-3">Email *</label>
+                  <input
+                    type="email"
+                    required
+                    value={adminData.email}
+                    onChange={(e) => setAdminData({ ...adminData, email: e.target.value })}
+                    className="w-full px-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Enter email address"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-900 font-semibold mb-3">
+                    {editingAdmin ? 'New Password (leave blank to keep current)' : 'Password *'}
+                  </label>
+                  <input
+                    type="password"
+                    required={!editingAdmin}
+                    value={adminData.password}
+                    onChange={(e) => setAdminData({ ...adminData, password: e.target.value })}
+                    className="w-full px-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Enter password"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-900 font-semibold mb-3">Phone *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={adminData.phone}
+                    onChange={(e) => setAdminData({ ...adminData, phone: e.target.value })}
+                    className="w-full px-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    placeholder="+254700000000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-900 font-semibold mb-3">Role *</label>
+                  <select
+                    required
+                    value={adminData.role}
+                    onChange={(e) => setAdminData({ ...adminData, role: e.target.value })}
+                    className="w-full px-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  >
+                    <option value="ADMIN">Admin</option>
+                    <option value="SUPER_ADMIN">Super Admin</option>
+                    <option value="MODERATOR">Moderator</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-900 font-semibold mb-3">Status *</label>
+                  <select
+                    required
+                    value={adminData.status}
+                    onChange={(e) => setAdminData({ ...adminData, status: e.target.value })}
+                    className="w-full px-4 py-4 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Permissions */}
+              <div>
+                <label className="block text-gray-900 font-semibold mb-4">Permissions</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 hover:bg-gray-100 transition-colors duration-200">
+                    <input
+                      type="checkbox"
+                      checked={adminData.permissions.manageUsers}
+                      onChange={(e) => updatePermission('manageUsers', e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div>
+                      <p className="font-semibold text-gray-900">Manage Users</p>
+                      <p className="text-sm text-gray-600">Create, edit, and delete users</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 hover:bg-gray-100 transition-colors duration-200">
+                    <input
+                      type="checkbox"
+                      checked={adminData.permissions.manageContent}
+                      onChange={(e) => updatePermission('manageContent', e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div>
+                      <p className="font-semibold text-gray-900">Manage Content</p>
+                      <p className="text-sm text-gray-600">Create and edit website content</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 hover:bg-gray-100 transition-colors duration-200">
+                    <input
+                      type="checkbox"
+                      checked={adminData.permissions.manageSettings}
+                      onChange={(e) => updatePermission('manageSettings', e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div>
+                      <p className="font-semibold text-gray-900">Manage Settings</p>
+                      <p className="text-sm text-gray-600">Modify system settings</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 hover:bg-gray-100 transition-colors duration-200">
+                    <input
+                      type="checkbox"
+                      checked={adminData.permissions.viewReports}
+                      onChange={(e) => updatePermission('viewReports', e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div>
+                      <p className="font-semibold text-gray-900">View Reports</p>
+                      <p className="text-sm text-gray-600">Access analytics and reports</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-4 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setShowAdminModal(false)}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-6 py-4 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center gap-3 hover:scale-100 active:scale-95"
+                >
+                  <FiX className="text-lg" />
                   Cancel
                 </button>
                 <button
-                  onClick={confirmDelete}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg shadow-red-500/25"
+                  type="submit"
+                  disabled={savingAdmin}
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-4 rounded-2xl font-semibold transition-all duration-200 shadow-lg shadow-purple-500/25 disabled:opacity-50 flex items-center justify-center gap-3 hover:scale-100 active:scale-95"
                 >
-                  Delete
+                  {savingAdmin ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <FiUser className="text-lg" />
+                      {editingAdmin ? 'Update Admin' : 'Create Admin'}
+                    </>
+                  )}
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity duration-200"
+          onClick={cancelDelete}
+        >
+          <div 
+            className="bg-white rounded-3xl w-full max-w-md p-8 border border-gray-200 shadow-2xl transform transition-all duration-200 scale-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center mb-6">
+              <div className="w-20 h-20 bg-red-100 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-red-200">
+                <FiTrash2 className="text-3xl text-red-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Delete Admin</h3>
+              <p className="text-gray-600 text-lg">
+                Are you sure you want to delete <strong className="text-gray-900">{adminToDelete?.name}</strong>?
+              </p>
+              <p className="text-gray-500 text-sm mt-3">This action cannot be undone.</p>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={cancelDelete}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-6 py-4 rounded-2xl font-semibold transition-all duration-200 hover:scale-100 active:scale-95"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded-2xl font-semibold transition-all duration-200 shadow-lg shadow-red-500/25 hover:scale-100 active:scale-95"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

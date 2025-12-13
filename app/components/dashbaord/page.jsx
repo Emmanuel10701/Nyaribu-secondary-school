@@ -885,23 +885,40 @@ export default function DashboardOverview() {
               Managing <strong>{stats.totalStudents} students</strong>, <strong>{stats.totalStaff} staff members</strong>, and <strong>{stats.totalSubscribers} subscribers</strong>. You have <span className="text-yellow-300 font-semibold">{stats.activeAssignments} active assignments</span> and <span className="text-green-300 font-semibold">{stats.upcomingEvents} upcoming events</span>.
             </p>
             
-            <div className="flex items-center gap-4 mt-6">
-              <button
-                onClick={() => setShowAnalyticsModal(true)}
-                className="bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg cursor-pointer"
-              >
-                <FiBarChart2 className="text-lg" />
-                View Analytics
-                <FiArrowUpRight className="text-lg" />
-              </button>
-              <button
-                onClick={() => setShowQuickTour(true)}
-                className="text-white/80 hover:text-white px-6 py-3 rounded-xl font-semibold border border-white/20 flex items-center gap-2 cursor-pointer"
-              >
-                <FiPlay />
-                Quick Tour
-              </button>
-            </div>
+          <div className="flex items-center gap-3 sm:gap-4 mt-6">
+  <button
+    onClick={() => setShowAnalyticsModal(true)}
+    className="
+      bg-white text-blue-600
+      px-4 py-2 text-sm
+      sm:px-6 sm:py-3 sm:text-base
+      rounded-xl font-semibold
+      flex items-center gap-2
+      shadow-lg cursor-pointer
+    "
+  >
+    <FiBarChart2 className="text-base sm:text-lg" />
+    View Analytics
+    <FiArrowUpRight className="text-base sm:text-lg" />
+  </button>
+
+  <button
+    onClick={() => setShowQuickTour(true)}
+    className="
+      text-white/80 hover:text-white
+      px-4 py-2 text-sm
+      sm:px-6 sm:py-3 sm:text-base
+      rounded-xl font-semibold
+      border border-white/20
+      flex items-center gap-2
+      cursor-pointer
+    "
+  >
+    <FiPlay className="text-base sm:text-lg" />
+    Quick Tour
+  </button>
+</div>
+
           </div>
         </div>
 

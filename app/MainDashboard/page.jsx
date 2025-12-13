@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { 
   FiHome, 
   FiUsers, 
@@ -18,7 +17,7 @@ import {
   FiInfo,
   FiTrendingUp,
   FiAward,
-  FiClipboard // Added for applications
+  FiClipboard
 } from 'react-icons/fi';
 import { 
   IoStatsChart,
@@ -41,7 +40,7 @@ import StudentCouncil from '../components/studentCouncil/page';
 import AdminsProfileManager from '../components/adminsandprofile/page';
 import GuidanceCounselingTab from '../components/guidance/page';
 import SchoolInfoTab from '../components/schoolinfo/page';
-import ApplicationsManager from '../components/applications/page'; // You'll need to create this component
+import ApplicationsManager from '../components/applications/page';
 import Resources from '../components/resources/page';
 
 export default function AdminDashboard() {
@@ -59,10 +58,86 @@ export default function AdminDashboard() {
     activeAssignments: 0,
     galleryItems: 0,
     guidanceSessions: 0,
-    totalApplications: 0, // Added applications count
-    pendingApplications: 0,// Added pending applications count
+    totalApplications: 0,
+    pendingApplications: 0,
     Resources: 0
   });
+
+  // Modern Loading Screen with Enhanced Design
+  const LoadingScreen = () => (
+    <div className="fixed inset-0 bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 z-50 flex flex-col items-center justify-center">
+      {/* Animated Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-2 h-2 bg-white/10 rounded-full animate-float"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${i * 0.3}s`,
+              animationDuration: `${4 + Math.random() * 3}s`
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Main Loader */}
+      <div className="relative z-10 flex flex-col items-center justify-center">
+        {/* Animated Rings */}
+        <div className="relative w-32 h-32 mb-8">
+          <div className="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
+          <div className="absolute inset-4 border-4 border-cyan-500/30 rounded-full animate-ping"></div>
+          <div className="absolute inset-8 border-4 border-white/40 rounded-full animate-spin"></div>
+          
+          {/* Center Logo */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center overflow-hidden">
+              <img 
+                src="/llil.png" 
+                alt="School Logo" 
+                className="w-full h-full object-contain p-2"
+              />
+            </div>
+          </div>
+        </div>
+        
+        {/* Loading Content */}
+        <div className="text-center space-y-6">
+          {/* School Name with Gradient */}
+          <div>
+            <h2 className="text-3xl font-bold text-white mb-2">
+              Nyaribu Secondary School
+            </h2>
+            <div className="h-1 w-48 mx-auto bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
+          </div>
+          
+          {/* Loading Text */}
+          <div className="space-y-4">
+            <p className="text-white/80 text-lg">Preparing an exceptional learning experience</p>
+            
+            {/* Animated Dots */}
+            <div className="flex items-center justify-center gap-2">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-3 h-3 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full animate-bounce"
+                  style={{ animationDelay: `${i * 0.2}s` }}
+                />
+              ))}
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="w-64 h-2 bg-white/10 rounded-full overflow-hidden mx-auto">
+              <div className="h-full bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-500 animate-gradient-loading"></div>
+            </div>
+            
+            <p className="text-white/60 text-sm">Loading resources...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   // Fetch real counts from all APIs
   const fetchRealCounts = async () => {
@@ -77,8 +152,8 @@ export default function AdminDashboard() {
         assignmentsRes,
         galleryRes,
         guidanceRes,
-        admissionsRes, // Added admissions API
-        resourcesRes // Added resources API
+        admissionsRes,
+        resourcesRes
       ] = await Promise.allSettled([
         fetch('/api/student'),
         fetch('/api/staff'),
@@ -89,8 +164,8 @@ export default function AdminDashboard() {
         fetch('/api/assignment'),
         fetch('/api/gallery'),
         fetch('/api/guidance'),
-        fetch('/api/admissions/applications'), // Added
-        fetch('/api/resources') // Added resources API
+        fetch('/api/admissions/applications'),
+        fetch('/api/resources')
       ]);
 
       // Process responses and get actual counts
@@ -115,8 +190,6 @@ export default function AdminDashboard() {
       // Admission statistics
       const admissionsData = admissions.applications || [];
       const pendingApps = admissionsData.filter(app => app.status === 'PENDING').length || 0;
-      const acceptedApps = admissionsData.filter(app => app.status === 'ACCEPTED').length || 0;
-      const rejectedApps = admissionsData.filter(app => app.status === 'REJECTED').length || 0;
 
       setRealStats({
         totalStudents: students.students?.length || 0,
@@ -131,8 +204,6 @@ export default function AdminDashboard() {
         guidanceSessions: guidance.events?.length || 0,
         totalApplications: admissionsData.length || 0,
         pendingApplications: pendingApps,
-        acceptedApplications: acceptedApps,
-        rejectedApplications: rejectedApps,
         Resources: resources.resources?.length || 0,
       });
 
@@ -270,9 +341,9 @@ export default function AdminDashboard() {
         return <StaffManager />;
       case 'assignments':
         return <AssignmentsManager />;
-      case 'admissions': // Added case for admissions
+      case 'admissions':
         return <ApplicationsManager />;
-       case 'resources':
+      case 'resources':
         return <Resources />;
       case 'newsevents':
         return <NewsEventsManager />;
@@ -289,116 +360,97 @@ export default function AdminDashboard() {
     }
   };
 
-  // Modern navigation items with real counts including admissions
+  // Navigation items without counts
   const navigationItems = [
     { 
       id: 'overview', 
       label: 'Dashboard Overview', 
       icon: FiHome,
-      count: null,
       badge: 'primary'
     },
     { 
       id: 'school-info', 
       label: 'School Information', 
       icon: FiInfo,
-      count: null,
       badge: 'info'
     },
     { 
       id: 'guidance-counseling', 
       label: 'Guidance Counseling', 
       icon: FiMessageCircle,
-      count: realStats.guidanceSessions,
       badge: 'purple'
     },
     { 
       id: 'students', 
       label: 'Student Management', 
       icon: FiUsers,
-      count: realStats.totalStudents,
       badge: 'blue'
     },
     { 
       id: 'student-council', 
       label: 'Student Council', 
       icon: FiUsers,
-      count: realStats.studentCouncil,
       badge: 'green'
     },
     { 
       id: 'staff', 
       label: 'Staff & BOM', 
       icon: IoPeopleCircle,
-      count: realStats.totalStaff,
       badge: 'orange'
     },
     { 
       id: 'assignments', 
       label: 'Assignments', 
       icon: FiBook,
-      count: realStats.activeAssignments,
       badge: 'red'
     },
     { 
-      id: 'admissions', // Changed from 'applications' to 'admissions' to match sidebar
+      id: 'admissions',
       label: 'Admission Applications', 
       icon: FiClipboard,
-      count: realStats.totalApplications,
-      badge: 'purple',
-      showPending: realStats.pendingApplications > 0,
-      pendingCount: realStats.pendingApplications
+      badge: 'purple'
     },
     { 
       id: 'resources', 
       label: 'Resources',
       icon: FiFileText,
-      count: realStats.Resources,
       badge: 'cyan' 
     },
     { 
       id: 'newsevents', 
       label: 'News & Events', 
       icon: IoNewspaper,
-      count: realStats.upcomingEvents + realStats.totalNews,
       badge: 'yellow'
     },
     { 
       id: 'gallery', 
       label: 'Media Gallery', 
       icon: FiImage,
-      count: realStats.galleryItems,
       badge: 'pink'
     },
     { 
       id: 'subscribers', 
       label: 'Subscribers', 
       icon: FiUserPlus,
-      count: realStats.totalSubscribers,
       badge: 'teal'
     },
     { 
       id: 'email', 
       label: 'Email Campaigns', 
       icon: FiMail,
-      count: null,
       badge: 'indigo'
     },
     { 
       id: 'admins-profile', 
       label: 'Admins & Profile', 
       icon: FiShield,
-      count: null,
       badge: 'gray'
     },
   ];
 
-  // Modern header stats component
+  // Header stats component with simple hover effect
   const HeaderStat = ({ icon: Icon, value, label, color = 'blue', trend = 'up' }) => (
-    <motion.div 
-      whileHover={{ scale: 1.05 }}
-      className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-gray-200 shadow-sm"
-    >
+    <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors duration-200">
       <div className={`p-2 rounded-lg bg-${color}-100`}>
         <Icon className={`text-lg text-${color}-600`} />
       </div>
@@ -415,45 +467,12 @@ export default function AdminDashboard() {
           )}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 
-  // Show loading state
+  // Show loading screen
   if (loading) {
-    return (
-      <div className="flex h-screen bg-gradient-to-br from-blue-50 to-purple-50 items-center justify-center">
-        <div className="text-center">
-          <motion.div
-            animate={{ 
-              rotate: 360,
-              scale: [1, 1.1, 1]
-            }}
-            transition={{ 
-              duration: 2, 
-              repeat: Infinity, 
-              ease: "easeInOut" 
-            }}
-            className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
-          >
-            <IoSparkles className="text-3xl text-white" />
-          </motion.div>
-          <motion.h1 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-2xl font-bold text-gray-800 mb-2"
-          >
-            Nyaribu Secondary School
-          </motion.h1>
-          <p className="text-gray-600 text-lg">Initializing Admin Portal...</p>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: "200px" }}
-            transition={{ duration: 2, ease: "easeOut" }}
-            className="h-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mt-4 mx-auto"
-          />
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   // If no user but loading is false, it means we're redirecting
@@ -463,42 +482,34 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 overflow-hidden">
-      {/* Sidebar - Now properly passes the navigation items */}
+      {/* Sidebar */}
       <AdminSidebar 
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-        tabs={navigationItems} // Pass the updated navigation items
+        tabs={navigationItems}
       />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
-        {/* Modern Top Header */}
+        {/* Top Header */}
         <header className="bg-white/80 backdrop-blur-xl shadow-sm border-b border-gray-200/50 z-30">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-3 rounded-2xl hover:bg-gray-100 transition-all duration-300 group"
+                className="lg:hidden p-3 rounded-2xl hover:bg-gray-100 transition-all duration-200"
               >
-                <FiMenu className="text-xl text-gray-600 group-hover:text-gray-800 transition-colors" />
+                <FiMenu className="text-xl text-gray-600" />
               </button>
               
               <div className="flex items-center gap-4">
-                <motion.div 
-                  whileHover={{ scale: 1.05 }}
-                  className="hidden lg:flex w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl items-center justify-center shadow-lg"
-                >
+                <div className="hidden lg:flex w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl items-center justify-center shadow-lg">
                   <FiAward className="text-xl text-white" />
-                </motion.div>
+                </div>
                 <div>
-                  <motion.h1 
-                    key={activeTab}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent"
-                  >
+                  <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                     {(() => {
                       const navItems = {
                         overview: 'Dashboard Overview',
@@ -507,7 +518,7 @@ export default function AdminDashboard() {
                         students: 'Student Management',
                         staff: 'Staff & BOM Management',
                         assignments: 'Assignments Manager',
-                        admissions: 'Admission Applications', // Added
+                        admissions: 'Admission Applications',
                         resources: 'Resources',
                         newsevents: 'News & Events',
                         gallery: 'Media Gallery',
@@ -517,7 +528,7 @@ export default function AdminDashboard() {
                       };
                       return navItems[activeTab] || 'Dashboard';
                     })()}
-                  </motion.h1>
+                  </h1>
                   <p className="text-sm text-gray-500 hidden sm:block">
                     Nyaribu Secondary School • Excellence in Education
                   </p>
@@ -526,7 +537,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="flex items-center gap-4">
-              {/* Modern Quick Stats - Updated with Applications */}
+              {/* Quick Stats - Hidden on small screens */}
               <div className="hidden xl:flex items-center gap-3">
                 <HeaderStat 
                   icon={FiUsers} 
@@ -558,7 +569,7 @@ export default function AdminDashboard() {
                 />
               </div>
 
-              {/* Modern User Menu */}
+              {/* User Menu */}
               <div className="flex items-center gap-3">
                 <div className="text-right hidden lg:block">
                   <p className="font-semibold text-gray-800 text-sm lg:text-base">{user?.name}</p>
@@ -568,29 +579,40 @@ export default function AdminDashboard() {
                   </p>
                 </div>
                 
-                <motion.div 
-                  whileHover={{ scale: 1.05 }}
-                  className="relative group"
-                >
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg cursor-pointer">
-                    {user?.name?.charAt(0) || 'A'}
-                  </div>
-                  
-                  {/* Logout dropdown */}
-                  <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                    <div className="p-4 border-b border-gray-100">
-                      <p className="font-semibold text-gray-800">{user?.name}</p>
-                      <p className="text-sm text-gray-500">{user?.email}</p>
-                    </div>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-200 font-semibold"
-                    >
-                      <FiLogOut className="text-lg" />
-                      Sign Out
-                    </button>
-                  </div>
-                </motion.div>
+   <div className="relative group">
+  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg cursor-pointer hover:opacity-90 transition-opacity duration-200">
+    {user?.name?.charAt(0) || 'A'}
+  </div>
+
+  {/* Logout dropdown */}
+  <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-200 
+                  opacity-0 invisible group-hover:opacity-100 group-hover:visible 
+                  transition-all duration-300 z-50 overflow-hidden">
+    
+    <div className="p-4 border-b border-gray-100">
+      <p className="font-semibold text-gray-800 truncate">
+        {user?.name}
+      </p>
+
+      <p
+        className="text-sm text-gray-500 truncate"
+        title={user?.email}
+      >
+        {user?.email}
+      </p>
+    </div>
+
+    <button
+      onClick={handleLogout}
+      className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 
+                 rounded-b-2xl transition-all duration-200 font-semibold"
+    >
+      <FiLogOut className="text-lg" />
+      Sign Out
+    </button>
+  </div>
+</div>
+
               </div>
             </div>
           </div>

@@ -419,27 +419,47 @@ export default function AdminLogin() {
                           </p>
                         )}
                       </div>
+<div className="flex items-center justify-between">
+  {/* Remember me */}
+  <label className="flex items-center gap-3 text-gray-700 text-sm cursor-pointer group">
+    {/* Hidden real checkbox */}
+    <input
+      type="checkbox"
+      checked={formData.rememberMe}
+      onChange={(e) =>
+        setFormData({ ...formData, rememberMe: e.target.checked })
+      }
+      className="sr-only"
+    />
 
-                      <div className="flex items-center justify-between">
-                        <label className="flex items-center gap-3 text-gray-700 text-sm cursor-pointer group">
-                          <div className={`relative w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${
-                            formData.rememberMe 
-                              ? 'bg-blue-600 border-blue-600' 
-                              : 'bg-white border-gray-300 group-hover:border-blue-400'
-                          }`}>
-                            {formData.rememberMe && <FiCheckCircle className="text-white text-xs" />}
-                          </div>
-                          <span className="font-medium">Remember me</span>
-                        </label>
-                          <button
-      type="button"
-      disabled={isLoading}
-      className="text-blue-600 hover:text-blue-800 text-sm font-semibold transition-colors disabled:opacity-50 flex items-center gap-1"
-      onClick={() => router.push("/pages/forgotpassword")}
+    {/* Custom checkbox UI */}
+    <div
+      className={`relative w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all
+        ${
+          formData.rememberMe
+            ? "bg-blue-600 border-blue-600"
+            : "bg-white border-gray-300 group-hover:border-blue-400"
+        }`}
     >
-      Forgot password? <FiChevronRight />
-    </button>
-                      </div>
+      {formData.rememberMe && (
+        <FiCheckCircle className="text-white text-xs" />
+      )}
+    </div>
+
+    <span className="font-medium select-none">Remember me</span>
+  </label>
+
+  {/* Forgot password */}
+  <button
+    type="button"
+    disabled={isLoading}
+    className="text-blue-600 hover:text-blue-800 text-sm font-semibold transition-colors disabled:opacity-50 flex items-center gap-1"
+    onClick={() => router.push("/pages/forgotpassword")}
+  >
+    Forgot password? <FiChevronRight />
+  </button>
+</div>
+
 
                       <button
                         type="submit"
