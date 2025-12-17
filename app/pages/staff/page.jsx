@@ -24,7 +24,8 @@ import {
   FiBook,
   FiTarget,
   FiUsers,
-  FiBookOpen
+  FiBookOpen,
+  FiRefreshCw  // Added for refresh button
 } from 'react-icons/fi';
 
 // ==========================================
@@ -273,7 +274,7 @@ const StaffCard = ({ staff }) => {
   const hierarchy = getStaffHierarchy(staff.position);
   
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/50 overflow-hidden flex flex-col h-full">
+    <div className="bg-white rounded-2xl border border-gray-200/50 overflow-hidden flex flex-col h-full relative z-10"> {/* Added z-10 */}
       {/* Card content */}
       <div className="relative h-48 sm:h-56 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
         <Image
@@ -346,8 +347,9 @@ const StaffCard = ({ staff }) => {
               <FiMail size={14} /> <span className="hidden xs:inline">Email</span>
             </a>
           )}
+          {/* Updated profile link to [id]/[slug] format */}
           <Link
-            href={`/pages/staff/${generateSlug(staff.name, staff.id)}`}
+            href={`/pages/staff/${staff.id}/${generateSlug(staff.name, staff.id)}`}
             className="flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-gray-300 text-gray-700 text-xs sm:text-sm font-semibold"
           >
             <span className="hidden xs:inline">Profile</span> <FiArrowRight size={12}/>
@@ -363,7 +365,7 @@ const StaffListCard = ({ staff }) => {
   const hierarchy = getStaffHierarchy(staff.position);
   
   return (
-    <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-200/50 p-4 sm:p-6 flex flex-col lg:flex-row gap-4 sm:gap-6 items-center">
+    <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-200/50 p-4 sm:p-6 flex flex-col lg:flex-row gap-4 sm:gap-6 items-center relative z-10"> {/* Added z-10 */}
       <div className="relative">
         <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-xl sm:rounded-2xl overflow-hidden shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 shadow-lg">
           <Image
@@ -387,7 +389,8 @@ const StaffListCard = ({ staff }) => {
       <div className="flex-1 text-center lg:text-left">
         <div className="flex flex-col lg:flex-row lg:items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
           <h3 className="text-lg sm:text-xl font-bold text-gray-900">
-            <Link href={`/pages/staff/${generateSlug(staff.name, staff.id)}`} className="text-gray-900">
+            {/* Updated profile link to [id]/[slug] format */}
+            <Link href={`/pages/staff/${staff.id}/${generateSlug(staff.name, staff.id)}`} className="text-gray-900">
               {staff.name}
             </Link>
           </h3>
@@ -424,8 +427,9 @@ const StaffListCard = ({ staff }) => {
             <FiMail /> <span className="hidden sm:inline">Email</span>
           </a>
         )}
+        {/* Updated profile link to [id]/[slug] format */}
         <Link
-          href={`/pages/staff/${generateSlug(staff.name, staff.id)}`}
+          href={`/pages/staff/${staff.id}/${generateSlug(staff.name, staff.id)}`}
           className="flex-1 lg:flex-none flex items-center justify-center lg:justify-start gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-gray-300 text-gray-700 text-xs sm:text-sm font-semibold"
         >
           <FiUser /> <span className="hidden sm:inline">Profile</span>
@@ -456,51 +460,51 @@ export default function StaffDirectory() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // -- Data Fetching --
-  useEffect(() => {
-    const fetchStaffData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/staff');
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch staff data: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.success && data.staff) {
-          const mappedStaff = data.staff.map(staff => ({
-            id: staff.id,
-            name: staff.name,
-            role: staff.role,
-            position: staff.position,
-            department: staff.department,
-            departmentId: staff.department.toLowerCase().replace(/\s+/g, '-'),
-            email: staff.email,
-            phone: staff.phone,
-            image: staff.image,
-            expertise: staff.expertise || [],
-            bio: staff.bio,
-            responsibilities: staff.responsibilities || [],
-            achievements: staff.achievements || [],
-            location: 'Nyaribu School',
-            joinDate: '2020'
-          }));
-          
-          // Sort by hierarchy: Leadership first, then Teaching, then Support
-          const sortedStaff = sortStaffByHierarchy(mappedStaff);
-          setStaffData(sortedStaff);
-        } else {
-          throw new Error('Invalid data format from API');
-        }
-      } catch (err) {
-        console.error('Error fetching staff data:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  const fetchStaffData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/staff');
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch staff data: ${response.status}`);
       }
-    };
+      
+      const data = await response.json();
+      
+      if (data.success && data.staff) {
+        const mappedStaff = data.staff.map(staff => ({
+          id: staff.id,
+          name: staff.name,
+          role: staff.role,
+          position: staff.position,
+          department: staff.department,
+          departmentId: staff.department.toLowerCase().replace(/\s+/g, '-'),
+          email: staff.email,
+          phone: staff.phone,
+          image: staff.image,
+          expertise: staff.expertise || [],
+          bio: staff.bio,
+          responsibilities: staff.responsibilities || [],
+          achievements: staff.achievements || [],
+          location: 'Nyaribu School',
+          joinDate: '2020'
+        }));
+        
+        // Sort by hierarchy: Leadership first, then Teaching, then Support
+        const sortedStaff = sortStaffByHierarchy(mappedStaff);
+        setStaffData(sortedStaff);
+      } else {
+        throw new Error('Invalid data format from API');
+      }
+    } catch (err) {
+      console.error('Error fetching staff data:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchStaffData();
   }, []);
 
@@ -595,16 +599,16 @@ export default function StaffDirectory() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 font-sans text-gray-900">
       
-      {/* Mobile Filter Drawer Overlay */}
+      {/* Mobile Filter Drawer Overlay - Fixed z-index and opacity */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden" // Reduced opacity to 30%
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* ENHANCED HEADER SECTION */}
-      <header className="bg-white border-b border-gray-200/50 sticky top-0 z-30">
+      <header className="bg-white border-b border-gray-200/50 sticky top-0 z-50"> {/* Increased to z-50 */}
         <div className="container mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           
           <div className="flex items-center gap-4 sm:gap-6">
@@ -654,6 +658,16 @@ export default function StaffDirectory() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
+            {/* Added Refresh Button */}
+            <button
+              onClick={fetchStaffData}
+              className="p-2 sm:p-2.5 text-gray-600 hover:text-blue-600 transition-colors"
+              title="Refresh staff data"
+              aria-label="Refresh"
+            >
+              <FiRefreshCw size={18} />
+            </button>
+            
             <div className="hidden sm:flex bg-white p-1 rounded-2xl border border-gray-200/50 shadow-sm">
               <button
                 onClick={() => setViewMode('grid')}
@@ -685,9 +699,9 @@ export default function StaffDirectory() {
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
           
-          {/* ENHANCED SIDEBAR FILTERS */}
+          {/* ENHANCED SIDEBAR FILTERS - Fixed z-index */}
           <aside className={`
-            fixed lg:static inset-y-0 left-0 w-80 bg-white lg:bg-transparent z--50 transform transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none overflow-y-auto lg:overflow-visible border-r lg:border-r-0 border-gray-200/50
+            fixed lg:static inset-y-0 left-0 w-80 bg-white z-50 transform transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none overflow-y-auto lg:overflow-visible border-r lg:border-r-0 border-gray-200/50
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           `}>
             <div className="p-4 sm:p-6 lg:p-0 lg:sticky lg:top-24 space-y-4 sm:space-y-6">
@@ -798,7 +812,7 @@ export default function StaffDirectory() {
           </aside>
 
           {/* ENHANCED MAIN CONTENT AREA */}
-          <main className="flex-1 min-w-0">
+          <main className="flex-1 min-w-0 relative z-10"> {/* Added z-10 */}
             
             {/* Enhanced Results Header */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">

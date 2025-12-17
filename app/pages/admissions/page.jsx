@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { toast, Toaster } from 'sonner';
 import { 
   FiUser, 
   FiCalendar, 
@@ -32,7 +32,19 @@ import {
   FiZap,
   FiTrendingUp,
   FiEye,
-  FiLayers
+  FiLayers,
+  FiPlus,
+  FiX,
+  FiFilter,
+  FiSearch,
+  FiRotateCw,
+  FiEdit3,
+  FiTrash2,
+  FiMessageCircle,
+  FiAlertTriangle,
+  FiSave,
+  FiImage,
+  FiUpload
 } from 'react-icons/fi';
 import { 
   IoSchoolOutline,
@@ -50,28 +62,546 @@ import {
   IoBuildOutline
 } from 'react-icons/io5';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+// Modern Modal Component
+const ModernModal = ({ children, open, onClose, maxWidth = '700px' }) => {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+      <div 
+        className="bg-white rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden"
+        style={{ 
+          width: '85%',
+          maxWidth: maxWidth,
+          maxHeight: '85vh',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
+
+
+
+
+// Modern Card Component for Admission Paths
+const AdmissionPathCard = ({ path, onApply, index }) => {
+  const [imageError, setImageError] = useState(false);
+  
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xs border border-gray-200/60 overflow-hidden transition-all duration-300 cursor-pointer hover:shadow-md">
+      {/* Image Section */}
+      <div className="relative h-40 overflow-hidden">
+        <img
+          src={path.image}
+          alt={path.title}
+          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          onError={() => setImageError(true)}
+        />
+        <div className="absolute top-3 right-3">
+          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white bg-gradient-to-r ${path.color}`}>
+            {path.deadline === 'Rolling Admission' ? 'Open' : 'Limited'}
+          </span>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        {/* Title and Icon */}
+        <div className="flex items-center gap-2 mb-3">
+          <div className={`p-2 rounded-lg bg-gradient-to-r ${path.color} bg-opacity-10`}>
+            {path.icon({ className: `text-lg ${path.color.split('from-')[1].split('to-')[0].replace('-500', '-600')}` })}
+          </div>
+          <h3 className="font-bold text-gray-900 text-lg">{path.title}</h3>
+        </div>
+
+        {/* Description */}
+        <p className="text-gray-600 mb-4 text-sm leading-relaxed">
+          {path.description}
+        </p>
+
+        {/* Features */}
+        <div className="space-y-2 mb-4">
+          {path.features.slice(0, 2).map((feature, idx) => (
+            <div key={idx} className="flex items-center gap-2 text-xs text-gray-600">
+              <FiCheckCircle className="text-green-500 flex-shrink-0" />
+              <span className="truncate">{feature}</span>
+            </div>
+          ))}
+          {path.features.length > 2 && (
+            <div className="text-xs text-blue-600 font-medium">
+              +{path.features.length - 2} more features
+            </div>
+          )}
+        </div>
+
+        {/* Deadline and Apply Button */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <FiCalendar className="text-gray-400" />
+            <span>{path.deadline}</span>
+          </div>
+          <button
+            onClick={onApply}
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            Apply Now
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Feature Card Component
+const FeatureCard = ({ feature, onLearnMore }) => {
+  const FeatureIcon = feature.icon;
+  
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xs border border-gray-200/60 overflow-hidden transition-all duration-300 hover:shadow-md">
+      {/* Icon Header */}
+      <div className={`p-4 bg-gradient-to-r ${feature.color} bg-opacity-10`}>
+        <div className="flex items-center justify-between">
+          <div className="p-2 bg-white rounded-lg shadow-xs">
+            <FeatureIcon className={`text-xl ${feature.color.split('from-')[1].split('to-')[0].replace('-500', '-600')}`} />
+          </div>
+          <span className="text-xs font-medium px-2 py-1 bg-white/80 rounded-full text-gray-700">
+            Featured
+          </span>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        <h3 className="font-bold text-gray-900 text-lg mb-2">{feature.title}</h3>
+        <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+          {feature.description}
+        </p>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="bg-gray-50 rounded-lg p-2 text-center">
+            <div className="font-bold text-gray-900">{feature.stats.students}</div>
+            <div className="text-xs text-gray-500">Students</div>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-2 text-center">
+            <div className="font-bold text-gray-900">{feature.stats.success}</div>
+            <div className="text-xs text-gray-500">Success</div>
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className="space-y-2 mb-4">
+          {feature.features.map((feat, idx) => (
+            <div key={idx} className="flex items-center gap-2 text-xs text-gray-600">
+              <FiCheckCircle className="text-green-500 flex-shrink-0" />
+              <span>{feat}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Action Button */}
+        <button
+          onClick={onLearnMore}
+          className="w-full py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          Learn More
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Stats Card Component
+const StatCard = ({ stat }) => {
+  const StatIcon = stat.icon;
+  
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xs border border-gray-200/60 p-4 transition-all duration-300 hover:shadow-md">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <p className="text-xs font-medium text-gray-600 mb-1">{stat.label}</p>
+          <p className="text-lg font-bold text-gray-900">{stat.number}</p>
+        </div>
+        <div className={`p-2 rounded-lg bg-gradient-to-r ${stat.color} bg-opacity-10`}>
+          <StatIcon className={`text-lg ${stat.color.split('from-')[1].split('to-')[0].replace('-500', '-600')}`} />
+        </div>
+      </div>
+      <p className="text-xs text-gray-500">{stat.sublabel}</p>
+    </div>
+  );
+};
+
+// Subject Card Component for CBC
+const SubjectCard = ({ subject, index }) => {
+  const SubjectIcon = subject.icon;
+  
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xs border border-gray-200/60 p-4 transition-all duration-300 hover:shadow-md">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg">
+          <SubjectIcon className="text-white text-lg" />
+        </div>
+        <h4 className="font-bold text-gray-900">{subject.name}</h4>
+      </div>
+      <p className="text-gray-600 text-sm">{subject.description}</p>
+    </div>
+  );
+};
+
+// Fee Structure Card
+const FeeCard = ({ feeType, fees, icon: Icon, color }) => {
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xs border border-gray-200/60 p-6 transition-all duration-300 hover:shadow-md">
+      <div className="flex items-center gap-3 mb-6">
+        <div className={`p-3 rounded-xl ${color} bg-opacity-10`}>
+          <Icon className="text-2xl text-blue-600" />
+        </div>
+        <div>
+          <h3 className="font-bold text-gray-900 text-lg">{feeType}</h3>
+          <p className="text-gray-500 text-sm">Per Year (3 Terms)</p>
+        </div>
+      </div>
+      
+      <div className="space-y-4 mb-6">
+        {fees.map((fee, idx) => (
+          <div key={idx} className="flex justify-between items-center border-b border-gray-100 pb-3">
+            <div>
+              <p className="font-medium text-gray-700">{fee.category}</p>
+              <p className="text-gray-500 text-xs">{fee.details.join(', ')}</p>
+            </div>
+            <div className="text-right">
+              <p className="font-bold text-gray-900">KSh {fee.amount}</p>
+              <p className="text-gray-500 text-xs">KSh {fee.term} per term</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+        <div>
+          <p className="text-sm text-gray-500">Total Annual Fees</p>
+          <p className="font-bold text-gray-900 text-xl">
+            KSh {fees.reduce((sum, fee) => sum + parseInt(fee.amount.replace(',', '')), 0).toLocaleString()}
+          </p>
+        </div>
+        <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
+          Download Details
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Process Step Component
+const ProcessStep = ({ step, index }) => {
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xs border border-gray-200/60 p-6 transition-all duration-300 hover:shadow-md">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+          {index + 1}
+        </div>
+        <div className="flex-1">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-3">
+            <h3 className="font-bold text-gray-900 text-lg">{step.title}</h3>
+            <div className="flex items-center gap-2 text-blue-600">
+              <FiClock className="text-lg" />
+              <span className="font-medium text-sm">{step.duration}</span>
+            </div>
+          </div>
+          <p className="text-gray-600 mb-4">{step.description}</p>
+          
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-gray-700">Requirements:</p>
+            {step.requirements.map((req, idx) => (
+              <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
+                <FiCheckCircle className="text-green-500 flex-shrink-0" />
+                <span>{req}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Commitment Card
+const CommitmentCard = ({ commitment, index }) => {
+  const CommitmentIcon = commitment.icon;
+  
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xs border border-gray-200/60 p-6 transition-all duration-300 hover:shadow-md">
+      <div className="flex flex-col items-center text-center">
+        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
+          <CommitmentIcon className="text-white text-2xl" />
+        </div>
+        <h3 className="font-bold text-gray-900 text-lg mb-3">{commitment.title}</h3>
+        <p className="text-gray-600 text-sm leading-relaxed">{commitment.description}</p>
+      </div>
+    </div>
+  );
+};
+
+// FAQ Item Component
+const FAQItem = ({ faq, index, openFaq, setOpenFaq }) => {
+  const isOpen = openFaq === index;
+  
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 overflow-hidden transition-all duration-300 hover:shadow-sm">
+      <button
+        onClick={() => setOpenFaq(isOpen ? null : index)}
+        className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50/50 transition-colors"
+      >
+        <h3 className="font-semibold text-gray-900 pr-4 text-sm md:text-base">{faq.question}</h3>
+        <FiChevronDown 
+          className={`text-blue-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
+        />
+      </button>
+      {isOpen && (
+        <div className="px-6 pb-4">
+          <p className="text-gray-600 leading-relaxed text-sm md:text-base">{faq.answer}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Application Form Modal
+const ApplicationFormModal = ({ open, onClose, onSuccess }) => {
+  const [formData, setFormData] = useState({
+    studentName: '',
+    parentName: '',
+    email: '',
+    phone: '',
+    currentGrade: '',
+    admissionPath: '',
+    preferredStartDate: new Date().toISOString().split('T')[0],
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      toast.success('Application submitted successfully!');
+      onSuccess();
+      onClose();
+    } catch (error) {
+      toast.error('Failed to submit application. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+
+const router = useRouter();
+
+
+  const updateField = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  if (!open) return null;
+
+  return (
+    <ModernModal open={true} onClose={onClose}>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 p-4 text-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
+              <IoRocketOutline className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">Start Your Application</h2>
+              <p className="text-blue-100 opacity-90 text-sm">
+                Join Nyaribu Secondary School
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-lg cursor-pointer">
+            <FiX className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-h-[calc(85vh-150px)] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Student Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.studentName}
+                onChange={(e) => updateField('studentName', e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 text-sm"
+                placeholder="Enter student full name"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Parent/Guardian Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.parentName}
+                onChange={(e) => updateField('parentName', e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 text-sm"
+                placeholder="Enter parent/guardian name"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Email Address *
+              </label>
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => updateField('email', e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 text-sm"
+                placeholder="Enter email address"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Phone Number *
+              </label>
+              <input
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={(e) => updateField('phone', e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 text-sm"
+                placeholder="Enter phone number"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Current Grade *
+              </label>
+              <select
+                required
+                value={formData.currentGrade}
+                onChange={(e) => updateField('currentGrade', e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 text-sm cursor-pointer"
+              >
+                <option value="">Select current grade</option>
+                <option value="Grade 6">Grade 6</option>
+                <option value="Grade 7">Grade 7</option>
+                <option value="Grade 8">Grade 8</option>
+                <option value="Grade 9">Grade 9</option>
+                <option value="Transfer">Transfer Student</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Admission Path *
+              </label>
+              <select
+                required
+                value={formData.admissionPath}
+                onChange={(e) => updateField('admissionPath', e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 text-sm cursor-pointer"
+              >
+                <option value="">Select admission path</option>
+                <option value="Grade 7 Placement">Grade 7 Placement</option>
+                <option value="Transfer Students">Transfer Students</option>
+                <option value="International Students">International Students</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Preferred Start Date *
+              </label>
+              <input
+                type="date"
+                required
+                value={formData.preferredStartDate}
+                onChange={(e) => updateField('preferredStartDate', e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 text-sm"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-800 mb-2">
+              Additional Message (Optional)
+            </label>
+            <textarea
+              value={formData.message}
+              onChange={(e) => updateField('message', e.target.value)}
+              rows="3"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 text-sm resize-none"
+              placeholder="Any additional information or questions..."
+            />
+          </div>
+        </form>
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-100">
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg transition-all duration-200 font-medium disabled:opacity-50"
+          >
+            <span className="text-sm">Cancel</span>
+          </button>
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="flex-1 bg-gradient-to-r from-emerald-500 to-green-500 text-white py-2.5 rounded-lg transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span className="text-sm">Processing...</span>
+              </>
+            ) : (
+              <>
+                <FiSave className="w-4 h-4" />
+                <span className="text-sm">Submit Application</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </ModernModal>
+  );
+};
 
 export default function ComprehensiveAdmissions() {
   const [activeTab, setActiveTab] = useState('overview');
   const [openFaq, setOpenFaq] = useState(null);
-  const [currentFeature, setCurrentFeature] = useState(0);
-  const [videoPlaying, setVideoPlaying] = useState(false);
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all');
+  const [loading, setLoading] = useState(false);
 
-  // Online images
-  const onlineImages = {
-    campus: "https://images.unsplash.com/photo-1562774053-701939374585",
-    students: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1",
-    scienceLab: "https://images.unsplash.com/photo-1532094349884-543bc11b234d",
-    library: "https://images.unsplash.com/photo-1589998059171-988d887df646",
-    sports: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b",
-    arts: "https://images.unsplash.com/photo-1547036967-23d11aacaee0",
-    boarding: "https://images.unsplash.com/photo-1582582494705-f8ce0b0c24f0",
-    classroom: "https://images.unsplash.com/photo-1498243691581-b145c3f54a5a",
-    cbc: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b",
-    innovation: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56",
-    community: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f"
-  };
-
+  // Data for the page
   const dynamicStats = [
     { 
       icon: IoPeopleOutline, 
@@ -111,7 +641,7 @@ export default function ComprehensiveAdmissions() {
       features: ['CBC Competency Based', 'Practical Skills', 'Digital Literacy', 'Talent Development'],
       deadline: '2024-05-30',
       color: 'from-blue-500 to-cyan-500',
-      image: onlineImages.cbc
+      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80'
     },
     {
       title: 'Transfer Students',
@@ -120,7 +650,7 @@ export default function ComprehensiveAdmissions() {
       features: ['Credit Transfer', 'Placement Assessment', 'Records Review', 'Orientation Program'],
       deadline: 'Rolling Admission',
       color: 'from-purple-500 to-pink-500',
-      image: onlineImages.classroom
+      image: 'https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?w-800&q=80'
     },
     {
       title: 'International Students',
@@ -129,7 +659,7 @@ export default function ComprehensiveAdmissions() {
       features: ['Visa Assistance', 'CBC Adaptation', 'Hostel Accommodation', 'Cultural Integration'],
       deadline: '2024-04-15',
       color: 'from-green-500 to-emerald-500',
-      image: onlineImages.boarding
+      image: 'https://images.unsplash.com/photo-1582582494705-f8ce0b0c24f0?w-800&q=80'
     }
   ];
 
@@ -139,7 +669,7 @@ export default function ComprehensiveAdmissions() {
       title: 'Future-Ready Curriculum',
       description: 'CBC integrated with 21st century skills and digital literacy',
       features: ['AI & Coding Basics', 'Financial Literacy', 'Environmental Studies', 'Global Citizenship'],
-      image: onlineImages.innovation,
+      image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&q=80',
       color: 'from-blue-500 to-cyan-500',
       stats: { students: '500+', success: '95%' }
     },
@@ -148,7 +678,7 @@ export default function ComprehensiveAdmissions() {
       title: 'Personalized Learning',
       description: 'Tailored educational paths based on individual strengths and interests',
       features: ['Learning Style Assessment', 'Customized Projects', 'Mentorship Programs', 'Talent Development'],
-      image: onlineImages.classroom,
+      image: 'https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?w=800&q=80',
       color: 'from-purple-500 to-pink-500',
       stats: { students: '100%', success: '98%' }
     },
@@ -157,40 +687,22 @@ export default function ComprehensiveAdmissions() {
       title: 'Skill-Based Education',
       description: 'Focus on practical competencies and real-world application',
       features: ['Entrepreneurship Projects', 'Community Service', 'Internship Programs', 'Leadership Training'],
-      image: onlineImages.community,
+      image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&q=80',
       color: 'from-green-500 to-emerald-500',
       stats: { students: '300+', success: '90%' }
     }
   ];
 
-  const admissionHighlights = [
-    {
-      icon: FiBookOpen,
-      title: 'CBC Excellence',
-      description: 'Full implementation of Competency Based Curriculum with modern enhancements',
-      metrics: '7 Core Competencies + Digital Skills'
-    },
-    {
-      icon: FiUsers,
-      title: 'Community Focus',
-      description: 'Strong parent-teacher collaboration and community engagement programs',
-      metrics: '95% Parent Satisfaction'
-    },
-    {
-      icon: FiLayers,
-      title: 'Seamless Transfers',
-      description: 'Smooth transition process with credit recognition and orientation programs',
-      metrics: '150+ Successful Transfers'
-    },
-    {
-      icon: FiEye,
-      title: 'Transparent Process',
-      description: 'Clear admission criteria, fees, and continuous communication',
-      metrics: '100% Process Clarity'
-    }
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: FiBook },
+    { id: 'cbc', label: 'CBC Curriculum', icon: FiBookOpen },
+    { id: 'fees', label: 'Fee Structure', icon: IoCalculatorOutline },
+    { id: 'transfer', label: 'Transfers', icon: FiArrowRight },
+    { id: 'commitment', label: 'Our Commitment', icon: FiHeart },
+    { id: 'faq', label: 'FAQ', icon: FiHelpCircle },
   ];
 
-  // CBC Subjects and Structure
+  // CBC Structure Data
   const cbcStructure = {
     coreSubjects: [
       { name: 'English', icon: FiBook, description: 'Language skills and communication' },
@@ -219,21 +731,23 @@ export default function ComprehensiveAdmissions() {
     ]
   };
 
+  // Fee Structure Data
   const feeStructure = {
     boarding: [
-      { category: 'Tuition Fee', amount: '30,000', term: '10,000', details: ['CBC curriculum', 'Digital learning', 'Practical subjects', 'Learning materials'] },
+      { category: 'Tuition Fee', amount: '30,000', term: '10,000', details: ['CBC curriculum', 'Digital learning', 'Practical subjects'] },
       { category: 'Boarding Fee', amount: '30,000', term: '10,000', details: ['Accommodation', 'Full meals', 'Laundry', 'Utilities'] },
-      { category: 'Development Fee', amount: '6,000', term: '2,000', details: ['Facilities', 'Sports equipment', 'Library', 'Technology'] },
-      { category: 'Activity Fee', amount: '9,000', term: '3,000', details: ['Clubs', 'Educational trips', 'Sports', 'Cultural events'] }
+      { category: 'Development Fee', amount: '6,000', term: '2,000', details: ['Facilities', 'Sports equipment', 'Library'] },
+      { category: 'Activity Fee', amount: '9,000', term: '3,000', details: ['Clubs', 'Educational trips', 'Sports'] }
     ],
     day: [
-      { category: 'Tuition Fee', amount: '30,000', term: '10,000', details: ['CBC curriculum', 'Digital learning', 'Practical subjects', 'Learning materials'] },
-      { category: 'Lunch Program', amount: '9,000', term: '3,000', details: ['Balanced meals', 'Fruit breaks', 'Special diets', 'Nutrition'] },
-      { category: 'Development Fee', amount: '6,000', term: '2,000', details: ['Facilities', 'Sports equipment', 'Library', 'Technology'] },
-      { category: 'Activity Fee', amount: '9,000', term: '3,000', details: ['Clubs', 'Educational trips', 'Sports', 'Cultural events'] }
+      { category: 'Tuition Fee', amount: '30,000', term: '10,000', details: ['CBC curriculum', 'Digital learning', 'Practical subjects'] },
+      { category: 'Lunch Program', amount: '9,000', term: '3,000', details: ['Balanced meals', 'Fruit breaks', 'Special diets'] },
+      { category: 'Development Fee', amount: '6,000', term: '2,000', details: ['Facilities', 'Sports equipment', 'Library'] },
+      { category: 'Activity Fee', amount: '9,000', term: '3,000', details: ['Clubs', 'Educational trips', 'Sports'] }
     ]
   };
 
+  // Transfer Process Data
   const transferProcess = [
     {
       step: 1,
@@ -265,6 +779,7 @@ export default function ComprehensiveAdmissions() {
     }
   ];
 
+  // Our Commitment Data
   const ourCommitment = [
     {
       icon: FiHeart,
@@ -288,66 +803,7 @@ export default function ComprehensiveAdmissions() {
     }
   ];
 
-  const interactiveElements = [
-    {
-      type: 'virtual-tour',
-      title: 'Interactive Campus Tour',
-      description: 'Explore our facilities in 360° virtual reality',
-      icon: FiEye,
-      action: 'Start Tour',
-      image: onlineImages.campus
-    },
-    {
-      type: 'success-calculator',
-      title: 'Success Probability Calculator',
-      description: 'Calculate your child\'s potential with our AI-powered tool',
-      icon: FiBarChart2,
-      action: 'Calculate Now',
-      image: onlineImages.classroom
-    },
-    {
-      type: 'placement-test',
-      title: 'Online Placement Test',
-      description: 'Take our interactive assessment for proper grade placement',
-      icon: FiTrendingUp,
-      action: 'Start Test',
-      image: onlineImages.scienceLab
-    }
-  ];
-
-  const valueProposition = [
-    {
-      category: 'Academic Excellence',
-      points: [
-        'CBC curriculum with STEM enhancement',
-        'Digital literacy and coding integration',
-        'Project-based learning approach',
-        'Continuous assessment and feedback'
-      ],
-      icon: FiAward
-    },
-    {
-      category: 'Holistic Development',
-      points: [
-        'Sports and arts programs',
-        'Leadership and character building',
-        'Community service initiatives',
-        'Mental health and wellness support'
-      ],
-      icon: FiHeart
-    },
-    {
-      category: 'Future Preparation',
-      points: [
-        'Career guidance from Form 1',
-        'University placement preparation',
-        'Entrepreneurship skills development',
-        'Global citizenship education'
-      ],
-      icon: FiTarget
-    }
-  ];
-
+  // FAQ Data
   const faqs = [
     {
       question: 'How does CBC curriculum benefit my child?',
@@ -367,340 +823,110 @@ export default function ComprehensiveAdmissions() {
     }
   ];
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: FiBook },
-    { id: 'cbc', label: 'CBC Curriculum', icon: FiBookOpen },
-    { id: 'fees', label: 'Fee Structure', icon: IoCalculatorOutline },
-    { id: 'transfer', label: 'Transfers', icon: FiArrowRight },
-    { id: 'commitment', label: 'Our Commitment', icon: FiHeart },
-    { id: 'faq', label: 'FAQ', icon: FiHelpCircle },
-  ];
+  const handleApply = (path) => {
+    setShowApplicationForm(true);
+  };
 
-  // safe current feature icon reference
-  const currentFeatureData = innovativeFeatures[currentFeature] || innovativeFeatures[0];
-  const CurrentFeatureIcon = currentFeatureData.icon;
+  const handleLearnMore = (feature) => {
+    toast.success(`Learn more about ${feature.title}`);
+  };
+
+  const refreshData = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      toast.success('Data refreshed successfully!');
+    }, 1000);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, 100, 0],
-            y: [0, -50, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, -100, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, delay: 2 }}
-        />
-        
-        {/* Animated Grid */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="grid grid-cols-12 gap-4 h-full">
-            {Array.from({ length: 144 }).map((_, i) => (
-              <motion.div
-                key={i}
-                className="bg-white rounded"
-                animate={{ opacity: [0.1, 0.3, 0.1] }}
-                transition={{ duration: 2, delay: Math.random() * 2, repeat: Infinity }}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Hero Section with Interactive Elements */}
-      <section className="relative min-h-screen flex items-center justify-center pt-20">
-        <div className="container mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            
-            {/* Left Content - Enhanced */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              className="text-white"
-            >
-              {/* Animated Badges */}
-              <div className="flex flex-wrap gap-3 mb-6">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full px-4 py-2 border border-white/20 backdrop-blur-sm"
-                >
-                  <IoSparkles className="text-yellow-300" />
-                  <span className="text-sm font-medium">CBC Excellence Center</span>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full px-4 py-2 border border-white/20 backdrop-blur-sm"
-                >
-                  <FiTrendingUp className="text-green-300" />
-                  <span className="text-sm font-medium">98% Success Rate</span>
-                </motion.div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/20 p-4 md:p-6">
+      <Toaster position="top-right" richColors />
+      
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+          <div className="mb-4 lg:mb-0">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-lg">
+                <IoRocketOutline className="text-white text-lg w-6 h-6" />
               </div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-6xl lg:text-7xl font-bold leading-tight mb-6"
-              >
-                Shape Your
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 animate-gradient">
-                  Future With Us
-                </span>
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="text-xl text-white/80 mb-8 leading-relaxed"
-              >
-                Where <span className="text-blue-300 font-semibold">Competency-Based Education</span> meets 
-                <span className="text-green-300 font-semibold"> Innovation</span> and 
-                <span className="text-purple-300 font-semibold"> Personalized Learning</span>. 
-                We're not just preparing students for exams; we're preparing them for life.
-              </motion.p>
-
-              {/* Interactive CTA Buttons */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 }}
-                className="flex flex-col sm:flex-row gap-4 mb-12"
-              >
-                <motion.button
-                  whileHover={{ 
-                    scale: 1.05, 
-                    boxShadow: '0 20px 40px rgba(59, 130, 246, 0.4)',
-                    background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)'
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold flex items-center justify-center gap-3 text-lg backdrop-blur-sm"
-                >
-                  <FiZap className="text-xl" />
-                  Start Smart Application
-                  <FiArrowRight className="text-xl" />
-                </motion.button>
-
-                <motion.button
-                  whileHover={{ 
-                    scale: 1.05,
-                    backgroundColor: 'rgba(255,255,255,0.2)'
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-2xl font-semibold border border-white/20 flex items-center justify-center gap-3 text-lg backdrop-blur-sm"
-                >
-                  <FiPlay className="text-xl" />
-                  Live Virtual Tour
-                </motion.button>
-              </motion.div>
-
-              {/* Enhanced Stats Grid */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 }}
-                className="grid grid-cols-2 lg:grid-cols-4 gap-4"
-              >
-                {dynamicStats.map((stat, index) => {
-                  const StatIcon = stat.icon;
-                  return (
-                    <motion.div
-                      key={stat.label}
-                      whileHover={{ 
-                        y: -5,
-                        scale: 1.05,
-                        background: `linear-gradient(135deg, ${stat.color.split('from-')[1].split('to-')[0]}, ${stat.color.split('to-')[1]})`
-                      }}
-                      className="bg-white/10 backdrop-blur-md rounded-2xl p-4 text-center border border-white/20 cursor-pointer group transition-all duration-300"
-                    >
-                      <div className="relative mb-3">
-                        <StatIcon className="text-2xl text-white mx-auto group-hover:scale-110 transition-transform duration-300" />
-                      </div>
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <motion.span 
-                          className="text-2xl font-bold text-white"
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 1.2 + index * 0.1 }}
-                        >
-                          {stat.number}
-                        </motion.span>
-                      </div>
-                      <p className="text-white/80 text-sm font-medium">{stat.label}</p>
-                      <p className="text-white/60 text-xs">{stat.sublabel}</p>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-            </motion.div>
-
-            {/* Right Content - Interactive Feature Showcase */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative"
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-900 via-purple-900 to-pink-900 bg-clip-text text-transparent">
+                  Admissions Portal
+                </h1>
+                <p className="text-gray-600 mt-1">Nyaribu Secondary School - Join Our Community</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2 md:gap-3 flex-wrap">
+            <button
+              onClick={refreshData}
+              disabled={loading}
+              className="inline-flex items-center gap-2 bg-white text-gray-700 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all duration-200 shadow-xs border border-gray-200 font-medium disabled:opacity-50 text-sm md:text-base"
             >
-              {/* Main Interactive Card */}
-              <motion.div
-                whileHover={{ y: -10, rotateY: 5 }}
-                className="bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 p-8 relative overflow-hidden group"
-                style={{ transformStyle: 'preserve-3d' }}
-              >
-                {/* Feature Carousel */}
-                <div className="relative rounded-2xl overflow-hidden bg-black mb-6 h-64">
-                  <Image
-                    src={innovativeFeatures[currentFeature].image}
-                    alt={innovativeFeatures[currentFeature].title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                  
-                  {/* Feature Indicator */}
-                  <div className="absolute top-4 left-4">
-                    <div className={`px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r ${innovativeFeatures[currentFeature].color} text-white backdrop-blur-sm`}>
-                      Featured
-                    </div>
-                  </div>
-
-                  {/* Stats Overlay */}
-                  <div className="absolute bottom-4 left-4">
-                    <div className="flex gap-4 text-white text-sm">
-                      <div>
-                        <div className="font-bold">{innovativeFeatures[currentFeature].stats.students}</div>
-                        <div className="text-white/70 text-xs">Students</div>
-                      </div>
-                      <div>
-                        <div className="font-bold">{innovativeFeatures[currentFeature].stats.success}</div>
-                        <div className="text-white/70 text-xs">Success</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Navigation Dots */}
-                  <div className="absolute bottom-4 right-4 flex gap-2">
-                    {innovativeFeatures.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentFeature(index)}
-                        className={`w-2 h-2 rounded-full transition-all ${
-                          currentFeature === index ? 'bg-white scale-125' : 'bg-white/50'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Feature Content */}
-                <div className="text-center mb-6">
-                  <CurrentFeatureIcon className="text-3xl text-white mx-auto mb-3" />
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    {innovativeFeatures[currentFeature].title}
-                  </h3>
-                  <p className="text-white/70 text-sm">
-                    {innovativeFeatures[currentFeature].description}
-                  </p>
-                </div>
-
-                {/* Feature Points Grid */}
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                  {innovativeFeatures[currentFeature].features.map((feature, index) => (
-                    <motion.div
-                      key={feature}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex items-center gap-2 text-white/80 text-xs bg-white/5 rounded-xl p-2"
-                    >
-                      <FiCheckCircle className="text-green-400 flex-shrink-0" />
-                      <span>{feature}</span>
-                    </motion.div>
-                  ))}
-                </div>
-
-                {/* Quick Actions */}
-                <div className="flex gap-3">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    className="flex-1 bg-white/20 hover:bg-white/30 text-white py-2 rounded-xl text-sm font-semibold transition-colors"
-                  >
-                    Learn More
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 rounded-xl text-sm font-semibold transition-colors"
-                  >
-                    Apply Now
-                  </motion.button>
-                </div>
-              </motion.div>
-
-              {/* Floating Interactive Elements */}
-              <motion.div
-                animate={{ y: [0, -20, 0] }}
-                transition={{ duration: 4, repeat: Infinity }}
-                className="absolute -top-4 -right-4 bg-gradient-to-r from-green-400 to-blue-500 p-4 rounded-2xl shadow-2xl cursor-pointer"
-                whileHover={{ scale: 1.1, rotate: 5 }}
-              >
-                <div className="text-white text-center">
-                  <FiZap className="text-xl mx-auto mb-1" />
-                  <div className="font-bold text-sm">AI Powered</div>
-                  <div className="text-xs">Admissions</div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                animate={{ y: [0, 20, 0] }}
-                transition={{ duration: 3, repeat: Infinity, delay: 1 }}
-                className="absolute -bottom-4 -left-4 bg-gradient-to-r from-purple-400 to-pink-500 p-3 rounded-xl shadow-2xl cursor-pointer"
-                whileHover={{ scale: 1.1, rotate: -5 }}
-              >
-                <div className="text-white text-center">
-                  <FiTrendingUp className="text-lg mx-auto mb-1" />
-                  <div className="font-bold text-xs">98%</div>
-                  <div className="text-xs">Success</div>
-                </div>
-              </motion.div>
-            </motion.div>
+              <FiRotateCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              {loading ? 'Refreshing...' : 'Refresh'}
+            </button>
+            <button
+              onClick={() => router.push('/apply-for-admission')}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all duration-200 shadow-lg font-medium text-sm md:text-base"
+            >
+              <FiPlus className="w-4 h-4" />
+              Start Application
+            </button>
           </div>
         </div>
 
-        {/* Enhanced Scroll Indicator */}
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-        >
-          <div className="text-white/60 flex flex-col items-center gap-2">
-            <span className="text-sm">Discover More Features</span>
-            <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              <FiChevronDown className="text-xl" />
-            </motion.div>
-          </div>
-        </motion.div>
-      </section>
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+          {dynamicStats.map((stat, index) => (
+            <StatCard key={index} stat={stat} />
+          ))}
+        </div>
 
-      {/* Navigation Tabs */}
-      <section className="sticky top-20 z-40 bg-white/10 backdrop-blur-md border-b border-white/20">
-        <div className="container mx-auto px-6">
+        {/* Filters */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xs border border-gray-200/60 p-4 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3 md:gap-4">
+            <div className="flex-1 relative">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search admission paths or features..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+              />
+            </div>
+            
+            <div className="flex flex-wrap gap-2">
+              <select 
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm cursor-pointer"
+              >
+                <option value="all">All Programs</option>
+                <option value="grade7">Grade 7 Placement</option>
+                <option value="transfer">Transfer Students</option>
+                <option value="international">International</option>
+              </select>
+              
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setFilterType('all');
+                }}
+                className="inline-flex items-center gap-2 px-3 py-2.5 bg-gray-100 border border-gray-200 rounded-lg transition-all duration-200 text-sm font-medium text-gray-700"
+              >
+                <FiFilter className="w-4 h-4" />
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xs border border-gray-200/60 overflow-hidden mb-6">
           <div className="flex overflow-x-auto scrollbar-hide">
             {tabs.map((tab) => {
               const TabIcon = tab.icon;
@@ -710,8 +936,8 @@ export default function ComprehensiveAdmissions() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-3 px-6 py-4 font-semibold transition-all whitespace-nowrap border-b-2 ${
                     activeTab === tab.id
-                      ? 'border-blue-400 text-blue-400 bg-blue-400/10'
-                      : 'border-transparent text-white/60 hover:text-white'
+                      ? 'border-blue-500 text-blue-600 bg-blue-50'
+                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   }`}
                 >
                   <TabIcon className="text-lg" />
@@ -721,705 +947,389 @@ export default function ComprehensiveAdmissions() {
             })}
           </div>
         </div>
-      </section>
 
-      {/* Tab Content */}
-      <section className="py-20">
-        <div className="container mx-auto px-6">
-          <AnimatePresence mode="wait">
-            {/* Overview Tab */}
-            {activeTab === 'overview' && (
-              <motion.div
-                key="overview"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="space-y-16"
-              >
-                {/* Welcome Section */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  className="text-center max-w-4xl mx-auto"
-                >
-                  <h2 className="text-4xl font-bold text-white mb-6">
-                    Welcome to Nyaribu secondary School Admissions
-                  </h2>
-                  <p className="text-xl text-white/70 leading-relaxed">
-                    Where tradition meets innovation in education. We are committed to nurturing 
-                    well-rounded individuals through our comprehensive CBC curriculum, state-of-the-art 
-                    facilities, and dedicated faculty.
-                  </p>
-                </motion.div>
+        {/* Tab Content */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xs border border-gray-200/60 p-4">
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <div className="space-y-8">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                  Welcome to Nyaribu Secondary School Admissions
+                </h2>
+                <p className="text-gray-600 max-w-3xl mx-auto text-lg">
+                  Where tradition meets innovation in education. We are committed to nurturing 
+                  well-rounded individuals through our comprehensive CBC curriculum, state-of-the-art 
+                  facilities, and dedicated faculty.
+                </p>
+              </div>
 
-                {/* Admission Paths Grid */}
-                <div>
-                  <h3 className="text-3xl font-bold text-white mb-12 text-center">
-                    Choose Your Admission Path
-                  </h3>
-                  <div className="grid md:grid-cols-3 gap-8">
-                    {admissionPaths.map((path, index) => {
-                      const PathIcon = path.icon;
-                      return (
-                        <motion.div
-                          key={path.title}
-                          initial={{ opacity: 0, y: 30 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.2 }}
-                          whileHover={{ y: -10, scale: 1.02 }}
-                          className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 group cursor-pointer"
-                        >
-                          <div className="relative h-48 rounded-2xl overflow-hidden mb-6">
-                            <Image
-                              src={path.image}
-                              alt={path.title}
-                              fill
-                              className="object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
-                            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors"></div>
-                            <div className={`absolute top-4 right-4 w-12 h-12 bg-gradient-to-r ${path.color} rounded-xl flex items-center justify-center`}>
-                              <PathIcon className="text-white text-xl" />
-                            </div>
-                          </div>
-                          
-                          <h4 className="text-2xl font-bold text-white mb-4">{path.title}</h4>
-                          <p className="text-white/70 mb-6 leading-relaxed">{path.description}</p>
-                          
-                          <div className="space-y-3 mb-6">
-                            {path.features.map((feature, idx) => (
-                              <div key={idx} className="flex items-center gap-3 text-white/80">
-                                <FiCheckCircle className="text-green-400 flex-shrink-0" />
-                                <span className="text-sm">{feature}</span>
-                              </div>
-                            ))}
-                          </div>
-                          
-                          <div className="flex items-center justify-between pt-6 border-t border-white/20">
-                            <div className="flex items-center gap-2 text-sm text-white/60">
-                              <FiClock />
-                              <span>Deadline: {path.deadline}</span>
-                            </div>
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-xl font-semibold text-sm"
-                            >
-                              Apply Now
-                            </motion.button>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
+              {/* Admission Paths */}
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Choose Your Admission Path</h3>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {admissionPaths.map((path, index) => (
+                    <AdmissionPathCard
+                      key={path.title}
+                      path={path}
+                      index={index}
+                      onApply={() => handleApply(path)}
+                    />
+                  ))}
                 </div>
+              </div>
 
-                {/* Key Features Section */}
-                <div className="bg-white/5 backdrop-blur-md rounded-3xl p-12 border border-white/20">
-                  <h3 className="text-3xl font-bold text-white mb-12 text-center">
-                    Why Choose  Nyaribu secondary?
-                  </h3>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {[
-                      {
-                        icon: IoRocketOutline,
-                        title: 'Modern CBC',
-                        description: 'Competency-Based Curriculum with digital integration'
-                      },
-                      {
-                        icon: FiUsers,
-                        title: 'Expert Faculty',
-                        description: 'Qualified teachers with CBC training'
-                      },
-                      {
-                        icon: FiCpu,
-                        title: 'Tech-Enabled',
-                        description: 'Digital classrooms and computer labs'
-                      },
-                      {
-                        icon: FiHeart,
-                        title: 'Holistic Care',
-                        description: 'Academic and emotional support'
-                      }
-                    ].map((feature, index) => {
-                      const FeatureIcon = feature.icon;
-                      return (
-                        <motion.div
-                          key={feature.title}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          whileInView={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="text-center group"
-                        >
-                          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                            <FeatureIcon className="text-2xl text-white" />
-                          </div>
-                          <h4 className="text-lg font-bold text-white mb-2">{feature.title}</h4>
-                          <p className="text-white/70 text-sm">{feature.description}</p>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
+              {/* Innovative Features */}
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Our Innovative Features</h3>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {innovativeFeatures.map((feature, index) => (
+                    <FeatureCard
+                      key={feature.title}
+                      feature={feature}
+                      onLearnMore={() => handleLearnMore(feature)}
+                    />
+                  ))}
                 </div>
+              </div>
 
-                {/* Quick Facts */}
+              {/* Key Features Section */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 border border-blue-100">
+                <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">Why Choose Nyaribu Secondary?</h3>
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {[
-                    { number: '98%', label: 'Student Satisfaction' },
-                    { number: '12:1', label: 'Student-Teacher Ratio' },
-                    { number: '100+', label: 'Transfer Students/Yr' },
-                    { number: '7', label: 'Core Competencies' }
-                  ].map((fact, index) => (
-                    <motion.div
-                      key={fact.label}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="bg-white/10 backdrop-blur-md rounded-2xl p-6 text-center border border-white/20"
-                    >
-                      <div className="text-3xl font-bold text-white mb-2">{fact.number}</div>
-                      <div className="text-white/70 text-sm">{fact.label}</div>
-                    </motion.div>
+                    {
+                      icon: IoRocketOutline,
+                      title: 'Modern CBC',
+                      description: 'Competency-Based Curriculum with digital integration'
+                    },
+                    {
+                      icon: FiUsers,
+                      title: 'Expert Faculty',
+                      description: 'Qualified teachers with CBC training'
+                    },
+                    {
+                      icon: FiCpu,
+                      title: 'Tech-Enabled',
+                      description: 'Digital classrooms and computer labs'
+                    },
+                    {
+                      icon: FiHeart,
+                      title: 'Holistic Care',
+                      description: 'Academic and emotional support'
+                    }
+                  ].map((feature, index) => (
+                    <div key={index} className="text-center">
+                      <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <feature.icon className="text-2xl text-white" />
+                      </div>
+                      <h4 className="font-bold text-gray-900 mb-2">{feature.title}</h4>
+                      <p className="text-gray-600 text-sm">{feature.description}</p>
+                    </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          )}
 
-                {/* Call to Action */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  className="text-center"
-                >
-                  <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-3xl p-8 border border-blue-400/30">
-                    <h3 className="text-2xl font-bold text-white mb-4">
-                      Ready to Start Your Journey?
-                    </h3>
-                    <p className="text-white/70 mb-6 text-lg">
-                      Join our community of learners and discover your potential with our comprehensive CBC program.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold text-lg"
-                      >
-                        Begin Application
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="border-2 border-white text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/10 transition-colors"
-                      >
-                        Download Brochure
-                      </motion.button>
-                    </div>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-
-            {/* CBC Curriculum Tab */}
-            {activeTab === 'cbc' && (
-              <motion.div
-                key="cbc"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="space-y-16"
-              >
-                {/* Core Subjects */}
-                <div>
-                  <h2 className="text-4xl font-bold text-white mb-12 text-center">
-                    CBC Core Learning Areas
-                  </h2>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {cbcStructure.coreSubjects.map((subject, index) => {
-                      const SubjectIcon = subject.icon;
-                      return (
-                        <motion.div
-                          key={subject.name}
-                          initial={{ opacity: 0, y: 20 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          whileHover={{ y: -5 }}
-                          className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 text-center group"
-                        >
-                          <SubjectIcon className="text-3xl text-blue-400 mx-auto mb-4" />
-                          <h3 className="text-xl font-bold text-white mb-3">{subject.name}</h3>
-                          <p className="text-white/70 text-sm">{subject.description}</p>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Optional Subjects */}
-                <div>
-                  <h2 className="text-4xl font-bold text-white mb-12 text-center">
-                    Pre-Technical & Pre-Career Subjects
-                  </h2>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {cbcStructure.optionalSubjects.map((subject, index) => {
-                      const SubjectIcon = subject.icon;
-                      return (
-                        <motion.div
-                          key={subject.name}
-                          initial={{ opacity: 0, y: 20 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          whileHover={{ y: -5 }}
-                          className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 text-center group"
-                        >
-                          <SubjectIcon className="text-3xl text-green-400 mx-auto mb-4" />
-                          <h3 className="text-xl font-bold text-white mb-3">{subject.name}</h3>
-                          <p className="text-white/70 text-sm">{subject.description}</p>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Competencies */}
-                <div>
-                  <h2 className="text-4xl font-bold text-white mb-12 text-center">
-                    7 Core Competencies
-                  </h2>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {cbcStructure.competencies.map((competency, index) => (
-                      <motion.div
-                        key={competency}
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="bg-white/5 rounded-2xl p-4 border border-white/10"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                            {index + 1}
-                          </div>
-                          <span className="text-white font-semibold text-sm">{competency}</span>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Fee Structure Tab */}
-            {activeTab === 'fees' && (
-              <motion.div
-                key="fees"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="max-w-4xl mx-auto"
-              >
-                <h2 className="text-4xl font-bold text-white mb-12 text-center">
-                  Affordable Fee Structure
+          {/* CBC Curriculum Tab */}
+          {activeTab === 'cbc' && (
+            <div className="space-y-8">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                  CBC Curriculum Structure
                 </h2>
+                <p className="text-gray-600 max-w-3xl mx-auto">
+                  Our comprehensive CBC program focuses on developing 7 core competencies through engaging learning areas.
+                </p>
+              </div>
 
-                <div className="grid md:grid-cols-2 gap-8 mb-12">
-                  {/* Boarding Fees */}
-                  <motion.div
-                    whileHover={{ y: -5 }}
-                    className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-blue-400/30"
-                  >
-                    <div className="text-center mb-6">
-                      <IoBookOutline className="text-4xl text-blue-400 mx-auto mb-4" />
-                      <h3 className="text-2xl font-bold text-white mb-2">Boarding School</h3>
-                      <div className="text-3xl font-bold text-blue-400 mb-2">KSh 75,000</div>
-                      <p className="text-white/60">Per Year (3 Terms)</p>
-                    </div>
-                    <div className="space-y-4">
-                      {feeStructure.boarding.map((fee, index) => (
-                        <div key={fee.category} className="flex justify-between items-center text-white/80">
-                          <span className="text-sm">{fee.category}</span>
-                          <span className="font-semibold">KSh {fee.amount}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-
-                  {/* Day School Fees */}
-                  <motion.div
-                    whileHover={{ y: -5 }}
-                    className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-green-400/30"
-                  >
-                    <div className="text-center mb-6">
-                      <FiHome className="text-4xl text-green-400 mx-auto mb-4" />
-                      <h3 className="text-2xl font-bold text-white mb-2">Day School</h3>
-                      <div className="text-3xl font-bold text-green-400 mb-2">KSh 54,000</div>
-                      <p className="text-white/60">Per Year (3 Terms)</p>
-                    </div>
-                    <div className="space-y-4">
-                      {feeStructure.day.map((fee, index) => (
-                        <div key={fee.category} className="flex justify-between items-center text-white/80">
-                          <span className="text-sm">{fee.category}</span>
-                          <span className="font-semibold">KSh {fee.amount}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
+              {/* Core Subjects */}
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Core Learning Areas</h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {cbcStructure.coreSubjects.map((subject, index) => (
+                    <SubjectCard key={index} subject={subject} index={index} />
+                  ))}
                 </div>
+              </div>
 
-                {/* Additional Information */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  className="bg-yellow-500/10 border border-yellow-400/30 rounded-3xl p-6"
-                >
-                  <h4 className="text-yellow-300 font-bold mb-3 flex items-center gap-2">
-                    <FiAward className="text-yellow-400" />
-                    Financial Support Available
-                  </h4>
-                  <div className="grid md:grid-cols-2 gap-4 text-yellow-200 text-sm">
-                    <div>
-                      <p className="font-semibold mb-2">Scholarships:</p>
-                      <ul className="space-y-1">
-                        <li>• Academic Excellence</li>
-                        <li>• Sports & Arts Talent</li>
-                        <li>• Leadership Potential</li>
-                      </ul>
+              {/* Optional Subjects */}
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Pre-Technical & Pre-Career Subjects</h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {cbcStructure.optionalSubjects.map((subject, index) => (
+                    <SubjectCard key={index} subject={subject} index={index} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Competencies */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-8 border border-green-100">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">7 Core Competencies</h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {cbcStructure.competencies.map((competency, index) => (
+                    <div key={index} className="bg-white rounded-xl p-4 border border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                          {index + 1}
+                        </div>
+                        <span className="font-semibold text-gray-900 text-sm">{competency}</span>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold mb-2">Payment Plans:</p>
-                      <ul className="space-y-1">
-                        <li>• Installment payments</li>
-                        <li>• Sibling discounts</li>
-                        <li>• Early payment discount</li>
-                      </ul>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Fee Structure Tab */}
+          {activeTab === 'fees' && (
+            <div className="space-y-8">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                  Transparent Fee Structure
+                </h2>
+                <p className="text-gray-600 max-w-3xl mx-auto">
+                  We believe in providing quality education at an affordable cost with flexible payment options.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                <FeeCard
+                  feeType="Boarding School"
+                  fees={feeStructure.boarding}
+                  icon={IoBookOutline}
+                  color="bg-blue-50"
+                />
+                <FeeCard
+                  feeType="Day School"
+                  fees={feeStructure.day}
+                  icon={FiHome}
+                  color="bg-green-50"
+                />
+              </div>
+
+              {/* Financial Support */}
+              <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl p-6 border border-amber-100">
+                <div className="flex items-start gap-4">
+                  <FiAward className="text-2xl text-amber-600 mt-1" />
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-lg mb-3">Financial Support Available</h3>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold text-gray-700 mb-2">Scholarships:</h4>
+                        <ul className="space-y-2 text-sm text-gray-600">
+                          <li className="flex items-center gap-2">
+                            <FiCheckCircle className="text-green-500" />
+                            Academic Excellence
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <FiCheckCircle className="text-green-500" />
+                            Sports & Arts Talent
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <FiCheckCircle className="text-green-500" />
+                            Leadership Potential
+                          </li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-700 mb-2">Payment Plans:</h4>
+                        <ul className="space-y-2 text-sm text-gray-600">
+                          <li className="flex items-center gap-2">
+                            <FiCheckCircle className="text-green-500" />
+                            Installment payments
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <FiCheckCircle className="text-green-500" />
+                            Sibling discounts
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <FiCheckCircle className="text-green-500" />
+                            Early payment discount
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
-                </motion.div>
-              </motion.div>
-            )}
+                </div>
+              </div>
+            </div>
+          )}
 
-            {/* Transfer Process Tab */}
-            {activeTab === 'transfer' && (
-              <motion.div
-                key="transfer"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="max-w-4xl mx-auto"
-              >
-                <h2 className="text-4xl font-bold text-white mb-12 text-center">
+          {/* Transfer Process Tab */}
+          {activeTab === 'transfer' && (
+            <div className="space-y-8">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
                   Smooth Transfer Process
                 </h2>
+                <p className="text-gray-600 max-w-3xl mx-auto">
+                  We ensure a seamless transition for transfer students with comprehensive support at every step.
+                </p>
+              </div>
 
-                <div className="space-y-8">
-                  {transferProcess.map((step, index) => (
-                    <motion.div
-                      key={step.step}
-                      initial={{ opacity: 0, x: -50 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.2 }}
-                      className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20"
-                    >
-                      <div className="flex items-start gap-6">
-                        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl flex-shrink-0">
-                          {step.step}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4">
-                            <h3 className="text-2xl font-bold text-white mb-2 lg:mb-0">{step.title}</h3>
-                            <div className="flex items-center gap-2 text-blue-300">
-                              <FiClock className="text-lg" />
-                              <span className="font-semibold">{step.duration}</span>
-                            </div>
-                          </div>
-                          <p className="text-white/70 mb-6">{step.description}</p>
-                          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {step.requirements.map((req, idx) => (
-                              <div key={idx} className="flex items-center gap-2 text-white/80 text-sm bg-white/5 rounded-xl p-3">
-                                <FiCheckCircle className="text-green-400 flex-shrink-0" />
-                                {req}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+              <div className="space-y-6">
+                {transferProcess.map((step, index) => (
+                  <ProcessStep key={index} step={step} index={index} />
+                ))}
+              </div>
 
-            {/* Our Commitment Tab */}
-            {activeTab === 'commitment' && (
-              <motion.div
-                key="commitment"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="max-w-6xl mx-auto"
-              >
-                <h2 className="text-4xl font-bold text-white mb-12 text-center">
-                  Our Commitment to Building Your Future
-                </h2>
-
-                <div className="grid md:grid-cols-2 gap-8">
-                  {ourCommitment.map((commitment, index) => {
-                    const CommitmentIcon = commitment.icon;
-                    return (
-                      <motion.div
-                        key={commitment.title}
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        whileHover={{ y: -5 }}
-                        className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 text-center group"
-                      >
-                        <CommitmentIcon className="text-4xl text-blue-400 mx-auto mb-6 group-hover:scale-110 transition-transform duration-300" />
-                        <h3 className="text-2xl font-bold text-white mb-4">{commitment.title}</h3>
-                        <p className="text-white/70 leading-relaxed">{commitment.description}</p>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-
-                {/* Mission Statement */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  className="mt-16 text-center"
-                >
-                  <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-3xl p-8 border border-blue-400/30">
-                    <h3 className="text-2xl font-bold text-white mb-6">Our Promise to You</h3>
-                    <p className="text-xl text-white/80 leading-relaxed italic">
-                      "We are committed to providing a nurturing environment where every student 
-                      can discover their potential, develop essential competencies, and build 
-                      a foundation for lifelong success. Together, we shape futures."
-                    </p>
+              {/* Additional Information */}
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100">
+                <h3 className="font-bold text-gray-900 text-lg mb-4">Additional Support for Transfer Students</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-700">Academic Support:</h4>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li className="flex items-center gap-2">
+                        <FiCheckCircle className="text-blue-500" />
+                        CBC adaptation guidance
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <FiCheckCircle className="text-blue-500" />
+                        Extra tuition sessions
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <FiCheckCircle className="text-blue-500" />
+                        Study skills workshops
+                      </li>
+                    </ul>
                   </div>
-                </motion.div>
-              </motion.div>
-            )}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-700">Social Integration:</h4>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li className="flex items-center gap-2">
+                        <FiCheckCircle className="text-blue-500" />
+                        Buddy system
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <FiCheckCircle className="text-blue-500" />
+                        Orientation events
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <FiCheckCircle className="text-blue-500" />
+                        Club participation
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
-            {/* FAQ Tab */}
-            {activeTab === 'faq' && (
-              <motion.div
-                key="faq"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="max-w-4xl mx-auto"
-              >
-                <h2 className="text-4xl font-bold text-white mb-12 text-center">
+          {/* Our Commitment Tab */}
+          {activeTab === 'commitment' && (
+            <div className="space-y-8">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                  Our Commitment to Your Child's Success
+                </h2>
+                <p className="text-gray-600 max-w-3xl mx-auto">
+                  We are dedicated to providing an environment where every student can thrive and reach their full potential.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {ourCommitment.map((commitment, index) => (
+                  <CommitmentCard key={index} commitment={commitment} index={index} />
+                ))}
+              </div>
+
+              {/* Mission Statement */}
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-8 border border-purple-100 text-center">
+                <FiHeart className="text-3xl text-purple-600 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Our Promise to You</h3>
+                <p className="text-gray-600 italic max-w-3xl mx-auto">
+                  "We are committed to providing a nurturing environment where every student 
+                  can discover their potential, develop essential competencies, and build 
+                  a foundation for lifelong success. Together, we shape futures."
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* FAQ Tab */}
+          {activeTab === 'faq' && (
+            <div className="space-y-8">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
                   Frequently Asked Questions
                 </h2>
-                
-                <div className="space-y-4">
-                  {faqs.map((faq, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 overflow-hidden group"
-                    >
-                      <button
-                        onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                        className="w-full px-6 py-6 text-left flex items-center justify-between hover:bg-white/5 transition-colors"
-                      >
-                        <h3 className="text-lg font-semibold text-white pr-4">{faq.question}</h3>
-                        <FiChevronDown 
-                          className={`text-blue-400 transition-transform duration-300 ${
-                            openFaq === index ? 'rotate-180' : ''
-                          }`} 
-                        />
-                      </button>
-                      <AnimatePresence>
-                        {openFaq === index && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="px-6 pb-6 text-white/70 leading-relaxed">
-                              {faq.answer}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  ))}
+                <p className="text-gray-600 max-w-3xl mx-auto">
+                  Find answers to common questions about admissions, curriculum, fees, and more.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {faqs.map((faq, index) => (
+                  <FAQItem
+                    key={index}
+                    faq={faq}
+                    index={index}
+                    openFaq={openFaq}
+                    setOpenFaq={setOpenFaq}
+                  />
+                ))}
+              </div>
+
+              {/* Contact Support */}
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-lg mb-2">Still have questions?</h3>
+                    <p className="text-gray-600">Our admissions team is here to help you.</p>
+                  </div>
+                  <div className="flex gap-4">
+                    <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">
+                      <a href="tel:+254712345678" className="flex items-center gap-2">
+                        <FiPhone />
+                        Call Us
+                      </a>
+                    </button>
+                    <button className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+                      <a href="mailto:admissions@nyaribu.ac.ke" className="flex items-center gap-2">
+                        <FiMail />
+                        Email Us
+                      </a>
+                    </button>
+                  </div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </section>
-
-      {/* Interactive Features Section */}
-      <section className="py-20 bg-white/5 backdrop-blur-sm">
-        <div className="container mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold text-white mb-4">
-              Experience Modern Education
-            </h2>
-            <p className="text-xl text-white/60">
-              Interactive tools and features that make admissions seamless and engaging
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {interactiveElements.map((element, index) => {
-              const ElementIcon = element.icon;
-              return (
-                <motion.div
-                  key={element.type}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.2 }}
-                  whileHover={{ y: -10, scale: 1.02 }}
-                  className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 group cursor-pointer"
-                >
-                  <div className="relative h-40 rounded-2xl overflow-hidden mb-4">
-                    <Image
-                      src={element.image}
-                      alt={element.title}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors"></div>
-                    <div className="absolute top-4 right-4">
-                      <ElementIcon className="text-2xl text-white" />
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-3">{element.title}</h3>
-                  <p className="text-white/70 mb-4 text-sm">{element.description}</p>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-xl font-semibold text-sm"
-                  >
-                    {element.action}
-                  </motion.button>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Value Proposition Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold text-white mb-4">
-              Why Choose Our Program?
-            </h2>
-            <p className="text-xl text-white/60">
-              Comprehensive education that prepares students for success in life
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {valueProposition.map((proposition, index) => {
-              const PropositionIcon = proposition.icon;
-              return (
-                <motion.div
-                  key={proposition.category}
-                  initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.2 }}
-                  whileHover={{ y: -5 }}
-                  className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 group"
-                >
-                  <PropositionIcon className="text-4xl text-blue-400 mb-6 group-hover:scale-110 transition-transform duration-300" />
-                  <h3 className="text-2xl font-bold text-white mb-6">{proposition.category}</h3>
-                  <ul className="space-y-3">
-                    {proposition.points.map((point, idx) => (
-                      <li key={idx} className="flex items-start gap-3 text-white/80">
-                        <FiCheckCircle className="text-green-400 mt-1 flex-shrink-0" />
-                        <span className="text-sm">{point}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Enhanced Admission Highlights */}
-      <section className="py-20 bg-white/5 backdrop-blur-sm">
-        <div className="container mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
-          >
-            {admissionHighlights.map((highlight, index) => {
-              const HighlightIcon = highlight.icon;
-              return (
-                <motion.div
-                  key={highlight.title}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -5, scale: 1.05 }}
-                  className="text-center group cursor-pointer"
-                >
-                  <div className="relative mb-6">
-                    <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
-                      <HighlightIcon className="text-2xl text-white" />
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-3">{highlight.title}</h3>
-                  <p className="text-white/70 text-sm mb-4 leading-relaxed">{highlight.description}</p>
-                  <div className="text-blue-300 font-semibold text-sm">{highlight.metrics}</div>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-white/5 backdrop-blur-sm border-t border-white/10">
-        <div className="container mx-auto px-6 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="max-w-4xl mx-auto"
-          >
-            <h2 className="text-4xl font-bold text-white mb-6">
-              Ready to Begin the Journey?
-            </h2>
-            <p className="text-xl text-white/70 mb-8 leading-relaxed">
-              Join our community dedicated to nurturing future leaders through quality CBC education, 
-              personalized attention, and a commitment to holistic development.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:shadow-2xl transition-all"
-              >
-                Start Your Application
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="border-2 border-white text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/10 transition-colors"
-              >
-                Schedule Campus Visit
-              </motion.button>
+              </div>
             </div>
-          </motion.div>
+          )}
         </div>
-      </section>
+
+        {/* CTA Section */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-8 text-center text-white">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to Begin Your Journey?</h2>
+          <p className="text-blue-100 mb-8 max-w-2xl mx-auto text-lg">
+            Join our community dedicated to nurturing future leaders through quality CBC education, 
+            personalized attention, and a commitment to holistic development.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={() => setShowApplicationForm(true)}
+              className="px-8 py-4 bg-white text-blue-600 rounded-xl font-bold text-lg hover:bg-blue-50 transition-colors"
+            >
+              Start Your Application
+            </button>
+            <button className="px-8 py-4 border-2 border-white text-white rounded-xl font-bold text-lg hover:bg-white/10 transition-colors">
+              Download Brochure
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Application Form Modal */}
+      <ApplicationFormModal
+        open={showApplicationForm}
+        onClose={() => setShowApplicationForm(false)}
+        onSuccess={() => {
+          // Handle success
+        }}
+      />
     </div>
   );
 }

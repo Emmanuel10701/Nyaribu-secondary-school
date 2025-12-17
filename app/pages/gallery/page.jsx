@@ -12,7 +12,6 @@ import {
   FiShare2,
   FiHeart,
   FiImage,
-  FiEye,
   FiVideo,
   FiPlay,
   FiPause,
@@ -36,7 +35,9 @@ import {
   FiGlobe,
   FiMessageSquare,
   FiFacebook,
-  FiTwitter
+  FiTwitter,
+  FiFileText,
+  FiInfo
 } from 'react-icons/fi';
 import { 
   IoClose,
@@ -44,6 +45,63 @@ import {
 } from 'react-icons/io5';
 import { CircularProgress, Backdrop } from '@mui/material';
 import Image from 'next/image';
+
+// Modern color palette
+const COLORS = {
+  primary: '#1d4ed8', // blue-700
+  secondary: '#3b82f6', // blue-600
+  accent: '#f59e0b', // amber-500
+  background: '#f8fafc', // slate-50
+  surface: '#ffffff',
+  text: '#1e293b', // slate-800
+  textLight: '#64748b', // slate-600
+  border: '#e2e8f0', // slate-200
+  success: '#10b981', // emerald-500
+  warning: '#f59e0b', // amber-500
+  error: '#ef4444', // red-500
+  info: '#3b82f6', // blue-500
+  overlay: 'rgba(0, 0, 0, 0.85)'
+};
+
+// Modern typography scale
+const TYPOGRAPHY = {
+  h1: 'text-2xl lg:text-3xl font-bold',
+  h2: 'text-xl lg:text-2xl font-bold',
+  h3: 'text-lg lg:text-xl font-semibold',
+  h4: 'text-base lg:text-lg font-semibold',
+  body1: 'text-sm lg:text-base',
+  body2: 'text-xs lg:text-sm',
+  caption: 'text-xs',
+  small: 'text-xs'
+};
+
+// Modern spacing scale
+const SPACING = {
+  xs: '0.5rem',    // 8px
+  sm: '0.75rem',   // 12px
+  md: '1rem',      // 16px
+  lg: '1.5rem',    // 24px
+  xl: '2rem',      // 32px
+  '2xl': '3rem'    // 48px
+};
+
+// Card elevation styles
+const ELEVATION = {
+  none: 'shadow-none',
+  sm: 'shadow-sm',
+  md: 'shadow',
+  lg: 'shadow-lg',
+  xl: 'shadow-xl'
+};
+
+// Button variants
+const BUTTON_VARIANTS = {
+  primary: `bg-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%) text-white`,
+  secondary: `bg-${COLORS.surface} text-${COLORS.text} border border-${COLORS.border}`,
+  outline: `border border-${COLORS.border} text-${COLORS.text} bg-transparent`,
+  ghost: `text-${COLORS.text} bg-transparent hover:bg-${COLORS.background}/50`,
+  danger: `bg-gradient(135deg, ${COLORS.error} 0%, #dc2626 100%) text-white`
+};
 
 // Helper function to clean up file names
 const cleanFileName = (filename) => {
@@ -65,7 +123,6 @@ export default function ModernGallery() {
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [favorites, setFavorites] = useState(() => {
-    // Load favorites from localStorage on initial render
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('Nyaribu-gallery-favorites');
       return saved ? new Set(JSON.parse(saved)) : new Set();
@@ -184,7 +241,8 @@ export default function ModernGallery() {
           id: 'GENERAL', 
           name: 'General Gallery', 
           icon: FiGlobe,
-          color: 'from-blue-600 to-cyan-600'
+          color: 'from-blue-700 to-blue-600',
+          emoji: '🏫'
         }
       ]
     },
@@ -195,13 +253,15 @@ export default function ModernGallery() {
           id: 'CLASSROOMS', 
           name: 'Classrooms', 
           icon: FiBookOpen,
-          color: 'from-emerald-600 to-green-700'
+          color: 'from-emerald-600 to-emerald-500',
+          emoji: '📚'
         },
         { 
           id: 'TEACHING', 
           name: 'Teaching Activities', 
           icon: FiBook,
-          color: 'from-green-600 to-emerald-700'
+          color: 'from-green-600 to-green-500',
+          emoji: '👨‍🏫'
         }
       ]
     },
@@ -212,19 +272,22 @@ export default function ModernGallery() {
           id: 'LABORATORIES', 
           name: 'Laboratories', 
           icon: FiTarget,
-          color: 'from-teal-600 to-green-700'
+          color: 'from-teal-600 to-teal-500',
+          emoji: '🔬'
         },
         { 
           id: 'SCIENCE_LAB', 
           name: 'Science Lab', 
           icon: FiTarget,
-          color: 'from-teal-700 to-green-800'
+          color: 'from-teal-700 to-teal-600',
+          emoji: '🧪'
         },
         { 
           id: 'COMPUTER_LAB', 
           name: 'Computer Lab', 
           icon: FiTarget,
-          color: 'from-cyan-600 to-blue-700'
+          color: 'from-cyan-600 to-cyan-500',
+          emoji: '💻'
         }
       ]
     },
@@ -235,25 +298,29 @@ export default function ModernGallery() {
           id: 'ADMIN_OFFICES', 
           name: 'Admin Offices', 
           icon: FiTarget,
-          color: 'from-slate-600 to-gray-600'
+          color: 'from-slate-600 to-slate-500',
+          emoji: '🏢'
         },
         { 
           id: 'PRINCIPAL', 
           name: 'Principal\'s Office', 
           icon: FiUser,
-          color: 'from-blue-700 to-blue-900'
+          color: 'from-blue-800 to-blue-700',
+          emoji: '👑'
         },
         { 
           id: 'STAFF', 
           name: 'Teaching Staff', 
           icon: FiUsers,
-          color: 'from-blue-600 to-blue-800'
+          color: 'from-blue-700 to-blue-600',
+          emoji: '👨‍🏫'
         },
         { 
           id: 'BOARD', 
           name: 'Board of Management', 
           icon: FiTarget,
-          color: 'from-blue-800 to-navy-900'
+          color: 'from-blue-900 to-blue-800',
+          emoji: '👥'
         }
       ]
     },
@@ -264,25 +331,29 @@ export default function ModernGallery() {
           id: 'SPORTS_FACILITIES', 
           name: 'Sports Facilities', 
           icon: FiTarget,
-          color: 'from-orange-600 to-red-600'
+          color: 'from-orange-600 to-orange-500',
+          emoji: '⚽'
         },
         { 
           id: 'SPORTS_DAY', 
           name: 'Sports Day', 
           icon: FiAward,
-          color: 'from-red-700 to-orange-700'
+          color: 'from-red-600 to-red-500',
+          emoji: '🏆'
         },
         { 
           id: 'CLUBS', 
           name: 'Clubs & Societies', 
           icon: FiUsers,
-          color: 'from-purple-600 to-pink-600'
+          color: 'from-purple-600 to-purple-500',
+          emoji: '🎭'
         },
         { 
           id: 'STUDENT_ACTIVITIES', 
           name: 'Student Activities', 
           icon: FiTarget,
-          color: 'from-pink-600 to-rose-600'
+          color: 'from-pink-600 to-pink-500',
+          emoji: '🎪'
         }
       ]
     },
@@ -293,19 +364,22 @@ export default function ModernGallery() {
           id: 'MUSIC_FESTIVAL', 
           name: 'Music Festival', 
           icon: FiMusic,
-          color: 'from-rose-600 to-pink-700'
+          color: 'from-rose-600 to-rose-500',
+          emoji: '🎵'
         },
         { 
           id: 'DRAMA_PERFORMANCE', 
           name: 'Drama Performances', 
           icon: FiMic,
-          color: 'from-yellow-600 to-amber-700'
+          color: 'from-amber-600 to-amber-500',
+          emoji: '🎭'
         },
         { 
           id: 'ART_EXHIBITION', 
           name: 'Art Exhibitions', 
           icon: FiCamera,
-          color: 'from-purple-600 to-violet-700'
+          color: 'from-purple-600 to-purple-500',
+          emoji: '🎨'
         }
       ]
     },
@@ -316,13 +390,15 @@ export default function ModernGallery() {
           id: 'DEBATE_COMPETITION', 
           name: 'Debate Competitions', 
           icon: FiMic,
-          color: 'from-indigo-600 to-purple-600'
+          color: 'from-indigo-600 to-indigo-500',
+          emoji: '🗣️'
         },
         { 
           id: 'SCIENCE_FAIR', 
           name: 'Science Fair', 
           icon: FiTarget,
-          color: 'from-cyan-700 to-blue-800'
+          color: 'from-cyan-700 to-cyan-600',
+          emoji: '🔭'
         }
       ]
     },
@@ -333,25 +409,29 @@ export default function ModernGallery() {
           id: 'GRADUATION', 
           name: 'Graduation', 
           icon: FiAward,
-          color: 'from-purple-700 to-indigo-700'
+          color: 'from-purple-700 to-purple-600',
+          emoji: '🎓'
         },
         { 
           id: 'AWARD_CEREMONY', 
           name: 'Award Ceremonies', 
           icon: FiStar,
-          color: 'from-yellow-600 to-amber-600'
+          color: 'from-amber-600 to-amber-500',
+          emoji: '🏅'
         },
         { 
           id: 'PARENTS_DAY', 
           name: 'Parents Day', 
           icon: FiUsers,
-          color: 'from-blue-600 to-cyan-600'
+          color: 'from-blue-600 to-blue-500',
+          emoji: '👨‍👩‍👧‍👦'
         },
         { 
           id: 'OPEN_DAY', 
           name: 'Open Day', 
           icon: FiGlobe,
-          color: 'from-teal-600 to-emerald-600'
+          color: 'from-teal-600 to-teal-500',
+          emoji: '🚪'
         }
       ]
     },
@@ -362,13 +442,15 @@ export default function ModernGallery() {
           id: 'DORMITORIES', 
           name: 'Dormitories', 
           icon: FiHome,
-          color: 'from-blue-500 to-cyan-500'
+          color: 'from-blue-500 to-blue-400',
+          emoji: '🛏️'
         },
         { 
           id: 'DINING_HALL', 
           name: 'Dining Hall', 
           icon: FiCalendar,
-          color: 'from-orange-500 to-amber-500'
+          color: 'from-orange-500 to-orange-400',
+          emoji: '🍽️'
         }
       ]
     },
@@ -379,13 +461,15 @@ export default function ModernGallery() {
           id: 'COUNCIL', 
           name: 'School Council', 
           icon: FiTarget,
-          color: 'from-indigo-600 to-blue-800'
+          color: 'from-indigo-600 to-indigo-500',
+          emoji: '🤝'
         },
         { 
           id: 'LEADERSHIP', 
           name: 'Leadership', 
           icon: FiTarget,
-          color: 'from-navy-700 to-blue-900'
+          color: 'from-blue-900 to-blue-800',
+          emoji: '🌟'
         }
       ]
     },
@@ -396,13 +480,15 @@ export default function ModernGallery() {
           id: 'VISITORS', 
           name: 'Visitors', 
           icon: FiUser,
-          color: 'from-gray-600 to-slate-600'
+          color: 'from-slate-600 to-slate-500',
+          emoji: '👋'
         },
         { 
           id: 'OTHER', 
           name: 'Other Activities', 
           icon: FiGrid,
-          color: 'from-slate-500 to-gray-500'
+          color: 'from-gray-500 to-gray-400',
+          emoji: '📦'
         }
       ]
     }
@@ -496,6 +582,20 @@ export default function ModernGallery() {
     }).filter(Boolean);
   }, [categorySearch, categoryStructure]);
 
+  // Check if file is video
+  const isVideoFile = (filename) => {
+    if (!filename) return false;
+    const videoExtensions = ['.mp4', '.mov', '.avi', '.wmv', '.flv', '.webm', '.mkv', '.m4v', '.3gp'];
+    return videoExtensions.some(ext => filename.toLowerCase().endsWith(ext));
+  };
+
+  // Check if file is image
+  const isImageFile = (filename) => {
+    if (!filename) return false;
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.avif', '.svg'];
+    return imageExtensions.some(ext => filename.toLowerCase().endsWith(ext));
+  };
+
   const clearAllFilters = () => {
     setSearchTerm('');
     setCategorySearch('');
@@ -577,20 +677,6 @@ export default function ModernGallery() {
       videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
     }
-  };
-
-  // Check if file is video
-  const isVideoFile = (filename) => {
-    if (!filename) return false;
-    const videoExtensions = ['.mp4', '.mov', '.avi', '.wmv', '.flv', '.webm', '.mkv', '.m4v', '.3gp'];
-    return videoExtensions.some(ext => filename.toLowerCase().endsWith(ext));
-  };
-
-  // Check if file is image
-  const isImageFile = (filename) => {
-    if (!filename) return false;
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.avif', '.svg'];
-    return imageExtensions.some(ext => filename.toLowerCase().endsWith(ext));
   };
 
   // Download single file
@@ -687,6 +773,264 @@ export default function ModernGallery() {
     }
   };
 
+  // Modern Button Component
+  const ModernButton = ({ 
+    children, 
+    variant = 'primary', 
+    size = 'md', 
+    icon: Icon, 
+    onClick, 
+    disabled, 
+    className = '',
+    type = 'button'
+  }) => {
+    const sizeClasses = {
+      sm: 'px-3 py-2 text-sm',
+      md: 'px-4 py-3 text-sm',
+      lg: 'px-6 py-4 text-base'
+    };
+
+    const baseClasses = 'rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2';
+    
+    const variantClasses = {
+      primary: 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md',
+      secondary: 'bg-white text-slate-800 border border-slate-200 shadow-sm',
+      outline: 'border border-slate-200 text-slate-700 bg-transparent',
+      ghost: 'text-slate-700 bg-transparent hover:bg-slate-100/50',
+      danger: 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-md'
+    };
+
+    return (
+      <button
+        type={type}
+        onClick={onClick}
+        disabled={disabled}
+        className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+      >
+        {Icon && <Icon className="text-current" />}
+        {children}
+      </button>
+    );
+  };
+
+  // Modern Card Component
+  const ModernCard = ({ children, className = '', elevation = 'md' }) => (
+    <div className={`bg-white rounded-xl ${ELEVATION[elevation]} border border-slate-100 ${className}`}>
+      {children}
+    </div>
+  );
+
+  // Modern Badge Component
+  const ModernBadge = ({ children, color = 'blue', className = '', icon: Icon }) => {
+    const colorClasses = {
+      blue: 'bg-blue-100 text-blue-700',
+      green: 'bg-emerald-100 text-emerald-700',
+      red: 'bg-red-100 text-red-700',
+      yellow: 'bg-amber-100 text-amber-700',
+      purple: 'bg-purple-100 text-purple-700',
+      slate: 'bg-slate-100 text-slate-700'
+    };
+
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${colorClasses[color]} ${className}`}>
+        {Icon && <Icon className="text-xs" />}
+        {children}
+      </span>
+    );
+  };
+
+  // Gallery Card Component
+  const GalleryCard = ({ item, viewMode, allCategories, favorites, toggleFavorite, openLightbox, activeCategory }) => {
+    const category = allCategories.find(c => c.id === item.category);
+    const Icon = category?.icon || FiImage;
+    const isActiveCategory = activeCategory === item.category;
+    const isFavorite = favorites.has(item.id);
+    
+    if (viewMode === 'grid') {
+      return (
+        <ModernCard elevation="sm" className="overflow-hidden transition-all duration-200">
+          <div 
+            className="cursor-pointer"
+            onClick={() => openLightbox(item, 0)}
+          >
+            {/* Media Container */}
+            <div className="relative aspect-square overflow-hidden">
+              {item.files && item.files.length > 0 && isImageFile(item.files[0]) ? (
+                <Image
+                  src={item.files[0]}
+                  alt={item.title}
+                  fill
+                  className="object-cover"
+                  unoptimized={item.files[0]?.includes('/gallery/')}
+                />
+              ) : item.files && item.files.length > 0 && isVideoFile(item.files[0]) ? (
+                <div className="w-full h-full bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
+                  <div className="text-center p-4">
+                    <FiVideo className="text-2xl text-white mb-2 mx-auto" />
+                    <span className="text-white font-medium text-xs">Video</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+                  <div className="text-center p-4">
+                    <FiImage className="text-2xl text-slate-400 mb-2 mx-auto" />
+                    <span className="text-slate-500 font-medium text-xs">Media</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Category Badge */}
+              <div className="absolute top-3 left-3">
+                <ModernBadge 
+                  color={isActiveCategory ? 'blue' : 'slate'}
+                  icon={Icon}
+                >
+                  {category?.name || item.category}
+                </ModernBadge>
+              </div>
+
+              {/* Favorite Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFavorite(item.id);
+                }}
+                className="absolute top-3 right-3 bg-white p-2 rounded-lg shadow-sm"
+              >
+                <FiHeart className={`text-sm ${isFavorite ? 'text-red-500 fill-current' : 'text-slate-400'}`} />
+              </button>
+
+              {/* File Count Badge */}
+              {item.files && item.files.length > 1 && (
+                <div className="absolute bottom-3 right-3">
+                  <ModernBadge color="slate" icon={FiImage}>
+                    {item.files.length}
+                  </ModernBadge>
+                </div>
+              )}
+            </div>
+
+            {/* Content */}
+            <div className="p-4">
+              <h3 className="text-base font-semibold text-slate-800 mb-2 line-clamp-1">
+                {item.title}
+              </h3>
+              
+              {/* Description */}
+              <p className="text-slate-600 text-sm leading-relaxed line-clamp-2 mb-3">
+                {item.description || 'No description available'}
+              </p>
+              
+              {/* Meta Info */}
+              <div className="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <FiCalendar className="text-xs" />
+                    <span>{new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                  </div>
+                  <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">
+                    {item.year}
+                  </span>
+                </div>
+                
+                <div className="text-xs">
+                  {item.files?.length || 0} file{item.files?.length !== 1 ? 's' : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        </ModernCard>
+      );
+    } else {
+      // List View
+      return (
+        <ModernCard elevation="sm" className="p-4">
+          <div 
+            className="flex flex-col md:flex-row gap-4 cursor-pointer"
+            onClick={() => openLightbox(item, 0)}
+          >
+            {/* Thumbnail */}
+            <div className="md:w-32 md:h-32 w-full aspect-square md:aspect-auto rounded-lg overflow-hidden relative">
+              {item.files && item.files.length > 0 && isImageFile(item.files[0]) ? (
+                <Image
+                  src={item.files[0]}
+                  alt={item.title}
+                  width={500}
+                  height={300}
+                  className="w-full h-full object-cover"
+                  unoptimized={item.files[0]?.includes('/gallery/')}
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+                  <FiImage className="text-xl text-slate-400" />
+                </div>
+              )}
+            </div>
+            
+            {/* Content */}
+            <div className="flex-1">
+              <div className="flex flex-col md:flex-row md:items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                    {item.title}
+                  </h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <ModernBadge 
+                      color={isActiveCategory ? 'blue' : 'slate'}
+                      icon={Icon}
+                    >
+                      {category?.name || item.category}
+                    </ModernBadge>
+                    <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">
+                      {item.year}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 mt-2 md:mt-0">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(item.id);
+                    }}
+                    className="p-2 rounded-lg"
+                  >
+                    <FiHeart className={`text-sm ${isFavorite ? 'text-red-500 fill-current' : 'text-slate-400'}`} />
+                  </button>
+                  <div className="text-right">
+                    <div className="text-xs text-slate-500">Files</div>
+                    <div className="font-semibold text-slate-800">{item.files?.length || 0}</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Description */}
+              <p className="text-slate-600 text-sm mb-4 line-clamp-2">
+                {item.description || 'No description available'}
+              </p>
+              
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
+                    <FiCalendar className="text-xs" />
+                    <span>{new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {item.files?.some(isVideoFile) && (
+                    <ModernBadge color="blue" icon={FiVideo}>
+                      Video
+                    </ModernBadge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </ModernCard>
+      );
+    }
+  };
+
   // Loading Spinner Component
   const LoadingSpinner = () => (
     <Backdrop
@@ -707,82 +1051,101 @@ export default function ModernGallery() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-white">
+    <div className="min-h-screen bg-slate-50">
       {/* Mobile Sidebar Overlay */}
       {showSidebar && (
         <div 
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden transition-opacity duration-300"
           onClick={() => setShowSidebar(false)}
         />
       )}
 
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar - Category Filter Only */}
+          {/* Fixed Sidebar - Modern Design */}
           <div 
             ref={sidebarRef}
-            className={`fixed lg:sticky top-0 lg:top-24 h-screen lg:h-auto w-80 lg:w-72 bg-white rounded-xl shadow-lg border border-blue-100 p-5 transform transition-transform duration-300 ${
-              showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-            } lg:translate-x-0 z-40 lg:z-auto`}
+            className={`
+              fixed lg:sticky 
+              top-0 lg:top-6
+              h-screen lg:h-[calc(100vh-3rem)] 
+              w-80 lg:w-72 
+              bg-white 
+              rounded-xl 
+              shadow-xl 
+              border border-slate-200 
+              p-5 
+              transform transition-transform duration-300 ease-out
+              ${showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} 
+              z-40 lg:z-auto
+              overflow-y-auto
+              [scrollbar-width:none]
+              [-ms-overflow-style:none]
+              [&::-webkit-scrollbar]:hidden
+            `}
           >
             {/* Close button for mobile */}
             <button
               onClick={() => setShowSidebar(false)}
-              className="absolute top-4 right-4 lg:hidden text-gray-500 hover:text-gray-700"
+              className="absolute top-4 right-4 lg:hidden text-slate-500 p-2 rounded-lg hover:bg-slate-100 transition-colors"
             >
-              <IoClose className="text-2xl" />
+              <IoClose className="text-xl" />
             </button>
 
             {/* Sidebar Header */}
             <div className="mb-6">
-              <h3 className="text-lg font-bold text-blue-900 mb-2 flex items-center gap-2">
-                <FiFilter className="text-blue-600" />
-                Gallery Categories
+              <h3 className="text-lg font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                <div className="p-2 bg-gradient-to-br from-blue-600 to-blue-500 rounded-lg">
+                  <FiFilter className="text-white text-sm" />
+                </div>
+                <span>Gallery Categories</span>
               </h3>
-              <p className="text-sm text-blue-600">Filter by school activities</p>
+              <p className="text-slate-500 text-sm">Filter by school activities</p>
             </div>
 
             {/* Search Categories */}
             <div className="mb-6">
               <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiSearch className="text-slate-400 text-sm" />
+                </div>
                 <input
                   type="text"
                   placeholder="Search categories..."
                   value={categorySearch}
                   onChange={(e) => setCategorySearch(e.target.value)}
-                  className="w-full bg-blue-50 border border-blue-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 {categorySearch && (
                   <button
                     onClick={() => setCategorySearch('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-400 hover:text-blue-600"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
-                    <FiX className="text-sm" />
+                    <FiX className="text-slate-400 text-sm" />
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Category Layers - Collapsible with no scrollbar */}
-            <div className="space-y-4 overflow-y-visible">
+            {/* Category Layers */}
+            <div className="space-y-4 mb-6">
               {filteredCategoryStructure.map((layer, layerIndex) => {
                 const isExpanded = expandedCategory === layer.categories[0]?.id;
                 
                 return (
-                  <div key={layerIndex} className="border border-blue-100 rounded-lg overflow-hidden">
+                  <div key={layerIndex} className="border border-slate-200 rounded-lg overflow-hidden">
                     <button
                       onClick={() => setExpandedCategory(isExpanded ? '' : layer.categories[0]?.id)}
-                      className="w-full text-left p-3 bg-blue-50 hover:bg-blue-100 transition-colors flex items-center justify-between"
+                      className="w-full text-left p-3 bg-slate-50 flex items-center justify-between transition-colors"
                     >
                       <div>
-                        <div className="font-semibold text-blue-900 text-sm">{layer.title}</div>
-                        <div className="text-xs text-blue-600 mt-0.5">{layer.categories.length} categories</div>
+                        <div className="font-semibold text-slate-800 text-sm">{layer.title}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">{layer.categories.length} categories</div>
                       </div>
                       {isExpanded ? (
-                        <FiChevronUp className="text-blue-600" />
+                        <FiChevronUp className="text-slate-500" />
                       ) : (
-                        <FiChevronDown className="text-blue-600" />
+                        <FiChevronDown className="text-slate-500" />
                       )}
                     </button>
                     
@@ -802,26 +1165,26 @@ export default function ModernGallery() {
                                   setShowSidebar(false);
                                 }
                               }}
-                              className={`w-full text-left p-2.5 rounded-lg transition-all duration-300 flex items-center gap-3 mb-1 group ${
+                              className={`w-full text-left p-3 rounded-lg transition-all duration-200 flex items-center gap-3 mb-1 ${
                                 isActive
                                   ? `bg-gradient-to-r ${category.color} text-white shadow-md`
-                                  : 'hover:bg-blue-50 text-blue-900'
+                                  : 'text-slate-700 hover:bg-slate-50'
                               }`}
                             >
-                              <div className={`p-1.5 rounded ${
+                              <div className={`p-2 rounded ${
                                 isActive 
                                   ? 'bg-white/20' 
-                                  : 'bg-blue-100 text-blue-600'
+                                  : 'bg-slate-100 text-slate-600'
                               }`}>
                                 <Icon className="text-sm" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="font-medium text-sm truncate">{category.name}</div>
                               </div>
-                              <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
                                 isActive
                                   ? 'bg-white/20 text-white'
-                                  : 'bg-blue-100 text-blue-700'
+                                  : 'bg-slate-100 text-slate-600'
                               }`}>
                                 {count}
                               </span>
@@ -836,15 +1199,18 @@ export default function ModernGallery() {
             </div>
 
             {/* Year Filter */}
-            <div className="mt-6 mb-6">
-              <h4 className="font-semibold text-blue-900 mb-3 text-sm">Filter by Year</h4>
+            <div className="mb-6">
+              <h4 className="font-semibold text-slate-800 mb-3 text-sm flex items-center gap-2">
+                <FiCalendar className="text-slate-500" />
+                Filter by Year
+              </h4>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setSelectedYear('all')}
-                  className={`px-3 py-1.5 rounded-lg text-sm ${
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                     selectedYear === 'all'
-                      ? 'bg-blue-700 text-white'
-                      : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-700'
                   }`}
                 >
                   All Years
@@ -853,10 +1219,10 @@ export default function ModernGallery() {
                   <button
                     key={year}
                     onClick={() => setSelectedYear(year.toString())}
-                    className={`px-3 py-1.5 rounded-lg text-sm ${
+                    className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                       selectedYear === year.toString()
-                        ? 'bg-blue-700 text-white'
-                        : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-700'
                     }`}
                   >
                     {year}
@@ -867,11 +1233,14 @@ export default function ModernGallery() {
 
             {/* Sort Options */}
             <div className="mb-6">
-              <h4 className="font-semibold text-blue-900 mb-3 text-sm">Sort By</h4>
+              <h4 className="font-semibold text-slate-800 mb-3 text-sm flex items-center gap-2">
+                <FiFilter className="text-slate-500" />
+                Sort By
+              </h4>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -881,99 +1250,111 @@ export default function ModernGallery() {
             </div>
 
             {/* Clear Filters */}
-            <button
+            <ModernButton
+              variant="outline"
+              size="md"
+              icon={FiX}
               onClick={clearAllFilters}
-              className="w-full mt-4 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              className="w-full"
             >
-              <FiX className="text-sm" />
               Clear All Filters
-            </button>
+            </ModernButton>
           </div>
 
           {/* Main Content Area */}
           <div className="flex-1">
-            {/* School Hero Section - Mobile Optimized */}
-            <div className="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-600 rounded-xl p-4 lg:p-6 text-white mb-6">
-              <div className="flex flex-col lg:flex-row items-center justify-between">
-                <div className="lg:w-2/3 mb-4 lg:mb-0">
-                  <div className="flex items-center justify-between lg:block">
-                    <h1 className="text-xl lg:text-3xl font-bold mb-2 lg:mb-3">
-                      Nyaribu secondary School Gallery
-                    </h1>
-                    <button
-                      onClick={() => setShowSidebar(!showSidebar)}
-                      className="lg:hidden bg-white/20 p-2 rounded-lg"
-                    >
-                      <FiFilter className="text-white text-lg" />
-                    </button>
+            {/* School Hero Section */}
+            <ModernCard className="overflow-hidden mb-6">
+              <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
+                  <div className="lg:w-2/3 mb-4 lg:mb-0">
+                    <div className="flex items-start justify-between lg:block">
+                      <div>
+                        <h1 className="text-2xl lg:text-3xl font-bold mb-2">
+                          Nyaribu Secondary School Gallery
+                        </h1>
+                        <p className="text-lg opacity-90 mb-3">
+                          <span className="font-bold">{schoolInfo.motto}</span> • {schoolInfo.motto2}
+                        </p>
+                        <p className="opacity-80 text-sm">
+                          A visual journey through {schoolInfo.students}+ students' academic excellence, 
+                          co-curricular achievements, and memorable moments since {schoolInfo.established}.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setShowSidebar(!showSidebar)}
+                        className="lg:hidden p-2 rounded-lg bg-white/10"
+                      >
+                        <FiFilter className="text-white text-lg" />
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-base lg:text-lg opacity-90 mb-2 lg:mb-3">
-                    <span className="font-bold">{schoolInfo.motto}</span> • {schoolInfo.motto2}
-                  </p>
-                  <p className="opacity-80 text-xs lg:text-sm line-clamp-3">
-                    A visual journey through {schoolInfo.students}+ students' academic excellence, 
-                    co-curricular achievements, and memorable moments since {schoolInfo.established}.
-                  </p>
-                </div>
-                <div className="text-center lg:text-right mt-4 lg:mt-0">
-                  <div className="text-3xl lg:text-5xl font-bold mb-1 lg:mb-2">{stats.totalFiles.toLocaleString()}+</div>
-                  <div className="text-xs lg:text-sm opacity-80">Media Files</div>
+                  <div className="text-center lg:text-right mt-4 lg:mt-0">
+                    <div className="text-4xl lg:text-5xl font-bold mb-2">{stats.totalFiles.toLocaleString()}+</div>
+                    <div className="text-sm opacity-80">Media Files</div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </ModernCard>
 
-            {/* Search Bar for Gallery Content */}
+            {/* Search Bar */}
             <div className="mb-6">
-              <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400" />
-                <input
-                  type="text"
-                  placeholder="Search galleries by title or description..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-white border border-blue-200 rounded-lg pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-400 hover:text-blue-600"
-                  >
-                    <FiX className="text-sm" />
-                  </button>
-                )}
-              </div>
+              <ModernCard className="p-1">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiSearch className="text-slate-400 text-sm" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search galleries by title or description..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 text-sm focus:outline-none"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      <FiX className="text-slate-400 text-sm" />
+                    </button>
+                  )}
+                </div>
+              </ModernCard>
             </div>
 
-            {/* Controls Bar - Mobile Optimized */}
+            {/* Controls Bar */}
             <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-3 w-full lg:w-auto">
-                <div className="flex bg-blue-50 rounded-lg p-1">
+                <div className="flex bg-slate-100 rounded-lg p-1">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded transition-all ${viewMode === 'grid' ? 'bg-white text-blue-700 shadow-sm' : 'text-blue-600 hover:text-blue-800'}`}
+                    className={`p-2 rounded transition-colors ${
+                      viewMode === 'grid' 
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm' 
+                        : 'text-slate-600'
+                    }`}
                   >
                     <FiGrid className="text-lg" />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-2 rounded transition-all ${viewMode === 'list' ? 'bg-white text-blue-700 shadow-sm' : 'text-blue-600 hover:text-blue-800'}`}
+                    className={`p-2 rounded transition-colors ${
+                      viewMode === 'list' 
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm' 
+                        : 'text-slate-600'
+                    }`}
                   >
                     <FiList className="text-lg" />
                   </button>
                 </div>
                 
-                <div className="text-sm text-blue-700 flex-1 lg:flex-none">
-                  <span className="font-bold text-blue-900">{filteredImages.length}</span> galleries
+                <div className="text-sm text-slate-600 flex-1 lg:flex-none">
+                  <span className="font-semibold text-slate-800">{filteredImages.length}</span> galleries
                   {activeCategory !== 'GENERAL' && (
-                    <span className="hidden sm:inline"> in <span className="font-bold text-blue-800">
+                    <span className="hidden sm:inline"> in <span className="font-semibold text-slate-800">
                       {allCategories.find(c => c.id === activeCategory)?.name || activeCategory}
                     </span></span>
-                  )}
-                  {selectedYear !== 'all' && (
-                    <span className="hidden sm:inline"> from <span className="font-bold text-blue-800">{selectedYear}</span></span>
-                  )}
-                  {searchTerm && (
-                    <span className="hidden sm:inline"> matching "<span className="font-bold text-blue-800">{searchTerm}</span>"</span>
                   )}
                 </div>
               </div>
@@ -981,230 +1362,136 @@ export default function ModernGallery() {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setShowSidebar(!showSidebar)}
-                className="mobile-sidebar-toggle lg:hidden w-full bg-blue-600 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2"
+                className="mobile-sidebar-toggle lg:hidden w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 shadow-md"
               >
                 <FiFilter />
                 Filter Categories
               </button>
             </div>
 
-            {/* Gallery Grid - Mobile Optimized with larger images */}
+            {/* Hierarchical Gallery Display */}
             {filteredImages.length > 0 ? (
-              <div className={`${viewMode === 'grid' 
-                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4' 
-                : 'space-y-4'
-              }`}>
-                {filteredImages.map((item) => {
-                  const category = allCategories.find(c => c.id === item.category);
-                  const Icon = category?.icon || FiImage;
-                  const isActiveCategory = activeCategory === item.category;
-                  const isFavorite = favorites.has(item.id);
-                  
-                  return (
-                    <div
-                      key={item.id}
-                      className={`group cursor-pointer transform transition-all duration-300 hover:scale-[1.01] ${
-                        viewMode === 'list' ? 'flex flex-col sm:flex-row gap-4 bg-white rounded-lg p-4 shadow-sm border border-blue-100' : ''
-                      }`}
-                      onClick={() => openLightbox(item, 0)}
-                    >
-                      {/* Grid View */}
-                      {viewMode === 'grid' ? (
-                        <div className="bg-white rounded-lg border border-blue-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col">
-                          {/* Media Container - Larger on mobile (2/3 of card) */}
-                          <div className="relative h-64 sm:h-56 lg:h-64 overflow-hidden">
-                            {item.files && item.files.length > 0 && isImageFile(item.files[0]) ? (
-                              <Image
-                                src={item.files[0]}
-                                alt={item.title}
-                                fill
-                                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                unoptimized={item.files[0]?.includes('/gallery/')}
-                              />
-                            ) : item.files && item.files.length > 0 && isVideoFile(item.files[0]) ? (
-                              <div className="w-full h-full bg-gradient-to-br from-blue-900 to-blue-800 flex items-center justify-center">
-                                <div className="text-center p-4">
-                                  <FiVideo className="text-3xl text-white mb-2 mx-auto" />
-                                  <span className="text-white font-medium text-xs">Video</span>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-                                <div className="text-center p-4">
-                                  <FiImage className="text-3xl text-blue-600 mb-2 mx-auto" />
-                                  <span className="text-blue-700 font-medium text-xs">Media</span>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Category Badge - Smaller on mobile */}
-                            <div className="absolute top-2 left-2">
-                              <span className={`px-2 py-1 rounded-lg text-xs font-bold shadow-sm flex items-center gap-1 backdrop-blur-sm ${
-                                isActiveCategory
-                                  ? `bg-gradient-to-r ${category?.color || 'from-blue-600 to-blue-800'} text-white`
-                                  : 'bg-white/90 text-blue-900'
-                              }`}>
-                                <Icon className="text-xs" />
-                                <span className="hidden sm:inline">{category?.name || item.category}</span>
-                                <span className="sm:hidden text-xs">{category?.name?.split(' ')[0] || item.category}</span>
-                              </span>
+              <div className="space-y-8">
+                {/* Show hierarchical sections when not searching or when in "General" category */}
+                {(searchTerm === '' && activeCategory === 'GENERAL') ? (
+                  <>
+                    {categoryStructure.map((layer, layerIndex) => {
+                      const layerGalleries = filteredImages.filter(gallery =>
+                        layer.categories.some(cat => cat.id === gallery.category)
+                      );
+                      
+                      if (layerGalleries.length === 0) return null;
+                      
+                      return (
+                        <div key={layerIndex} className={`${layerIndex === 0 ? '' : 'mt-8'}`}>
+                          {/* Layer Header */}
+                          <div className="flex items-center gap-4 mb-6">
+                            <div className="p-3 bg-gradient-to-br from-blue-600 to-blue-500 rounded-xl">
+                              <span className="text-white text-xl">{layer.emoji }</span>
                             </div>
-
-                            {/* Favorite Heart */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleFavorite(item.id);
-                              }}
-                              className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-lg shadow-sm hover:bg-white transition-colors"
-                            >
-                              <FiHeart className={`text-sm ${isFavorite ? 'text-red-500 fill-current' : 'text-blue-400'}`} />
-                            </button>
-
-                            {/* File Count */}
-                            {item.files && item.files.length > 1 && (
-                              <div className="absolute bottom-2 right-2 bg-black/70 text-white px-1.5 py-0.5 rounded-lg text-xs font-bold shadow-sm flex items-center gap-1">
-                                <FiImage className="text-xs" />
-                                {item.files.length}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Content - Smaller on mobile (1/3 of card) */}
-                          <div className="p-3 lg:p-4 flex-1 flex flex-col">
-                            <h3 className="text-sm lg:text-base font-bold text-blue-900 mb-1 lg:mb-2 line-clamp-2 leading-tight flex-shrink-0">
-                              {item.title}
-                            </h3>
-                            
-                            {/* Description - Very small on mobile, limited to 2 lines */}
-                            <div className="flex-1 min-h-[2.5rem]">
-                              <p className="text-blue-700 text-xs lg:text-sm leading-relaxed line-clamp-2">
-                                {item.description || 'No description available'}
-                              </p>
+                            <div>
+                              <h2 className="text-xl font-semibold text-slate-800">{layer.title}</h2>
+                              <p className="text-slate-500 text-sm">{layerGalleries.length} galler{layerGalleries.length !== 1 ? 'ies' : 'y'}</p>
                             </div>
-                            
-                            {/* Meta Info - Compact on mobile */}
-                            <div className="flex items-center justify-between text-xs text-blue-600 pt-2 border-t border-blue-100 mt-2 flex-shrink-0">
-                              <div className="flex items-center gap-2 lg:gap-3">
-                                <div className="flex items-center gap-1">
-                                  <FiCalendar className="text-xs" />
-                                  <span className="text-xs">{new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                                </div>
-                                <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
-                                  {item.year}
-                                </span>
-                              </div>
-                              
-                              <div className="flex items-center gap-2">
-                                <div className="text-xs">
-                                  {item.files?.length || 0} {item.files?.length === 1 ? 'file' : 'files'}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        /* List View - Mobile Optimized */
-                        <div className="flex flex-col sm:flex-row gap-4 bg-white rounded-lg p-4 shadow-sm border border-blue-100">
-                          {/* Thumbnail - Larger on mobile */}
-                          <div className="w-full h-48 sm:w-32 sm:h-32 rounded-lg overflow-hidden flex-shrink-0 relative">
-                            {item.files && item.files.length > 0 && isImageFile(item.files[0]) ? (
-                              <Image
-                                src={item.files[0]}
-                                alt={item.title}
-                                width={500}
-                                height={300}
-                                className="w-full h-full object-cover"
-                                unoptimized={item.files[0]?.includes('/gallery/')}
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-                                <FiImage className="text-xl text-blue-600" />
-                              </div>
-                            )}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleFavorite(item.id);
-                              }}
-                              className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-lg shadow-sm hover:bg-white transition-colors"
-                            >
-                              <FiHeart className={`text-sm ${isFavorite ? 'text-red-500 fill-current' : 'text-blue-400'}`} />
-                            </button>
                           </div>
                           
-                          {/* Content - Mobile Optimized */}
-                          <div className="flex-1">
-                            <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2">
-                              <div className="flex-1">
-                                <h3 className="text-base font-bold text-blue-900 mb-1">
-                                  {item.title}
-                                </h3>
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                    isActiveCategory
-                                      ? `bg-gradient-to-r ${category?.color || 'from-blue-600 to-blue-800'} text-white`
-                                      : 'bg-blue-100 text-blue-700'
-                                  }`}>
-                                    {category?.name || item.category}
-                                  </span>
-                                  <span className="text-xs bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
-                                    {item.year}
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              <div className="text-right mt-2 sm:mt-0">
-                                <div className="text-xs text-blue-600">Files</div>
-                                <div className="font-bold text-blue-900">{item.files?.length || 0}</div>
-                              </div>
+                          {/* Gallery Grid/List for this layer */}
+                          {viewMode === 'grid' ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {layerGalleries.map((item) => (
+                                <GalleryCard 
+                                  key={item.id} 
+                                  item={item} 
+                                  viewMode={viewMode} 
+                                  allCategories={allCategories}
+                                  favorites={favorites}
+                                  toggleFavorite={toggleFavorite}
+                                  openLightbox={openLightbox}
+                                  activeCategory={activeCategory}
+                                />
+                              ))}
                             </div>
-                            
-                            {/* Description - Smaller on mobile */}
-                            <p className="text-blue-700 text-sm mb-3 line-clamp-2 min-h-[2.5rem]">
-                              {item.description || 'No description available'}
-                            </p>
-                            
-                            <div className="flex items-center justify-between text-xs text-blue-600">
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-1">
-                                  <FiCalendar className="text-xs" />
-                                  <span>{new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                                </div>
-                              </div>
+                          ) : (
+                            <div className="space-y-4">
+                              {layerGalleries.map((item) => (
+                                <GalleryCard 
+                                  key={item.id} 
+                                  item={item} 
+                                  viewMode={viewMode} 
+                                  allCategories={allCategories}
+                                  favorites={favorites}
+                                  toggleFavorite={toggleFavorite}
+                                  openLightbox={openLightbox}
+                                  activeCategory={activeCategory}
+                                />
+                              ))}
                             </div>
-                          </div>
+                          )}
                         </div>
-                      )}
+                      );
+                    })}
+                  </>
+                ) : (
+                  /* Flat list when a specific category is selected or searching */
+                  viewMode === 'grid' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filteredImages.map((item) => (
+                        <GalleryCard 
+                          key={item.id} 
+                          item={item} 
+                          viewMode={viewMode} 
+                          allCategories={allCategories}
+                          favorites={favorites}
+                          toggleFavorite={toggleFavorite}
+                          openLightbox={openLightbox}
+                          activeCategory={activeCategory}
+                        />
+                      ))}
                     </div>
-                  );
-                })}
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredImages.map((item) => (
+                        <GalleryCard 
+                          key={item.id} 
+                          item={item} 
+                          viewMode={viewMode} 
+                          allCategories={allCategories}
+                          favorites={favorites}
+                          toggleFavorite={toggleFavorite}
+                          openLightbox={openLightbox}
+                          activeCategory={activeCategory}
+                        />
+                      ))}
+                    </div>
+                  )
+                )}
               </div>
             ) : (
               // Empty State
-              <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-blue-100">
-                <div className="text-6xl mb-4 opacity-20 text-blue-400">📷</div>
-                <h3 className="text-xl font-bold text-blue-900 mb-3">No galleries found</h3>
-                <p className="text-blue-700 mb-6 max-w-md mx-auto text-sm">
+              <ModernCard className="text-center py-12">
+                <div className="text-6xl mb-4 opacity-20 text-slate-400">📷</div>
+                <h3 className="text-xl font-semibold text-slate-800 mb-3">No galleries found</h3>
+                <p className="text-slate-600 mb-6 max-w-md mx-auto text-sm">
                   {searchTerm || selectedYear !== 'all' || activeCategory !== 'GENERAL' 
                     ? 'Try adjusting your search criteria or filters to find what you\'re looking for.'
                     : 'No galleries available yet. Check back soon!'}
                 </p>
                 {(searchTerm || selectedYear !== 'all' || activeCategory !== 'GENERAL') && (
-                  <button
+                  <ModernButton
+                    variant="primary"
                     onClick={clearAllFilters}
-                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white px-6 py-3 rounded-lg font-medium text-sm shadow-sm hover:shadow transition-all duration-300"
+                    className="mx-auto"
                   >
                     Clear All Filters
-                  </button>
+                  </ModernButton>
                 )}
-              </div>
+              </ModernCard>
             )}
 
             {/* Load More */}
             {filteredImages.length > 0 && (
               <div className="mt-8 text-center">
-                <p className="text-xs text-blue-600 mt-3">
+                <p className="text-xs text-slate-500">
                   Showing {filteredImages.length} of {transformedGalleries.length} galleries
                 </p>
               </div>
@@ -1213,21 +1500,22 @@ export default function ModernGallery() {
         </div>
       </div>
 
-      {/* Modern Lightbox Modal with Download All - MOBILE FIXED */}
+      {/* Modern Lightbox Modal */}
       {selectedMedia && (
         <div className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="relative w-full h-full max-w-7xl max-h-[90vh] flex flex-col">
             {/* Header Bar */}
-            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-900/90 to-blue-800/90 backdrop-blur-md border-b border-blue-700">
+            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-900/90 to-slate-800/90 backdrop-blur-md border-b border-slate-700">
               <div className="flex items-center gap-3">
-                <button
+                <ModernButton
+                  variant="ghost"
+                  size="sm"
+                  icon={IoClose}
                   onClick={closeLightbox}
-                  className="text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-all duration-300"
-                >
-                  <IoClose className="text-xl" />
-                </button>
+                  className="text-white/80"
+                />
                 <div>
-                  <h2 className="text-lg font-bold text-white">{selectedMedia.title}</h2>
+                  <h2 className="text-lg font-semibold text-white">{selectedMedia.title}</h2>
                   <p className="text-white/60 text-xs">
                     {allCategories.find(c => c.id === selectedMedia.category)?.name || selectedMedia.category}
                   </p>
@@ -1235,30 +1523,28 @@ export default function ModernGallery() {
               </div>
               
               <div className="flex items-center gap-2">
-                <button
+                <ModernButton
+                  variant={favorites.has(selectedMedia.id) ? 'danger' : 'ghost'}
+                  size="sm"
+                  icon={FiHeart}
                   onClick={() => toggleFavorite(selectedMedia.id)}
-                  className={`p-2 rounded-lg transition-all duration-300 ${
-                    favorites.has(selectedMedia.id) 
-                      ? 'bg-red-500/20 text-red-300 border border-red-500/30' 
-                      : 'bg-white/10 text-white/60 hover:text-white hover:bg-white/20 border border-white/10'
-                  }`}
-                >
-                  <FiHeart className={`text-lg ${favorites.has(selectedMedia.id) ? 'fill-current' : ''}`} />
-                </button>
+                  className={favorites.has(selectedMedia.id) ? '' : 'text-white/60'}
+                />
                 
-                <button 
+                <ModernButton
+                  variant="primary"
+                  size="sm"
+                  icon={FiShare2}
                   onClick={() => setShowShareModal(true)}
-                  className="bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-800 hover:to-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 font-medium text-sm"
                 >
-                  <FiShare2 className="text-sm" />
                   Share
-                </button>
+                </ModernButton>
               </div>
             </div>
 
-            {/* Main Content Area - MOBILE FIXED LAYOUT */}
+            {/* Main Content Area */}
             <div className="flex-1 flex flex-col lg:flex-row gap-4 p-2 lg:p-4 overflow-hidden">
-              {/* Media Display - Takes most space on mobile */}
+              {/* Media Display */}
               <div className="flex-1 relative rounded-lg overflow-hidden bg-black flex items-center justify-center min-h-[40vh] lg:min-h-0">
                 {selectedMedia.files && selectedMedia.files[lightboxIndex] && (
                   isVideoFile(selectedMedia.files[lightboxIndex]) ? (
@@ -1274,19 +1560,21 @@ export default function ModernGallery() {
                         onEnded={() => setIsPlaying(false)}
                       />
                       {/* Custom Video Controls */}
-                      <div className="absolute bottom-2 lg:bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 lg:gap-3 bg-black/50 p-2 lg:p-3 rounded-lg backdrop-blur-md border border-white/10">
-                        <button
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-3 bg-black/50 p-3 rounded-lg backdrop-blur-md border border-white/10">
+                        <ModernButton
+                          variant="ghost"
+                          size="sm"
+                          icon={isPlaying ? FiPause : FiPlay}
                           onClick={togglePlayPause}
-                          className="text-white hover:text-blue-300 transition-colors p-1.5 lg:p-2 rounded hover:bg-white/10"
-                        >
-                          {isPlaying ? <FiPause className="text-base lg:text-lg" /> : <FiPlay className="text-base lg:text-lg" />}
-                        </button>
-                        <button
+                          className="text-white"
+                        />
+                        <ModernButton
+                          variant="ghost"
+                          size="sm"
+                          icon={isMuted ? FiVolumeX : FiVolume2}
                           onClick={toggleMute}
-                          className="text-white hover:text-blue-300 transition-colors p-1.5 lg:p-2 rounded hover:bg-white/10"
-                        >
-                          {isMuted ? <FiVolumeX className="text-base lg:text-lg" /> : <FiVolume2 className="text-base lg:text-lg" />}
-                        </button>
+                          className="text-white"
+                        />
                       </div>
                     </div>
                   ) : (
@@ -1303,59 +1591,61 @@ export default function ModernGallery() {
                 {/* Navigation Arrows */}
                 {selectedMedia.files && selectedMedia.files.length > 1 && (
                   <>
-                    <button
+                    <ModernButton
+                      variant="ghost"
+                      size="sm"
+                      icon={FiChevronLeft}
                       onClick={prevMedia}
-                      className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white/80 hover:text-white z-10 bg-black/50 p-2 lg:p-3 rounded-lg backdrop-blur-md border border-white/10 hover:bg-black/70 transition-all duration-300"
-                    >
-                      <FiChevronLeft className="text-lg lg:text-xl" />
-                    </button>
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/80"
+                    />
 
-                    <button
+                    <ModernButton
+                      variant="ghost"
+                      size="sm"
+                      icon={FiChevronRight}
                       onClick={nextMedia}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/80 hover:text-white z-10 bg-black/50 p-2 lg:p-3 rounded-lg backdrop-blur-md border border-white/10 hover:bg-black/70 transition-all duration-300"
-                    >
-                      <FiChevronRight className="text-lg lg:text-xl" />
-                    </button>
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/80"
+                    />
                   </>
                 )}
               </div>
 
-              {/* Side Panel - VISIBLE ON MOBILE */}
-              <div className="lg:w-64 w-full bg-blue-900/80 backdrop-blur-md rounded-lg border border-blue-700 p-3 lg:p-4 text-white flex flex-col">
-                {/* Description - Compact on mobile */}
-                <div className="flex-1 overflow-y-auto max-h-[20vh] lg:max-h-none">
-                  <h3 className="font-bold text-sm mb-2">Description</h3>
-                  <p className="text-white/70 text-xs leading-relaxed mb-3">
+              {/* Side Panel */}
+              <ModernCard className="lg:w-80 w-full h-auto lg:h-full flex flex-col">
+                {/* Description */}
+                <div className="flex-1 overflow-y-auto p-4">
+                  <h3 className="font-semibold text-slate-800 mb-2 text-sm">Description</h3>
+                  <p className="text-slate-600 text-sm leading-relaxed mb-4">
                     {selectedMedia.description || 'No description available'}
                   </p>
 
-                  {/* File List with clean names */}
+                  {/* File List */}
                   {selectedMedia.files && selectedMedia.files.length > 1 && (
-                    <div className="mb-3">
+                    <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-xs">Current File</h4>
+                        <h4 className="font-semibold text-slate-800 text-sm">Current File</h4>
                         <button
                           onClick={() => setAutoPlay(!autoPlay)}
-                          className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                             autoPlay 
-                              ? 'bg-green-500 text-white' 
-                              : 'bg-white/10 text-white/60 hover:text-white'
+                              ? 'bg-emerald-100 text-emerald-700' 
+                              : 'bg-slate-100 text-slate-600'
                           }`}
                         >
                           {autoPlay ? 'Auto: ON' : 'Auto: OFF'}
                         </button>
                       </div>
-                      <div className="space-y-1">
-                        <div className="w-full text-left p-2 rounded bg-blue-600 text-white shadow flex items-center gap-2 text-xs">
+                      <div className="space-y-2">
+                        <div className="p-3 rounded-lg bg-slate-50 text-slate-700 flex items-center gap-2 text-sm">
                           {isVideoFile(selectedMedia.files[lightboxIndex]) ? (
-                            <FiVideo className="text-xs flex-shrink-0" />
+                            <FiVideo className="text-slate-500 flex-shrink-0" />
                           ) : (
-                            <FiImage className="text-xs flex-shrink-0" />
+                            <FiImage className="text-slate-500 flex-shrink-0" />
                           )}
                           <span className="truncate flex-1 text-left">
                             {cleanFileName(selectedMedia.files[lightboxIndex])}
                           </span>
-                          <span className="text-white/60 text-xs">
+                          <span className="text-slate-500 text-xs">
                             {lightboxIndex + 1}/{selectedMedia.files.length}
                           </span>
                         </div>
@@ -1364,54 +1654,58 @@ export default function ModernGallery() {
                   )}
 
                   {/* Meta Info */}
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Date:</span>
-                      <span>{new Date(selectedMedia.date).toLocaleDateString()}</span>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-500">Date:</span>
+                      <span className="text-slate-800">{new Date(selectedMedia.date).toLocaleDateString()}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Year:</span>
-                      <span>{selectedMedia.year}</span>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-500">Year:</span>
+                      <span className="text-slate-800">{selectedMedia.year}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Total Files:</span>
-                      <span>{selectedMedia.files?.length || 0}</span>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-500">Total Files:</span>
+                      <span className="text-slate-800">{selectedMedia.files?.length || 0}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Action Buttons with Download All - ALWAYS VISIBLE */}
-                <div className="pt-3 border-t border-blue-700 mt-2 flex-shrink-0">
-                  <button 
+                {/* Action Buttons */}
+                <div className="p-4 border-t border-slate-200">
+                  <ModernButton 
+                    variant="primary"
+                    size="md"
+                    icon={FiDownload}
                     onClick={downloadAllFiles}
                     disabled={downloadingAll}
-                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-2 rounded transition-all duration-300 flex items-center justify-center gap-1.5 font-medium text-sm mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full mb-3"
                   >
-                    <FiDownload className="text-sm" />
                     {downloadingAll ? 'Downloading...' : 'Download All Files'}
-                  </button>
+                  </ModernButton>
                   
-                  <button 
+                  <ModernButton 
+                    variant="secondary"
+                    size="md"
+                    icon={FiDownload}
                     onClick={() => downloadFile(selectedMedia.files[lightboxIndex])}
-                    className="w-full bg-white/10 hover:bg-white/20 text-white py-2 rounded transition-all duration-300 flex items-center justify-center gap-1.5 font-medium text-sm"
+                    className="w-full"
                   >
-                    <FiDownload className="text-sm" />
                     Download Current
-                  </button>
+                  </ModernButton>
                 </div>
-              </div>
+              </ModernCard>
             </div>
 
             {/* Footer Bar */}
-            <div className="p-2 lg:p-3 bg-blue-900/80 backdrop-blur-md border-t border-blue-700">
+            <div className="p-3 bg-gradient-to-r from-slate-900/90 to-slate-800/90 backdrop-blur-md border-t border-slate-700">
               <div className="flex items-center justify-between">
                 <div className="text-white/60 text-xs">
                   {selectedMedia.files && `${lightboxIndex + 1} of ${selectedMedia.files.length}`}
                 </div>
                 
                 {autoPlay && selectedMedia.files && selectedMedia.files.length > 1 && (
-                  <div className="flex items-center gap-1 text-green-400 text-xs">
-                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                  <div className="flex items-center gap-2 text-emerald-400 text-xs">
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
                     Auto-playing
                   </div>
                 )}
@@ -1421,58 +1715,64 @@ export default function ModernGallery() {
         </div>
       )}
 
-      {/* Share Modal with cleaned icons */}
+      {/* Share Modal */}
       {showShareModal && selectedMedia && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-auto shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-blue-900">Share Gallery</h3>
-              <button
-                onClick={() => setShowShareModal(false)}
-                className="text-blue-400 hover:text-blue-600 p-1.5 rounded hover:bg-blue-50"
-              >
-                <IoClose className="text-lg" />
-              </button>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <ModernCard className="max-w-sm w-full mx-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-slate-800">Share Gallery</h3>
+                <ModernButton
+                  variant="ghost"
+                  size="sm"
+                  icon={IoClose}
+                  onClick={() => setShowShareModal(false)}
+                />
+              </div>
+              
+              <p className="text-slate-600 mb-6 text-center text-sm">
+                Share "{selectedMedia.title}" from Nyaribu Secondary School Gallery
+              </p>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <ModernButton
+                  variant="secondary"
+                  size="md"
+                  icon={FiMessageSquare}
+                  onClick={shareOnWhatsApp}
+                >
+                  WhatsApp
+                </ModernButton>
+                
+                <ModernButton
+                  variant="secondary"
+                  size="md"
+                  icon={FiFacebook}
+                  onClick={shareOnFacebook}
+                >
+                  Facebook
+                </ModernButton>
+                
+                <ModernButton
+                  variant="secondary"
+                  size="md"
+                  icon={FiTwitter}
+                  onClick={shareOnTwitter}
+                >
+                  Twitter
+                </ModernButton>
+                
+                <ModernButton
+                  variant="secondary"
+                  size="md"
+                  icon={FiShare2}
+                  onClick={copyToClipboard}
+                >
+                  Copy Link
+                </ModernButton>
+              </div>
             </div>
-            
-            <p className="text-blue-700 mb-5 text-center text-sm">
-              Share "{selectedMedia.title}" from Nyaribu Secondary School Gallery
-            </p>
-            
-            <div className="grid grid-cols-2 gap-3 mb-5">
-              <button
-                onClick={shareOnWhatsApp}
-                className="flex items-center justify-center gap-2 p-3 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors border border-green-200"
-              >
-                <FiMessageSquare className="text-lg" />
-                <span className="font-medium text-sm">WhatsApp</span>
-              </button>
-              
-              <button
-                onClick={shareOnFacebook}
-                className="flex items-center justify-center gap-2 p-3 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors border border-blue-200"
-              >
-                <FiFacebook className="text-lg" />
-                <span className="font-medium text-sm">Facebook</span>
-              </button>
-              
-              <button
-                onClick={shareOnTwitter}
-                className="flex items-center justify-center gap-2 p-3 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors border border-sky-200"
-              >
-                <FiTwitter className="text-lg" />
-                <span className="font-medium text-sm">Twitter</span>
-              </button>
-              
-              <button
-                onClick={copyToClipboard}
-                className="flex items-center justify-center gap-2 p-3 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-200"
-              >
-                <FiShare2 className="text-lg" />
-                <span className="font-medium text-sm">Copy Link</span>
-              </button>
-            </div>
-          </div>
+          </ModernCard>
         </div>
       )}
     </div>

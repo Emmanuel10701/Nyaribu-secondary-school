@@ -1,163 +1,920 @@
-### Create Student 1
-POST http://localhost:3001/api/student
+### ============================================
+### Gallery API Test Suite (REFINED)
+### Save as: gallery-api-tests.http
+### ============================================
+
+@baseUrl = http://localhost:3001/api/gallery
+
+### 1. GET All Galleries
+GET {{baseUrl}}
 Content-Type: application/json
 
-{
-  "admissionNumber": "ADM001",
-  "name": "Brian Otieno",
-  "form": "Form 1",
-  "stream": "East",
-  "gender": "Male",
-  "dateOfBirth": "2010-03-14",
-  "enrollmentDate": "2024-01-08",
-  "kcpeMarks": 372,
-  "previousSchool": "Lakeview Primary School",
-  "parentName": "Peter Otieno",
-  "parentEmail": "peter.otieno@gmail.com",
-  "parentPhone": "0712345678",
-  "emergencyContact": "0700111222",
-  "address": "Kisumu",
-  "medicalInfo": "None",
-  "hobbies": "Football, Chess",
-  "academicPerformance": "Good",
-  "attendance": "Excellent",
-  "disciplineRecord": "Clean",
-  "status": "Active"
-}
+###
 
-### Create Student 2
-POST http://localhost:3001/api/student
+### 2. Upload Single Image (Sports Day)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Annual Sports Day 2024
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Students participating in 100m race, long jump, and relay events
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+SPORTS_DAY
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="sports-day.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 3. Upload Multiple Images (Science Lab)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+New Chemistry Laboratory
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+State-of-the-art equipment for chemistry experiments
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+SCIENCE_LAB
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="lab1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="lab2.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 4. Upload with PNG Image
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+School Art Competition
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Digital art submissions from students
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+ART_EXHIBITION
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="artwork.png"
+Content-Type: image/png
+
+< ./test-assets/sample.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 5. Upload WEBP Image (Modern Format)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+School Website Banner
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+High quality images for school website
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+GENERAL
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="banner.webp"
+Content-Type: image/webp
+
+< ./test-assets/sample.webp
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 6. Upload GIF Image (Animated)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Physics Experiment Demo
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Animated demonstration of physics principles
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+TEACHING
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="experiment.gif"
+Content-Type: image/gif
+
+< ./test-assets/sample.gif
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 7. Mixed Media Upload (Images + Video)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Music Festival Highlights
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Photos and videos from annual music festival
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+MUSIC_FESTIVAL
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="photo1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="video1.mp4"
+Content-Type: video/mp4
+
+< ./test-assets/sample.mp4
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 8. Upload with Empty Description
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+School Library Reading Area
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+GENERAL
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="library.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 9. Large File Test (Approaching 10MB Limit)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+High Resolution Campus Panorama
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Ultra high resolution image of entire campus
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+GENERAL
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="panorama.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/large-image.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 10. ALL Category Types Test
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Campus Facilities Overview
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+All major campus facilities
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+SPORTS_FACILITIES
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="facilities.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 11. ERROR TEST: Missing Title (Should fail)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Test missing title - should fail
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+GENERAL
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="test.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 12. ERROR TEST: Invalid Category (Should fail)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Invalid Category Test
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Testing with invalid category - should fail
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+INVALID_CATEGORY_NAME
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="test.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 13. ERROR TEST: No Files (Should fail)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+No Files Test
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Testing without any files - should fail
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+GENERAL
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 14. ERROR TEST: Invalid File Type (Should fail)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Invalid File Type Test
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Testing with PDF file - should fail
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+GENERAL
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="document.pdf"
+Content-Type: application/pdf
+
+< ./test-assets/sample.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 15. ERROR TEST: File Too Large (Should fail)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Oversized File Test
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+File larger than 10MB - should fail
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+GENERAL
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="huge-video.mp4"
+Content-Type: video/mp4
+
+< ./test-assets/oversized-video.mp4
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+
+
+### ============================================
+### Additional Gallery API Tests (16-25)
+### ============================================
+
+@baseUrl = http://localhost:3001/api/gallery
+
+### 16. Upload for Debate Competition
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Inter-school Debate Championship Finals
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Final round of the annual inter-school debate competition
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+DEBATE_COMPETITION
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="debate1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="debate2.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 17. Upload for Science Fair (Multiple File Types)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Annual Science Fair 2024
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Students showcasing innovative science projects
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+SCIENCE_FAIR
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="science1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="science2.png"
+Content-Type: image/png
+
+< ./test-assets/sample.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="science3.mp4"
+Content-Type: video/mp4
+
+< ./test-assets/sample.mp4
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 18. Upload for Drama Performance
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Shakespeare's Macbeth Performance
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Drama club performance of classic Shakespeare play
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+DRAMA_PERFORMANCE
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="drama1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="drama-video.mp4"
+Content-Type: video/mp4
+
+< ./test-assets/sample.mp4
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 19. Upload for Dining Hall Facilities
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+New Dining Hall Interior
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Recently renovated dining hall with modern facilities
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+DINING_HALL
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="dining1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="dining2.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="dining3.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 20. Upload for Award Ceremony
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Annual Awards Ceremony 2024
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Students receiving academic and sports awards
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+AWARD_CEREMONY
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="awards1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="awards2.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 21. Upload for Parents' Day
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Parents' Day 2024
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Parents visiting classrooms and interacting with teachers
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+PARENTS_DAY
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="parents1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 22. Upload for Open Day (Campus Tour)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+School Open Day Campus Tour
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Prospective students and parents touring the campus
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+OPEN_DAY
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="openday1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="openday2.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 23. Upload for Student Council Activities
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Student Council Meeting
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Monthly student council planning session
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+COUNCIL
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="council1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 24. Upload for Leadership Program
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Student Leadership Workshop
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Leadership skills development workshop for student leaders
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+LEADERSHIP
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="leadership1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="leadership2.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 25. Upload for Visitors (VIP Guests)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Minister of Education School Visit
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Honorable minister visiting school facilities
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+VISITORS
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="minister1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 26. Upload for Principal's Office
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Principal's Office Tour
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Inside the principal's office and meeting area
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+PRINCIPAL
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="principal-office.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 27. Upload for Board Meeting
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Board of Directors Meeting
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Quarterly board meeting with school administrators
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+BOARD
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="board1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 28. Upload for Administrative Offices
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Administrative Block Tour
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Main administrative offices and reception area
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+ADMIN_OFFICES
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="admin1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="admin2.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 29. Upload for Student Activities (General)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Various Student Activities Compilation
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Collection of various student-led activities throughout the year
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+STUDENT_ACTIVITIES
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="activity1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="activity2.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="activity3.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 30. Upload for "OTHER" Category
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Miscellaneous School Event
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Event that doesn't fit into other specific categories
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+OTHER
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="other1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 31. ERROR TEST: Missing Category (Should fail)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Missing Category Test
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Testing without category field - should fail
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="test.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 32. ERROR TEST: Empty File (Zero bytes)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Empty File Test
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Testing with zero-byte file
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+GENERAL
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="empty.jpg"
+Content-Type: image/jpeg
+
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 33. ERROR TEST: Very Long Title (Boundary testing)
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+This is an extremely long title for testing the maximum length validation in the gallery upload API endpoint system to ensure proper handling of lengthy input fields and database storage constraints without breaking the user interface or backend processing pipeline
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Testing very long title input
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+GENERAL
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="long-title-test.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 34. PERFORMANCE TEST: Multiple Concurrent Uploads Simulation
+POST {{baseUrl}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Performance Test - 5 Files
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Testing upload performance with multiple files simultaneously
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+GENERAL
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="perf1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="perf2.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="perf3.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="perf4.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="perf5.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/sample.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 35. FINAL GET: Verify All Uploads
+GET {{baseUrl}}
 Content-Type: application/json
-
-{
-  "admissionNumber": "ADM002",
-  "name": "Amina Hassan",
-  "form": "Form 2",
-  "stream": "West",
-  "gender": "Female",
-  "dateOfBirth": "2009-07-22",
-  "enrollmentDate": "2023-01-10",
-  "kcpeMarks": 389,
-  "previousSchool": "Garissa Primary School",
-  "parentName": "Hassan Ali",
-  "parentEmail": "hassan.ali@gmail.com",
-  "parentPhone": "0723456789",
-  "emergencyContact": "0711222333",
-  "address": "Garissa",
-  "medicalInfo": "Asthma",
-  "hobbies": "Reading, Debate",
-  "academicPerformance": "Very Good",
-  "attendance": "Good",
-  "disciplineRecord": "Clean",
-  "status": "Active"
-}
-
-### Create Student 3
-POST http://localhost:3001/api/student
-Content-Type: application/json
-
-{
-  "admissionNumber": "ADM003",
-  "name": "Kevin Mwangi",
-  "form": "Form 3",
-  "stream": "North",
-  "gender": "Male",
-  "dateOfBirth": "2008-11-05",
-  "enrollmentDate": "2022-01-12",
-  "kcpeMarks": 355,
-  "previousSchool": "Thika Road Academy",
-  "parentName": "Joseph Mwangi",
-  "parentEmail": "jmwangi@gmail.com",
-  "parentPhone": "0734567890",
-  "emergencyContact": "0799887766",
-  "address": "Thika",
-  "medicalInfo": "None",
-  "hobbies": "Basketball, Coding",
-  "academicPerformance": "Average",
-  "attendance": "Good",
-  "disciplineRecord": "Warning Issued Once",
-  "status": "Active"
-}
-
-### Create Student 4
-POST http://localhost:3001/api/student
-Content-Type: application/json
-
-{
-  "admissionNumber": "ADM004",
-  "name": "Faith Wanjiku",
-  "form": "Form 4",
-  "stream": "South",
-  "gender": "Female",
-  "dateOfBirth": "2007-02-18",
-  "enrollmentDate": "2021-01-15",
-  "kcpeMarks": 401,
-  "previousSchool": "Nairobi Primary School",
-  "parentName": "Mary Wanjiku",
-  "parentEmail": "mary.wanjiku@gmail.com",
-  "parentPhone": "0745678901",
-  "emergencyContact": "0788996655",
-  "address": "Nairobi",
-  "medicalInfo": "Allergy to peanuts",
-  "hobbies": "Music, Writing",
-  "academicPerformance": "Excellent",
-  "attendance": "Excellent",
-  "disciplineRecord": "Clean",
-  "status": "Active"
-}
-
-
-### Create Student 5
-POST http://localhost:3001/api/student
-Content-Type: application/json
-
-{
-  "admissionNumber": "ADM101",
-  "name": "John Makau",
-  "form": "Form 3",
-  "stream": "East",
-  "gender": "Male",
-  "dateOfBirth": "2008-05-15",
-  "enrollmentDate": "2024-01-08",
-  "kcpeMarks": 380,
-  "previousSchool": "Kiganjo Primary",
-  "parentName": "Emmanuel Makau",
-  "parentEmail": "emmanuelmakau90@gmail.com",
-  "parentPhone": "0720123456",
-  "emergencyContact": "0730987654",
-  "address": "Kiganjo, Nyeri",
-  "medicalInfo": "Asthma - uses inhaler",
-  "hobbies": "Football, Chess",
-  "academicPerformance": "Excellent",
-  "attendance": "98%",
-  "disciplineRecord": "Clean",
-  "status": "Active"
-}
-
-
-### Create Student 5
-POST http://localhost:3001/api/student
-Content-Type: application/json
-
-{
-  "admissionNumber": "ADM102",
-  "name": "Sarah Makau",
-  "form": "Form 2",
-  "stream": "West",
-  "gender": "Female",
-  "dateOfBirth": "2009-07-22",
-  "enrollmentDate": "2024-01-08",
-  "kcpeMarks": 365,
-  "previousSchool": "Nyeri Primary",
-  "parentName": "Emmanuel Makau",
-  "parentEmail": "emmanuelmakau53@gmail.com",
-  "parentPhone": "0721123456",
-  "emergencyContact": "0731987654",
-  "address": "Kiganjo, Nyeri",
-  "medicalInfo": "None",
-  "hobbies": "Dancing, Reading",
-  "academicPerformance": "Very Good",
-  "attendance": "96%",
-  "disciplineRecord": "Clean",
-  "status": "Active"
-}
