@@ -25,8 +25,107 @@ import {
   FiChevronRight,
   FiCheck,
   FiChevronDown,
-  FiChevronUp
+  FiChevronUp,
+  FiAlertCircle
 } from 'react-icons/fi';
+import CircularProgress from "@mui/material/CircularProgress";
+
+// Delete Confirmation Modal Component
+const DeleteConfirmationModal = ({ 
+  open, 
+  onClose, 
+  onConfirm, 
+  itemName = "this counseling session",
+  loading = false 
+}) => {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[100]">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-rose-600 to-red-600 p-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/20 rounded-xl">
+              <FiAlertCircle className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">Confirm Deletion</h2>
+              <p className="text-rose-100 opacity-90 text-sm">This action cannot be undone</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-gradient-to-r from-rose-100 to-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiTrash2 className="w-8 h-8 text-rose-600" />
+            </div>
+            
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              Delete "{itemName}"?
+            </h3>
+            
+            <p className="text-gray-600 mb-1">
+              Are you sure you want to delete this counseling session?
+            </p>
+            <p className="text-gray-500 text-sm">
+              All associated data will be permanently removed.
+            </p>
+          </div>
+
+          {/* Details Warning */}
+          <div className="bg-rose-50 border border-rose-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <FiAlertTriangle className="text-rose-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-rose-800">
+                  Warning: This action is irreversible
+                </p>
+                <p className="text-xs text-rose-600 mt-1">
+                  The session record will be permanently deleted from the database.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="p-6 border-t border-gray-100">
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="flex-1 border-2 border-gray-300 text-gray-700 py-3.5 rounded-xl font-bold text-base disabled:opacity-50 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={loading}
+              className="flex-1 bg-gradient-to-r from-rose-600 to-red-600 text-white py-3.5 rounded-xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  <span>Deleting...</span>
+                </>
+              ) : (
+                <>
+                  <FiTrash2 className="w-5 h-5" />
+                  <span>Delete Session</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Category configuration with preset images
 const CATEGORY_CONFIG = {
@@ -192,112 +291,161 @@ const CounselingEventCard = ({ event, onEdit, onDelete, onView, index }) => {
   const categoryConfig = CATEGORY_CONFIG[event?.category];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      {/* Image Section */}
-      {event?.image && !imageError ? (
-        <div className="relative h-40 overflow-hidden">
-          <img
-            src={event.image}
-            alt={`Counseling session with ${event.counselor}`}
-            className="w-full h-full object-cover"
-            onError={() => setImageError(true)}
-          />
-          <div className="absolute top-3 right-3">
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white ${getPriorityColor(event.priority)}`}>
-              {event.priority}
-            </span>
+   <div className="bg-white rounded-[1.5rem] shadow-lg border border-gray-100 overflow-hidden transition-none">
+  {/* Image Section - Modernized */}
+  {event?.image && !imageError ? (
+    <div className="relative h-48 overflow-hidden">
+      <img
+        src={event.image}
+        alt={`Counseling session with ${event.counselor}`}
+        className="w-full h-full object-cover object-center"
+        onError={() => setImageError(true)}
+      />
+      {/* Modern Priority Badge */}
+      <div className="absolute top-4 right-4">
+        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-sm shadow-sm ${getPriorityColor(event.priority)}`}>
+          {event.priority}
+        </span>
+      </div>
+    </div>
+  ) : (
+    <div className="relative h-32 bg-gradient-to-br from-blue-500/10 to-cyan-500/10">
+      {/* Modern Gradient Fallback */}
+      <div className="absolute top-4 right-4">
+        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-sm shadow-sm ${getPriorityColor(event?.priority)}`}>
+          {event?.priority || 'MEDIUM'}
+        </span>
+      </div>
+      <div className="absolute bottom-4 left-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/20 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+            <FiUser className="text-blue-600" />
           </div>
-        </div>
-      ) : (
-        <div className="relative h-24 bg-gradient-to-r from-blue-500 to-cyan-500">
-          <div className="absolute top-3 right-3">
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white ${getPriorityColor(event?.priority)}`}>
-              {event?.priority}
-            </span>
+          <div>
+            <span className="block text-[9px] text-gray-500 font-black uppercase tracking-[0.1em]">Counselor</span>
+            <h3 className="font-black text-base text-gray-900">{event?.counselor || 'Unassigned'}</h3>
           </div>
-          <div className="absolute bottom-3 left-3 text-white">
-            <h3 className="font-bold text-sm">{event?.counselor}</h3>
-          </div>
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="p-4">
-        {/* Category Badge */}
-        <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border mb-3 ${getCategoryColor(event?.category)}`}>
-          {categoryConfig?.icon || <FiMessageCircle className="text-gray-500" />}
-          {event?.category || 'General'}
-        </div>
-
-        {/* Description */}
-        <p className="text-gray-700 mb-3 min-h-10 text-sm leading-relaxed font-medium">
-          {event?.description?.length > 60 ? event.description.substring(0, 60) + '...' : event?.description}
-        </p>
-
-        {/* Details */}
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2 text-xs text-gray-600">
-            <FiCalendar className="text-gray-400 flex-shrink-0" />
-            <span className="truncate">
-              {event?.date ? new Date(event.date).toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric',
-                year: 'numeric'
-              }) : 'No date'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-gray-600">
-            <FiClock className="text-gray-400 flex-shrink-0" />
-            <span>{event?.time || 'No time'}</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-gray-600">
-            <FiUser className="text-gray-400 flex-shrink-0" />
-            <span className="truncate">{event?.counselor || 'Not specified'}</span>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onView();
-            }}
-            className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full"
-            title="View Details"
-          >
-            <FiEye className="w-3 h-3" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
-            className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full"
-            title="Edit"
-          >
-            <FiEdit3 className="w-3 h-3" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            className="p-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-full"
-            title="Delete"
-          >
-            <FiTrash2 className="w-3 h-3" />
-          </button>
         </div>
       </div>
     </div>
+  )}
+
+  {/* Content - Modernized */}
+  <div className="p-5">
+    {/* Modern Category Badge */}
+    <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-black uppercase tracking-wider border mb-4 ${getCategoryColor(event?.category)}`}>
+      {categoryConfig?.icon || <FiMessageCircle className="text-gray-500" />}
+      <span>{event?.category || 'General'}</span>
+    </div>
+
+    {/* Description - Modern Typography */}
+    <p className="text-gray-800 mb-4 text-sm font-medium leading-relaxed line-clamp-2">
+      {event?.description || 'No description provided'}
+    </p>
+
+    {/* Details - Modern Layout */}
+    <div className="space-y-3 mb-6">
+      <div className="flex items-center gap-3 text-xs">
+        <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0">
+          <FiCalendar className="text-gray-500" />
+        </div>
+        <div className="min-w-0">
+          <span className="block text-[10px] text-gray-400 font-black uppercase tracking-[0.1em]">Date</span>
+          <span className="text-sm font-bold text-gray-700 truncate">
+            {event?.date ? new Date(event.date).toLocaleDateString('en-US', { 
+              month: 'short', 
+              day: 'numeric',
+              year: 'numeric'
+            }) : 'No date'}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 text-xs">
+        <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0">
+          <FiClock className="text-gray-500" />
+        </div>
+        <div className="min-w-0">
+          <span className="block text-[10px] text-gray-400 font-black uppercase tracking-[0.1em]">Time</span>
+          <span className="text-sm font-bold text-gray-700">{event?.time || 'No time'}</span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 text-xs">
+        <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0">
+          <FiUser className="text-gray-500" />
+        </div>
+        <div className="min-w-0">
+          <span className="block text-[10px] text-gray-400 font-black uppercase tracking-[0.1em]">Counselor</span>
+          <span className="text-sm font-bold text-gray-700 truncate">{event?.counselor || 'Not specified'}</span>
+        </div>
+      </div>
+    </div>
+
+    {/* Modern Action Buttons */}
+    <div className="flex gap-2">
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onView();
+        }}
+        className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl text-xs font-black uppercase tracking-widest transition-none active:bg-gray-200 flex items-center justify-center gap-2"
+      >
+        <FiEye size={14} />
+        View
+      </button>
+      
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit();
+        }}
+        className="flex-1 py-3 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-none active:scale-[0.98] flex items-center justify-center gap-2"
+      >
+        <FiEdit3 size={14} />
+        Edit
+      </button>
+      
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        className="p-3 bg-red-50 text-red-500 rounded-xl border border-red-100 transition-none active:bg-red-100"
+        title="Delete"
+      >
+        <FiTrash2 size={16} />
+      </button>
+    </div>
+  </div>
+</div>
   );
 };
 
-// Loading spinner
 const LoadingSpinner = () => (
-  <div className="flex items-center justify-center">
-    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+      <CircularProgress size={36} thickness={6} />
+
+      <div
+        style={{
+          fontSize: "18px",
+          color: "#6b7280",
+          fontWeight: 500,
+          textAlign: "center",
+        }}
+      >
+        Loading sessions from the database…
+      </div>
+    </div>
   </div>
 );
 
@@ -997,6 +1145,12 @@ export default function GuidanceCounselingTab() {
   const [viewMode, setViewMode] = useState('grid');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({
+    open: false,
+    eventId: null,
+    eventName: '',
+    loading: false
+  });
 
   // Fetch events from API
   const fetchEvents = async (showRefresh = false) => {
@@ -1047,27 +1201,36 @@ export default function GuidanceCounselingTab() {
     setIsViewing(true);
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = await new Promise((resolve) => {
-      const userConfirmed = window.confirm('Are you sure you want to delete this counseling session? This action cannot be undone.');
-      resolve(userConfirmed);
+  // Updated handleDelete function to use modal
+  const handleDelete = (event) => {
+    setDeleteModal({
+      open: true,
+      eventId: event?.id,
+      eventName: event?.counselor || 'this session',
+      loading: false
     });
-    
-    if (!confirmDelete) return;
+  };
+
+  // Confirm delete function
+  const confirmDelete = async () => {
+    setDeleteModal(prev => ({ ...prev, loading: true }));
 
     try {
-      const response = await fetch(`/api/guidance/${id}`, {
+      const response = await fetch(`/api/guidance/${deleteModal.eventId}`, {
         method: 'DELETE' 
       });
       const result = await response.json();
+      
       if (result.success) {
         await fetchEvents();
         toast.success('Counseling session deleted successfully!');
+        setDeleteModal({ open: false, eventId: null, eventName: '', loading: false });
       } else {
-        toast.error(result.error || 'Error deleting session');
+        throw new Error(result.error || 'Error deleting session');
       }
     } catch (error) {
-      toast.error('Error deleting session');
+      toast.error(error.message || 'Error deleting session');
+      setDeleteModal(prev => ({ ...prev, loading: false }));
     }
   };
 
@@ -1101,20 +1264,36 @@ export default function GuidanceCounselingTab() {
     }).length
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/20 flex items-center justify-center p-4">
-        <div className="text-center">
-          <LoadingSpinner />
-          <p className="text-gray-600 text-sm mt-3 font-medium">Loading Counseling Sessions...</p>
-        </div>
+ if (loading && events.length === 0) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+      <div className="text-center">
+        <CircularProgress size={48} />
+
+        <p className="text-gray-700 text-lg mt-4 font-medium">
+          Loading Sessions…
+        </p>
+
+        <p className="text-gray-400 text-sm mt-1">
+          Please wait while we fetch sessions data
+        </p>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/20 p-4 md:p-6">
       <Toaster position="top-right" richColors />
+      
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        open={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, eventId: null, eventName: '', loading: false })}
+        onConfirm={confirmDelete}
+        itemName={deleteModal.eventName}
+        loading={deleteModal.loading}
+      />
       
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
@@ -1292,7 +1471,7 @@ export default function GuidanceCounselingTab() {
                   event={event}
                   index={index}
                   onEdit={() => handleEdit(event)}
-                  onDelete={() => handleDelete(event?.id)}
+                  onDelete={() => handleDelete(event)}
                   onView={() => handleView(event)}
                 />
               ))}

@@ -7,8 +7,8 @@ import {
   FaClock, FaFilter, FaChevronLeft, FaChevronRight,
   FaBuilding, FaUserTie, FaStethoscope, FaEnvelope, FaPhone, 
   FaBookOpen, FaLaptopCode, FaCalculator, FaFlask,
-  FaRocket, FaSparkles, FaMagic, FaPalette, FaGem,
-  FaChartLine, FaTrendingUp, FaAward, FaStar, FaCrown,
+  FaRocket, FaSparkles, FaMagic, FaPalette, FaGem,FaUserNurse,
+FaHardHa,  FaChartLine, FaTrendingUp, FaAward, FaStar, FaCrown,
   FaLightbulb, FaBrain, FaHandshake, FaHeart,
   FaLock, FaGlobe, FaCloudUpload, FaArrowRight,
   FaRegHeart, FaHeartbeat, FaFire, FaBolt,
@@ -28,53 +28,49 @@ import {
 
 import { CircularProgress, Modal, Box, TextField, TextareaAutosize } from '@mui/material';
 
-// Modern Loading Spinner
-function ModernLoadingSpinner({ message = "Loading Careers...", size = "medium" }) {
-  const sizes = {
-    small: { outer: 80, inner: 32 },
-    medium: { outer: 120, inner: 48 },
-    large: { outer: 160, inner: 64 }
-  }
 
-  const { outer, inner } = sizes[size]
+const ModernLoadingSpinner = ({ message = "Loading", size = "medium" }) => {
+  const sizeMap = {
+    small: 40,
+    medium: 60,
+    large: 80
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 flex items-center justify-center p-4">
-      <div className="text-center">
-        <div className="relative inline-block">
-          <div className="relative">
-            <CircularProgress 
-              size={outer} 
-              thickness={3}
-              className="text-gradient-to-r from-blue-500 to-purple-600"
-              sx={{
-                '& .MuiCircularProgress-circle': {
-                  stroke: 'url(#gradient)',
-                },
-              }}
-            />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-pulse opacity-20"
-                   style={{ width: inner, height: inner }}></div>
-            </div>
-          </div>
-          <div className="absolute -inset-8 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full blur-2xl opacity-30 animate-pulse"></div>
-        </div>
-        <div className="mt-8 space-y-3">
-          <span className="block text-xl font-bold text-gray-700 bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
-            {message}
-          </span>
-          <div className="flex justify-center space-x-1">
-            {[0, 1, 2].map(i => (
-              <div key={i} className="w-1.5 h-1.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-bounce" 
-                   style={{ animationDelay: `${i * 0.1}s` }}></div>
-            ))}
-          </div>
-        </div>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh", // 👈 FULL SCREEN CENTER
+        width: "100%",
+        gap: "20px",
+      }}
+    >
+      <CircularProgress
+        size={sizeMap[size]}
+        style={{ color: "#3b82f6" }}
+      />
+
+      <div
+        style={{
+          fontSize: "14px",
+          color: "#6b7280",
+          fontWeight: 500,
+          letterSpacing: "0.5px",
+          textAlign: "center",
+          maxWidth: "250px",
+          lineHeight: 1.6,
+        }}
+      >
+        {message}
       </div>
     </div>
-  )
-}
+  );
+};
+
+
 
 // Modern Job Card Component
 function ModernJobCard({ job, onEdit, onDelete, onView }) {
@@ -176,14 +172,14 @@ function ModernJobCard({ job, onEdit, onDelete, onView }) {
               <FaGraduationCap className="text-gray-400 text-sm" />
               <span className="text-xs font-medium text-gray-500">Experience</span>
             </div>
-            <span className="text-sm font-bold text-gray-900">{job.experience}</span>
+            <span className="text-sm  text-gray-900">{job.experience}</span>
           </div>
           <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 border border-gray-200">
             <div className="flex items-center gap-2 mb-1">
               <FaClock className="text-gray-400 text-sm" />
               <span className="text-xs font-medium text-gray-500">Posted</span>
             </div>
-            <span className="text-sm font-bold text-gray-900">
+            <span className="text-sm  text-gray-900">
               {new Date(job.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </span>
           </div>
@@ -241,20 +237,20 @@ function ModernJobModal({ open, onClose, onSave, job, loading }) {
     { value: 'internship', label: 'Internship', color: 'from-amber-500 to-orange-600' }
   ];
 
-  const categories = [
-    { value: 'Teaching', icon: <FaChalkboardTeacher /> },
-    { value: 'Administrative', icon: <FaUserTie /> },
-    { value: 'Support Staff', icon: <FaTools /> },
-    { value: 'Medical', icon: <FaStethoscope /> },
-    { value: 'Academic', icon: <FaBookOpen /> },
-    { value: 'Technical', icon: <FaLaptopCode /> },
-    { value: 'Accounting', icon: <FaCalculator /> },
-    { value: 'Science', icon: <FaFlask /> }
-  ];
+const categories = [
+  { value: 'Teaching', icon: <FaChalkboardTeacher /> },
+  { value: 'Administrative', icon: <FaUserTie /> },
+  { value: 'Support Staff', icon: <FaTools /> },
+  { value: 'Medical', icon: <FaStethoscope /> },
+  { value: 'Academic', icon: <FaBookOpen /> },
+  { value: 'Technical', icon: <FaLaptopCode /> },
+  { value: 'Accounting', icon: <FaCalculator /> },
+  { value: 'Science', icon: <FaFlask /> }
+];
 
   const departments = [
     'Primary School', 'Secondary School', 'Administration', 'Finance', 
-    'IT', 'Maintenance', 'Medical', 'Library', 'Sports', 'Arts', 'Music'
+    'IT', 'Maintenance', 'Medical', 'Library', 'Sports', 'Arts', 'Music',"security","Cafeteria", 'Cooking', 'Transportation',"Cleaning","farming"
   ];
 
   const handleChange = (field, value) => {
@@ -369,21 +365,21 @@ function ModernJobModal({ open, onClose, onSave, job, loading }) {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-3">Category</label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {categories.map((cat) => (
+                  {categories.map((categories) => (
                     <button
-                      key={cat.value}
+                      key={categories.value}
                       type="button"
-                      onClick={() => handleChange('category', cat.value)}
+                      onClick={() => handleChange('category', categories.value)}
                       className={`p-4 rounded-xl border-2 text-center transition-all ${
-                        formData.category === cat.value
+                        formData.category === categories.value
                           ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100'
                           : 'border-gray-200 bg-white'
                       }`}
                     >
-                      <div className="text-2xl mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        {cat.icon}
+                      <div className="text-xl mb-">
+                        {categories.icon}
                       </div>
-                      <span className="text-xs font-bold text-gray-700">{cat.value}</span>
+                      <span className="text-sm font-bold text-gray-700">{categories.value}</span>
                     </button>
                   ))}
                 </div>
@@ -683,8 +679,8 @@ function ModernJobDetailsModal({ open, onClose, job }) {
                     <FaGraduationCap className="text-xl" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-gray-700">Experience Required</h3>
-                    <p className="text-lg font-bold text-gray-900">{job.experience}</p>
+                    <h3 className="text-lg font-bold text-gray-700">Experience Required</h3>
+                    <p className="text-md  text-gray-900">{job.experience}</p>
                   </div>
                 </div>
               </div>
@@ -695,8 +691,8 @@ function ModernJobDetailsModal({ open, onClose, job }) {
                     <FaCalendar className="text-xl" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-gray-700">Application Deadline</h3>
-                    <p className="text-lg font-bold text-gray-900">
+                    <h3 className="text-lg font-bold text-gray-700">Application Deadline</h3>
+                    <p className="text-md  text-gray-900">
                       {new Date(job.applicationDeadline).toLocaleDateString('en-US', {
                         weekday: 'long',
                         year: 'numeric',
@@ -1091,9 +1087,24 @@ export default function ModernCareersPage() {
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
-  if (loading && jobs.length === 0) {
-    return <ModernLoadingSpinner message="Loading Career Opportunities..." size="medium" />;
-  }
+if (loading && jobs.length === 0) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+      <div className="text-center">
+        <CircularProgress size={48} />
+
+        <p className="text-gray-700 text-lg mt-4 font-medium">
+          Loading Career Opportunities…
+        </p>
+
+        <p className="text-gray-400 text-sm mt-1">
+          Please wait while we fetch career opportunities
+        </p>
+      </div>
+    </div>
+  );
+}
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 md:p-6 lg:p-8">

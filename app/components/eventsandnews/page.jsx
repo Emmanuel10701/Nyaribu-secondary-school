@@ -1,7 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { 
   FiPlus, 
   FiSearch, 
@@ -27,17 +25,16 @@ import {
   FiCheck,
   FiCheckCircle,
   FiGlobe,
-  FiBell
+  FiBell,
+  FiUser,
+  FiAlertTriangle,
+  FiAlertCircle
 } from 'react-icons/fi';
 import { 
   IoNewspaperOutline,
   IoCalendarClearOutline 
 } from 'react-icons/io5';
-import { Modal, Box, CircularProgress, Badge } from '@mui/material';
-
-// Import your local default images
-import newsDefault from "../../../images/i.jpg";
-import eventDefault from "../../../images/logo.jpg";
+import { Modal, Box, CircularProgress } from '@mui/material';
 
 // Modern Loading Spinner Component
 function ModernLoadingSpinner({ message = "Loading...", size = "medium" }) {
@@ -71,7 +68,7 @@ function ModernLoadingSpinner({ message = "Loading...", size = "medium" }) {
           </span>
           <div className="flex justify-center space-x-2">
             {[0, 1, 2].map(i => (
-              <div key={i} className="w-2 h-2 bg-purple-500 rounded-full" 
+              <div key={i} className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" 
                    style={{ animationDelay: `${i * 0.2}s` }}></div>
             ))}
           </div>
@@ -81,309 +78,657 @@ function ModernLoadingSpinner({ message = "Loading...", size = "medium" }) {
   )
 }
 
-// Modern Notification System Component
-function ModernNotificationSystem() {
-  const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  // Mock notifications - replace with real API calls
-  const mockNotifications = [
-    {
-      id: 1,
-      type: 'news',
-      title: 'New News Article Published',
-      message: '"Annual Sports Day Results" has been published',
-      time: '2 minutes ago',
-      read: false,
-      icon: <IoNewspaperOutline className="text-purple-600" />
-    },
-    {
-      id: 2,
-      type: 'event',
-      title: 'Upcoming Event',
-      message: 'Parent-Teacher Meeting tomorrow at 10 AM',
-      time: '1 hour ago',
-      read: false,
-      icon: <IoCalendarClearOutline className="text-blue-600" />
-    },
-    {
-      id: 3,
-      type: 'system',
-      title: 'System Update',
-      message: 'New features added to News & Events Manager',
-      time: '3 hours ago',
-      read: true,
-      icon: <FiTrendingUp className="text-green-600" />
-    }
-  ];
-
-  useEffect(() => {
-    setNotifications(mockNotifications);
-    setUnreadCount(mockNotifications.filter(n => !n.read).length);
-  }, []);
-
-  const markAsRead = (id) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
-    setUnreadCount(prev => Math.max(0, prev - 1));
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, read: true }))
-    );
-    setUnreadCount(0);
-  };
-
-  const clearAll = () => {
-    setNotifications([]);
-    setUnreadCount(0);
-  };
-
-  const getNotificationColor = (type) => {
-    switch(type) {
-      case 'news': return 'bg-purple-100 text-purple-800';
-      case 'event': return 'bg-blue-100 text-blue-800';
-      case 'system': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
+// Delete Confirmation Modal (Matching Staff Style)
+function DeleteConfirmationModal({ 
+  open, 
+  onClose, 
+  onConfirm, 
+  type = 'single',
+  itemName = '',
+  itemType = 'item',
+  loading = false 
+}) {
   return (
-    <div className="relative">
-      <button
-        onClick={() => setShowNotifications(!showNotifications)}
-        className="relative p-2 rounded-xl bg-white border border-gray-200 shadow-sm cursor-pointer"
-      >
-        <FiBell className="text-xl text-gray-600" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-            {unreadCount}
-          </span>
-        )}
-      </button>
-
-      {showNotifications && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-200 z-50">
-          {/* Header */}
-          <div className="p-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-gray-900">Notifications</h3>
-              <div className="flex gap-2">
-                {unreadCount > 0 && (
-                  <button
-                    onClick={markAllAsRead}
-                    className="text-xs text-blue-600 font-medium cursor-pointer"
-                  >
-                    Mark all read
-                  </button>
-                )}
-                <button
-                  onClick={clearAll}
-                  className="text-xs text-red-600 font-medium cursor-pointer"
-                >
-                  Clear all
-                </button>
+    <Modal open={open} onClose={loading ? undefined : onClose}>
+      <Box sx={{
+        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+        width: '90%',
+        maxWidth: '500px',
+        bgcolor: 'background.paper',
+        borderRadius: 3, boxShadow: 24, overflow: 'hidden',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #fef3f7 100%)'
+      }}>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-red-600 to-orange-600 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-white bg-opacity-20 rounded-2xl">
+                <FiAlertTriangle className="text-xl" />
               </div>
+              <div>
+                <h2 className="text-2xl font-bold">Confirm Deletion</h2>
+                <p className="text-red-100 opacity-90 mt-1">
+                  This action cannot be undone
+                </p>
+              </div>
+            </div>
+            {!loading && (
+              <button onClick={onClose} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-xl cursor-pointer">
+                <FiX className="text-xl" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="flex items-start gap-4 mb-6">
+            <div className="p-3 bg-red-100 text-red-600 rounded-2xl">
+              <FiAlertTriangle className="text-2xl" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                Delete "{itemName}"?
+              </h3>
+              <p className="text-gray-600">
+                This {itemType} will be permanently deleted. All associated data will be removed.
+              </p>
             </div>
           </div>
 
-          {/* Notifications List */}
-          <div className="max-h-96 overflow-y-auto">
-            {notifications.length > 0 ? (
-              notifications.map(notification => (
-                <div
-                  key={notification.id}
-                  className={`p-4 border-b border-gray-100 ${!notification.read ? 'bg-blue-50' : ''}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-white rounded-xl border border-gray-200">
-                      {notification.icon}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-bold text-gray-900 text-sm">
-                          {notification.title}
-                        </h4>
-                        {!notification.read && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        )}
-                      </div>
-                      <p className="text-gray-600 text-xs mb-2">
-                        {notification.message}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
-                          {notification.time}
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
+            <div className="flex items-start gap-2">
+              <FiAlertCircle className="text-red-600 mt-0.5 flex-shrink-0" />
+              <p className="text-red-700 text-sm">
+                <span className="font-bold">Warning:</span> This action cannot be undone. Please make sure you want to proceed.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-gray-200">
+            <button 
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="w-full sm:w-auto bg-gradient-to-r from-gray-600 to-gray-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg disabled:opacity-50 cursor-pointer"
+            >
+              Cancel
+            </button>
+            
+            <button 
+              type="button"
+              onClick={onConfirm}
+              disabled={loading}
+              className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-orange-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <CircularProgress size={16} className="text-white" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <FiTrash2 />
+                  Delete {itemType.charAt(0).toUpperCase() + itemType.slice(1)}
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </Box>
+    </Modal>
+  )
+}
+
+// Notification Component (Matching Staff Style)
+function Notification({ 
+  open, 
+  onClose, 
+  type = 'success', 
+  title, 
+  message, 
+  duration = 5000 
+}) {
+  const [progress, setProgress] = useState(100);
+
+  useEffect(() => {
+    if (open) {
+      const startTime = Date.now();
+      const interval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+        setProgress(remaining);
+        
+        if (elapsed >= duration) {
+          clearInterval(interval);
+          onClose();
+        }
+      }, 50);
+
+      return () => clearInterval(interval);
+    }
+  }, [open, duration, onClose]);
+
+  const getTypeStyles = () => {
+    switch (type) {
+      case 'success':
+        return {
+          bg: 'from-green-50 to-emerald-50',
+          border: 'border-green-200',
+          icon: 'text-green-600',
+          iconBg: 'bg-green-100',
+          progress: 'bg-green-500',
+          title: 'text-green-800'
+        };
+      case 'error':
+        return {
+          bg: 'from-red-50 to-orange-50',
+          border: 'border-red-200',
+          icon: 'text-red-600',
+          iconBg: 'bg-red-100',
+          progress: 'bg-red-500',
+          title: 'text-red-800'
+        };
+      case 'warning':
+        return {
+          bg: 'from-yellow-50 to-orange-50',
+          border: 'border-yellow-200',
+          icon: 'text-yellow-600',
+          iconBg: 'bg-yellow-100',
+          progress: 'bg-yellow-500',
+          title: 'text-yellow-800'
+        };
+      case 'info':
+        return {
+          bg: 'from-blue-50 to-cyan-50',
+          border: 'border-blue-200',
+          icon: 'text-blue-600',
+          iconBg: 'bg-blue-100',
+          progress: 'bg-blue-500',
+          title: 'text-blue-800'
+        };
+      default:
+        return {
+          bg: 'from-gray-50 to-gray-100',
+          border: 'border-gray-200',
+          icon: 'text-gray-600',
+          iconBg: 'bg-gray-100',
+          progress: 'bg-gray-500',
+          title: 'text-gray-800'
+        };
+    }
+  };
+
+  const getIcon = () => {
+    switch (type) {
+      case 'success': return <FiCheckCircle className="text-xl" />;
+      case 'error': return <FiAlertCircle className="text-xl" />;
+      case 'warning': return <FiAlertTriangle className="text-xl" />;
+      case 'info': return <FiInfo className="text-xl" />;
+      default: return <FiInfo className="text-xl" />;
+    }
+  };
+
+  const styles = getTypeStyles();
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed top-4 right-4 z-50 w-full max-w-md animate-slide-in">
+      <div className={`bg-gradient-to-r ${styles.bg} border-2 ${styles.border} rounded-2xl shadow-xl overflow-hidden`}>
+        <div className="p-4">
+          <div className="flex items-start gap-3">
+            <div className={`p-2 ${styles.iconBg} rounded-xl ${styles.icon}`}>
+              {getIcon()}
+            </div>
+            <div className="flex-1">
+              <h4 className={`font-bold ${styles.title} mb-1`}>{title}</h4>
+              <p className="text-gray-700 text-sm">{message}</p>
+            </div>
+            <button 
+              onClick={onClose}
+              className="p-1 hover:bg-gray-200 hover:bg-opacity-50 rounded-lg cursor-pointer text-gray-500"
+            >
+              <FiX className="text-lg" />
+            </button>
+          </div>
+        </div>
+        <div className="h-1 bg-gray-200">
+          <div 
+            className={`h-full ${styles.progress} transition-all duration-100 ease-linear`}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Modern Item Detail Modal
+function ModernItemDetailModal({ item, type, onClose, onEdit }) {
+  if (!item) return null
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath || typeof imagePath !== 'string') {
+      return type === 'news' ? '/default-news.jpg' : '/default-event.jpg';
+    }
+    
+    // If it's already a full URL or starts with /, return as is
+    if (imagePath.startsWith('http') || imagePath.startsWith('/')) {
+      return imagePath;
+    }
+    
+    // If it's a base64 string (from file upload), return as is
+    if (imagePath.startsWith('data:image')) {
+      return imagePath;
+    }
+    
+    // If it's a path from API (without leading slash), add it
+    if (imagePath.startsWith('news/') || imagePath.startsWith('events/')) {
+      return `/${imagePath}`;
+    }
+    
+    // Default fallback
+    return type === 'news' ? '/default-news.jpg' : '/default-event.jpg';
+  };
+
+  const imageUrl = getImageUrl(item.image);
+  
+  const categories = {
+    news: {
+      'achievement': { label: 'Achievements', color: 'emerald' },
+      'sports': { label: 'Sports', color: 'blue' },
+      'academic': { label: 'Academic', color: 'purple' },
+      'infrastructure': { label: 'Infrastructure', color: 'orange' },
+      'community': { label: 'Community', color: 'rose' }
+    },
+    events: {
+      'academic': { label: 'Academic', color: 'purple' },
+      'sports': { label: 'Sports', color: 'blue' },
+      'cultural': { label: 'Cultural', color: 'emerald' },
+      'social': { label: 'Social', color: 'orange' }
+    }
+  };
+
+  const categoryInfo = categories[type][item.category];
+
+  return (
+    <Modal open={true} onClose={onClose}>
+      <Box sx={{
+        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+        width: '90%',
+        maxWidth: '800px',
+        maxHeight: '95vh', bgcolor: 'background.paper',
+        borderRadius: 3, boxShadow: 24, overflow: 'hidden',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #fef3f7 100%)'
+      }}>
+        {/* Header */}
+        <div className={`p-6 text-white ${
+          type === 'news' 
+            ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-rose-700'
+            : 'bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-700'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-white bg-opacity-20 rounded-2xl">
+                {type === 'news' ? 
+                  <IoNewspaperOutline className="text-xl" /> : 
+                  <IoCalendarClearOutline className="text-xl" />
+                }
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold">{type === 'news' ? 'News' : 'Event'} Details</h2>
+                <p className="text-white/90 opacity-90 mt-1">
+                  Complete overview of {type === 'news' ? 'news article' : 'event'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => onEdit(item)} 
+                className="flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-6 py-3 rounded-full text-sm font-bold shadow-lg cursor-pointer"
+              >
+                <FiEdit /> Edit
+              </button>
+              <button 
+                onClick={onClose} 
+                className="p-2 bg-white/10 text-white rounded-full cursor-pointer"
+              >
+                <FiX className="text-xl" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-h-[calc(95vh-200px)] overflow-y-auto">
+          <div className="p-6 space-y-6">
+            {/* Image and Basic Info */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <div className="flex items-center gap-4">
+                  <img
+                    src={imageUrl}
+                    alt={item.title}
+                    className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl object-cover shadow-lg"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = type === 'news' ? '/default-news.jpg' : '/default-event.jpg';
+                    }}
+                  />
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{item.title}</h1>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        categoryInfo ? `bg-${categoryInfo.color}-100 text-${categoryInfo.color}-800` : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {categoryInfo?.label || item.category}
+                      </span>
+                      {item.featured && (
+                        <span className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                          Featured
                         </span>
-                        {!notification.read && (
-                          <button
-                            onClick={() => markAsRead(notification.id)}
-                            className="text-xs text-blue-600 font-medium cursor-pointer"
-                          >
-                            Mark read
-                          </button>
-                        )}
-                      </div>
+                      )}
                     </div>
+                    <p className="text-gray-600 font-medium">
+                      {new Date(item.date).toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </p>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="p-8 text-center">
-                <FiBell className="text-3xl text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm">No notifications</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-gray-50 to-purple-50 rounded-2xl p-5 border border-gray-200">
+                <h3 className="text-sm font-semibold text-gray-900 mb-5 flex items-center gap-2 border-b border-purple-100 pb-2">
+                  <FiBriefcase className="text-purple-600 text-xs" />
+                  {type === 'news' ? 'Article' : 'Event'} Information
+                </h3>
+
+                <div className="grid grid-cols-1 gap-4 text-[13px]">
+                  {/* Date */}
+                  <div className="flex flex-col">
+                    <span className="text-gray-400 text-[10px] uppercase tracking-wide">Date</span>
+                    <span className="text-gray-700 font-medium">
+                      {new Date(item.date).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  {/* Time for Events */}
+                  {type === 'events' && item.time && (
+                    <div className="flex flex-col">
+                      <span className="text-gray-400 text-[10px] uppercase tracking-wide">Time</span>
+                      <span className="text-gray-700 font-medium">{item.time}</span>
+                    </div>
+                  )}
+
+                  {/* Location for Events */}
+                  {type === 'events' && item.location && (
+                    <div className="flex flex-col">
+                      <span className="text-gray-400 text-[10px] uppercase tracking-wide">Location</span>
+                      <span className="text-gray-700 font-medium">{item.location}</span>
+                    </div>
+                  )}
+
+                  {/* Author for News */}
+                  {type === 'news' && item.author && (
+                    <div className="flex flex-col">
+                      <span className="text-gray-400 text-[10px] uppercase tracking-wide">Author</span>
+                      <span className="text-gray-700 font-medium">{item.author}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <FiBook className="text-blue-600" />
+                Description
+              </h3>
+              <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-200">
+                <p className="text-gray-700 leading-relaxed">
+                  {item.description || item.excerpt || 'No description available.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Full Content for News */}
+            {type === 'news' && item.fullContent && (
+              <div>
+                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <FiBook className="text-purple-600" />
+                  Full Content
+                </h3>
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200">
+                  <div className="text-gray-700 leading-relaxed whitespace-pre-line">
+                    {item.fullContent}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Additional Info for Events */}
+            {type === 'events' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {item.speaker && (
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                      <FiUser className="text-green-600" />
+                      Speaker
+                    </h3>
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
+                      <p className="text-gray-700 font-medium">{item.speaker}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {item.attendees && (
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                      <FiUsers className="text-orange-600" />
+                      Attendees
+                    </h3>
+                    <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-200">
+                      <p className="text-gray-700 font-medium capitalize">{item.attendees}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Footer */}
-          <div className="p-3 bg-gray-50 rounded-b-2xl">
-            <button
-              onClick={() => setShowNotifications(false)}
-              className="w-full text-center text-sm text-gray-600 font-medium cursor-pointer"
+          <div className="p-6 border-t border-gray-200 flex justify-between items-center">
+            <button 
+              onClick={onClose} 
+              className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-8 py-3 rounded-2xl font-bold shadow-lg cursor-pointer"
             >
               Close
             </button>
+            <button 
+              onClick={() => onEdit(item)} 
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-2xl font-bold shadow-lg cursor-pointer"
+            >
+              <FiEdit /> Edit {type === 'news' ? 'News' : 'Event'}
+            </button>
           </div>
         </div>
-      )}
-    </div>
-  );
+      </Box>
+    </Modal>
+  )
 }
 
-// Modern News/Event Card Component
+// MODERN CARD COMPONENT (Matching Staff Style)
 function ModernItemCard({ item, type, onEdit, onDelete, onView }) {
   const [imageError, setImageError] = useState(false)
 
   const getImageUrl = (imagePath) => {
-    if (!imagePath) return type === 'news' ? newsDefault : eventDefault
-    if (imagePath.startsWith('http')) return imagePath
-    return imagePath.startsWith('/') ? imagePath : `/${imagePath}`
-  }
+    if (!imagePath || typeof imagePath !== 'string') {
+      return '/default-image.jpg';
+    }
+    
+    if (imagePath.startsWith('http') || imagePath.startsWith('/')) {
+      return imagePath;
+    }
+    
+    if (imagePath.startsWith('data:image')) {
+      return imagePath;
+    }
+    
+    if (imagePath.startsWith('news/') || imagePath.startsWith('events/')) {
+      return `/${imagePath}`;
+    }
+    
+    return '/default-image.jpg';
+  };
 
   const categories = {
-    news: [
-      { value: 'achievement', label: 'Achievements', color: 'emerald' },
-      { value: 'sports', label: 'Sports', color: 'blue' },
-      { value: 'academic', label: 'Academic', color: 'purple' },
-      { value: 'infrastructure', label: 'Infrastructure', color: 'orange' },
-      { value: 'community', label: 'Community', color: 'rose' }
-    ],
-    events: [
-      { value: 'academic', label: 'Academic', color: 'purple' },
-      { value: 'sports', label: 'Sports', color: 'blue' },
-      { value: 'cultural', label: 'Cultural', color: 'emerald' },
-      { value: 'social', label: 'Social', color: 'orange' }
-    ]
-  }
+    news: {
+      'achievement': { label: 'Achievements', color: 'emerald' },
+      'sports': { label: 'Sports', color: 'blue' },
+      'academic': { label: 'Academic', color: 'purple' },
+      'infrastructure': { label: 'Infrastructure', color: 'orange' },
+      'community': { label: 'Community', color: 'rose' }
+    },
+    events: {
+      'academic': { label: 'Academic', color: 'purple' },
+      'sports': { label: 'Sports', color: 'blue' },
+      'cultural': { label: 'Cultural', color: 'emerald' },
+      'social': { label: 'Social', color: 'orange' }
+    }
+  };
 
-  const categoryInfo = categories[type].find(c => c.value === item.category)
-  const imageUrl = getImageUrl(item.image)
+  const categoryInfo = categories[type][item.category];
+  const imageUrl = getImageUrl(item.image);
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200">
-      <div className="relative h-48 overflow-hidden">
-        {imageUrl && !imageError ? (
+    <div className="bg-white rounded-[2rem] shadow-xl border border-gray-100 w-full max-w-md overflow-hidden transition-none">
+      
+      {/* Image Section */}
+      <div className="relative h-64 w-full bg-gray-50 overflow-hidden">
+        {!imageError ? (
           <img 
             src={imageUrl} 
             alt={item.title} 
             onClick={() => onView(item)}
-            className="w-full h-full object-cover cursor-pointer" 
+            className="w-full h-full object-cover object-top cursor-pointer hover:scale-105 transition-transform duration-300"
             onError={() => setImageError(true)} 
           />
         ) : (
           <div 
             onClick={() => onView(item)} 
-            className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center text-gray-400 cursor-pointer"
+            className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 text-gray-400 cursor-pointer"
           >
             {type === 'news' ? (
-              <IoNewspaperOutline className="text-2xl mb-2" />
+              <IoNewspaperOutline className="text-5xl mb-3" />
             ) : (
-              <IoCalendarClearOutline className="text-2xl mb-2" />
+              <IoCalendarClearOutline className="text-5xl mb-3" />
             )}
-            <span className="text-sm">No Image</span>
+            <span className="text-sm font-medium">No Image</span>
           </div>
         )}
-        
-        <div className="absolute top-2 left-2 flex gap-1">
-          <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-            categoryInfo ? `bg-${categoryInfo.color}-100 text-${categoryInfo.color}-800` : 'bg-gray-100 text-gray-800'
-          }`}>
-            {categoryInfo?.label}
-          </span>
+
+        {/* Overlay: Category & Featured */}
+        <div className="absolute top-4 left-4 right-4 flex justify-between items-center pointer-events-none">
+          <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm pointer-events-auto">
+            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+              categoryInfo ? `bg-${categoryInfo.color}-100 text-${categoryInfo.color}-800 border border-${categoryInfo.color}-200` : 'bg-gray-100 text-gray-800 border border-gray-200'
+            }`}>
+              {categoryInfo?.label || item.category}
+            </span>
+          </div>
+          
           {item.featured && (
-            <span className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+            <span className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shadow-sm border border-yellow-200 pointer-events-auto">
               Featured
             </span>
           )}
         </div>
       </div>
 
-      <div className="p-4">
-        <h3 
-          onClick={() => onView(item)} 
-          className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-purple-800 text-base mb-2 line-clamp-2 cursor-pointer"
-        >
-          {item.title}
-        </h3>
+      {/* Information Section - Modernized */}
+      <div className="p-6">
+        <div className="mb-6">
+          <h3 
+            onClick={() => onView(item)} 
+            className="text-2xl font-black text-slate-900 leading-tight cursor-pointer line-clamp-2 hover:text-purple-600 transition-colors"
+          >
+            {item.title}
+          </h3>
+          {/* Excerpt/Description */}
+          <p className="text-sm font-medium text-slate-400 mt-2 line-clamp-2">
+            {item.excerpt || item.description || 'No description available.'}
+          </p>
+        </div>
         
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2 font-medium">
-          {item.excerpt || item.description}
-        </p>
-
-        <div className="space-y-2 mb-3">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1 text-purple-600 font-bold">
-              <FiCalendar className="text-xs" />
-              <span>{new Date(item.date).toLocaleDateString()}</span>
+        {/* Grid Info Mapping */}
+        <div className="grid grid-cols-2 gap-y-6 gap-x-4 mb-8">
+          {/* Date */}
+          <div className="space-y-1">
+            <span className="block text-[9px] text-slate-400 font-black uppercase tracking-[0.1em]">Date</span>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0"></div>
+              <span className="text-xs font-bold text-slate-700">
+                {new Date(item.date).toLocaleDateString()}
+              </span>
             </div>
-            {type === 'events' && item.time && (
-              <div className="flex items-center gap-1 text-blue-600 font-bold">
-                <FiClock className="text-xs" />
-                <span className="text-xs">{item.time}</span>
-              </div>
-            )}
           </div>
           
+          {/* Time for Events */}
+          {type === 'events' && item.time && (
+            <div className="space-y-1">
+              <span className="block text-[9px] text-slate-400 font-black uppercase tracking-[0.1em]">Time</span>
+              <span className="text-xs font-bold text-slate-700">{item.time}</span>
+            </div>
+          )}
+
+          {/* Location for Events - Full width */}
           {type === 'events' && item.location && (
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1 text-green-600 font-bold">
-                <FiMapPin className="text-xs" />
-                <span className="text-xs truncate max-w-[120px]">{item.location}</span>
+            <div className="col-span-2 p-3 bg-slate-50 rounded-2xl flex items-center justify-between border border-slate-100/50">
+              <div className="flex flex-col min-w-0">
+                <span className="text-[9px] text-slate-400 font-black uppercase tracking-[0.1em]">Location</span>
+                <span className="text-xs font-bold text-slate-800 truncate">{item.location}</span>
               </div>
+              <FiMapPin className="text-slate-300 text-lg shrink-0 ml-2" />
+            </div>
+          )}
+
+          {/* Author for News */}
+          {type === 'news' && item.author && (
+            <div className="col-span-2 p-3 bg-blue-50 rounded-2xl flex items-center justify-between border border-blue-100/50">
+              <div className="flex flex-col min-w-0">
+                <span className="text-[9px] text-blue-400 font-black uppercase tracking-[0.1em]">Author</span>
+                <span className="text-xs font-bold text-blue-800 truncate">{item.author}</span>
+              </div>
+              <FiUser className="text-blue-300 text-lg shrink-0 ml-2" />
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <div className="flex items-center gap-1">
-            <button 
-              onClick={() => onView(item)} 
-              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-xl shadow-md cursor-pointer text-xs font-bold"
-            >
-              View
-            </button>
-          </div>
+        {/* Modern Action Bar */}
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => onView(item)} 
+            className="px-5 py-3 bg-slate-100 text-slate-600 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-none active:bg-slate-200"
+          >
+            View
+          </button>
           
-          <div className="flex items-center gap-1">
-            <button 
-              onClick={() => onEdit(item)} 
-              className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-2 py-1 rounded-xl shadow-md cursor-pointer text-xs font-bold"
-            >
-              Edit
-            </button>
-            <button 
-              onClick={() => onDelete(item.id)} 
-              className="bg-gradient-to-r from-red-500 to-red-600 text-white px-2 py-1 rounded-xl shadow-md cursor-pointer text-xs font-bold"
-            >
-              Delete
-            </button>
-          </div>
+          <button 
+            onClick={() => onEdit(item)} 
+            className="flex-1 bg-slate-900 text-white py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-none active:scale-[0.98]"
+          >
+            Edit
+          </button>
+          
+          <button 
+            onClick={() => onDelete(item)} 
+            className="p-3 bg-red-50 text-red-500 rounded-2xl border border-red-100 transition-none active:bg-red-100"
+          >
+            <FiTrash2 size={18} />
+          </button>
         </div>
       </div>
     </div>
@@ -403,11 +748,15 @@ function ModernItemModal({ onClose, onSave, item, type, loading }) {
     author: item?.author || 'School Administration',
     image: item?.image || '',
     featured: item?.featured || false,
-    status: item?.status || 'draft'
+    status: item?.status || 'draft',
+    // Event specific fields
+    type: item?.type || 'internal',
+    attendees: item?.attendees || 'students',
+    speaker: item?.speaker || ''
   });
 
   const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState(item?.image || (type === 'news' ? newsDefault : eventDefault))
+  const [imagePreview, setImagePreview] = useState(item?.image || '')
 
   const categories = {
     news: [
@@ -423,20 +772,69 @@ function ModernItemModal({ onClose, onSave, item, type, loading }) {
       { value: 'cultural', label: 'Cultural', color: 'emerald' },
       { value: 'social', label: 'Social', color: 'orange' }
     ]
-  }
+  };
+
+  useEffect(() => {
+    if (item?.image) {
+      const getPreviewUrl = (imgPath) => {
+        if (!imgPath) return '';
+        if (imgPath.startsWith('/') || imgPath.startsWith('http') || imgPath.startsWith('data:image')) {
+          return imgPath;
+        }
+        if (imgPath.startsWith('news/') || imgPath.startsWith('events/')) {
+          return `/${imgPath}`;
+        }
+        return '';
+      };
+      
+      setImagePreview(getPreviewUrl(item.image));
+    }
+  }, [item]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setImageFile(file);
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await onSave(formData, item?.id);
+    
+    // Prepare form data
+    const submitData = new FormData();
+    
+    // Common fields
+    submitData.append('title', formData.title.trim());
+    submitData.append('category', formData.category);
+    submitData.append('date', formData.date);
+    submitData.append('featured', formData.featured.toString());
+    submitData.append('description', formData.description.trim());
+    
+    // Type specific fields
+    if (type === 'news') {
+      submitData.append('excerpt', formData.description.trim());
+      submitData.append('fullContent', (formData.content || formData.description).trim());
+      submitData.append('author', formData.author.trim());
+    } else {
+      submitData.append('time', formData.time.trim());
+      submitData.append('location', formData.location.trim());
+      submitData.append('type', formData.type);
+      submitData.append('attendees', formData.attendees);
+      submitData.append('speaker', formData.speaker.trim());
+    }
+    
+    // Handle image
+    if (imageFile) {
+      submitData.append('image', imageFile);
+    }
+    
+    await onSave(submitData, item?.id);
   };
 
   const handleChange = (field, value) => {
@@ -444,7 +842,7 @@ function ModernItemModal({ onClose, onSave, item, type, loading }) {
   }
 
   return (
-    <Modal open={true} onClose={onClose}>
+    <Modal open={true} onClose={loading ? undefined : onClose}>
       <Box sx={{
         position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
         width: '90%',
@@ -474,9 +872,11 @@ function ModernItemModal({ onClose, onSave, item, type, loading }) {
                 </p>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-xl cursor-pointer">
-              <FiX className="text-xl" />
-            </button>
+            {!loading && (
+              <button onClick={onClose} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-xl cursor-pointer">
+                <FiX className="text-xl" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -494,11 +894,20 @@ function ModernItemModal({ onClose, onSave, item, type, loading }) {
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
                       <div className="flex-shrink-0">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="w-20 h-20 rounded-2xl object-cover shadow-lg border border-gray-200"
-                        />
+                        {imagePreview ? (
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="w-20 h-20 rounded-2xl object-cover shadow-lg border border-gray-200"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                            {type === 'news' ? 
+                              <IoNewspaperOutline className="text-2xl text-gray-400" /> : 
+                              <IoCalendarClearOutline className="text-2xl text-gray-400" />
+                            }
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1">
                         <label className="block">
@@ -508,7 +917,7 @@ function ModernItemModal({ onClose, onSave, item, type, loading }) {
                             onChange={handleImageChange}
                             className="hidden"
                           />
-                          <div className="px-4 py-3 border-2 border-gray-200 rounded-xl cursor-pointer flex items-center gap-2 bg-gray-50">
+                          <div className="px-4 py-3 border-2 border-gray-200 rounded-xl cursor-pointer flex items-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors">
                             <FiUpload className="text-purple-500" />
                             <span className="text-sm font-bold text-gray-700">
                               {imageFile ? 'Change Image' : 'Upload Image'}
@@ -569,25 +978,34 @@ function ModernItemModal({ onClose, onSave, item, type, loading }) {
                 {/* Event Specific Fields */}
                 {type === 'events' && (
                   <>
-                    <div>
-                      <label className="block text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-xl border border-green-200">
-                        <FiClock className="text-green-600 text-lg" /> 
-                        Time
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.time}
-                        onChange={(e) => handleChange('time', e.target.value)}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50"
-                        placeholder="e.g., 9:00 AM - 5:00 PM"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-800 mb-3">Time</label>
+                        <input
+                          type="text"
+                          value={formData.time}
+                          onChange={(e) => handleChange('time', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50"
+                          placeholder="e.g., 9:00 AM - 5:00 PM"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-800 mb-3">Type</label>
+                        <select
+                          value={formData.type}
+                          onChange={(e) => handleChange('type', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
+                        >
+                          <option value="internal">Internal</option>
+                          <option value="external">External</option>
+                          <option value="online">Online</option>
+                        </select>
+                      </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-orange-50 to-amber-50 p-3 rounded-xl border border-orange-200">
-                        <FiMapPin className="text-orange-600 text-lg" /> 
-                        Location
-                      </label>
+                      <label className="block text-sm font-bold text-gray-800 mb-3">Location</label>
                       <input
                         type="text"
                         value={formData.location}
@@ -596,7 +1014,48 @@ function ModernItemModal({ onClose, onSave, item, type, loading }) {
                         placeholder="Enter event location"
                       />
                     </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-800 mb-3">Attendees</label>
+                        <select
+                          value={formData.attendees}
+                          onChange={(e) => handleChange('attendees', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50"
+                        >
+                          <option value="students">Students</option>
+                          <option value="staff">Staff</option>
+                          <option value="parents">Parents</option>
+                          <option value="all">All</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-800 mb-3">Speaker</label>
+                        <input
+                          type="text"
+                          value={formData.speaker}
+                          onChange={(e) => handleChange('speaker', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50"
+                          placeholder="Enter speaker name"
+                        />
+                      </div>
+                    </div>
                   </>
+                )}
+
+                {/* Author for News */}
+                {type === 'news' && (
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-3">Author</label>
+                    <input
+                      type="text"
+                      value={formData.author}
+                      onChange={(e) => handleChange('author', e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50"
+                      placeholder="Enter author name"
+                    />
+                  </div>
                 )}
               </div>
 
@@ -635,20 +1094,6 @@ function ModernItemModal({ onClose, onSave, item, type, loading }) {
                   </div>
                 )}
 
-                {/* Author (News only) */}
-                {type === 'news' && (
-                  <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-3">Author</label>
-                    <input
-                      type="text"
-                      value={formData.author}
-                      onChange={(e) => handleChange('author', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50"
-                      placeholder="Enter author name"
-                    />
-                  </div>
-                )}
-
                 {/* Featured */}
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -669,7 +1114,8 @@ function ModernItemModal({ onClose, onSave, item, type, loading }) {
               <button 
                 type="button"
                 onClick={onClose}
-                className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-8 py-3 rounded-2xl font-bold shadow-lg cursor-pointer"
+                disabled={loading}
+                className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-8 py-3 rounded-2xl font-bold shadow-lg disabled:opacity-50 cursor-pointer"
               >
                 Cancel
               </button>
@@ -712,15 +1158,25 @@ export default function NewsEventsManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showModal, setShowModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
+  const [itemToDelete, setItemToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(6);
+  const [itemsPerPage] = useState(8);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [stats, setStats] = useState(null);
-  const [selectedPosts, setSelectedPosts] = useState(new Set());
+  
+  // Notification state
+  const [notification, setNotification] = useState({
+    open: false,
+    type: 'success',
+    title: '',
+    message: ''
+  });
 
   const categories = {
     news: [
@@ -738,6 +1194,16 @@ export default function NewsEventsManager() {
     ]
   };
 
+  // Notification handler
+  const showNotification = (type, title, message) => {
+    setNotification({
+      open: true,
+      type,
+      title,
+      message
+    });
+  };
+
   // Fetch news from API
   const fetchNews = async () => {
     try {
@@ -751,6 +1217,7 @@ export default function NewsEventsManager() {
     } catch (error) {
       console.error('Error fetching news:', error);
       setNews([]);
+      showNotification('error', 'Fetch Error', 'Failed to fetch news');
     }
   };
 
@@ -767,6 +1234,7 @@ export default function NewsEventsManager() {
     } catch (error) {
       console.error('Error fetching events:', error);
       setEvents([]);
+      showNotification('error', 'Fetch Error', 'Failed to fetch events');
     }
   };
 
@@ -776,6 +1244,7 @@ export default function NewsEventsManager() {
       await Promise.all([fetchNews(), fetchEvents()]);
     } catch (error) {
       console.error('Error fetching data:', error);
+      showNotification('error', 'Fetch Error', 'Failed to fetch data');
     } finally {
       setLoading(false);
     }
@@ -792,7 +1261,8 @@ export default function NewsEventsManager() {
     if (searchTerm) {
       filtered = filtered.filter(item =>
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.excerpt && item.excerpt.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (item.author && item.author.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
@@ -824,52 +1294,48 @@ export default function NewsEventsManager() {
 
   const handleView = (item) => {
     setSelectedItem(item);
-    setShowViewModal(true);
+    setShowDetailModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-      try {
-        const endpoint = activeSection === 'news' ? `/api/news/${id}` : `/api/events/${id}`;
-        const response = await fetch(endpoint, {
-          method: 'DELETE',
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          await fetchData();
-          toast.success(`${activeSection === 'news' ? 'News' : 'Event'} deleted successfully!`);
-        } else {
-          throw new Error(result.error);
-        }
-      } catch (error) {
-        console.error(`Error deleting ${activeSection}:`, error);
-        toast.error(`Failed to delete ${activeSection}`);
+  const handleDeleteClick = (item) => {
+    setItemToDelete(item);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    
+    setDeleting(true);
+    try {
+      const endpoint = activeSection === 'news' 
+        ? `/api/news/${itemToDelete.id}` 
+        : `/api/events/${itemToDelete.id}`;
+      
+      const response = await fetch(endpoint, {
+        method: 'DELETE',
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        await fetchData();
+        showNotification('success', 'Deleted', `${activeSection === 'news' ? 'News' : 'Event'} deleted successfully!`);
+      } else {
+        throw new Error(result.error);
       }
+    } catch (error) {
+      console.error(`Error deleting ${activeSection}:`, error);
+      showNotification('error', 'Delete Failed', `Failed to delete ${activeSection}`);
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
+      setItemToDelete(null);
     }
   };
 
   const handleSubmit = async (formData, id) => {
     setSaving(true);
     try {
-      const submitData = new FormData();
-      
-      submitData.append('title', formData.title.trim());
-      submitData.append('category', formData.category);
-      submitData.append('date', formData.date);
-      submitData.append('featured', formData.featured.toString());
-
-      if (activeSection === 'news') {
-        submitData.append('excerpt', formData.description.trim());
-        submitData.append('fullContent', (formData.content || formData.description).trim());
-        submitData.append('author', formData.author.trim());
-      } else {
-        submitData.append('description', formData.description.trim());
-        submitData.append('time', formData.time.trim());
-        submitData.append('location', formData.location.trim());
-      }
-
       let response;
       let endpoint;
       
@@ -877,13 +1343,13 @@ export default function NewsEventsManager() {
         endpoint = activeSection === 'news' ? `/api/news/${id}` : `/api/events/${id}`;
         response = await fetch(endpoint, {
           method: 'PUT',
-          body: submitData,
+          body: formData,
         });
       } else {
         endpoint = activeSection === 'news' ? '/api/news' : '/api/events';
         response = await fetch(endpoint, {
           method: 'POST',
-          body: submitData,
+          body: formData,
         });
       }
 
@@ -892,17 +1358,17 @@ export default function NewsEventsManager() {
       if (result.success) {
         await fetchData();
         setShowModal(false);
-        toast.success(
-          `${activeSection === 'news' ? 'News' : 'Event'} ${
-            id ? 'updated' : 'created'
-          } successfully!`
+        showNotification(
+          'success',
+          id ? 'Updated' : 'Created',
+          `${activeSection === 'news' ? 'News' : 'Event'} ${id ? 'updated' : 'created'} successfully!`
         );
       } else {
         throw new Error(result.error);
       }
     } catch (error) {
       console.error(`Error saving ${activeSection}:`, error);
-      toast.error(error.message || `Failed to ${id ? 'update' : 'create'} ${activeSection}`);
+      showNotification('error', 'Save Failed', error.message || `Failed to ${id ? 'update' : 'create'} ${activeSection}`);
     } finally {
       setSaving(false);
     }
@@ -914,7 +1380,11 @@ export default function NewsEventsManager() {
       totalEvents: events.length,
       featuredNews: news.filter(n => n.featured).length,
       featuredEvents: events.filter(e => e.featured).length,
-      todayNews: news.filter(n => new Date(n.date).toDateString() === new Date().toDateString()).length,
+      todayNews: news.filter(n => {
+        const itemDate = new Date(n.date);
+        const today = new Date();
+        return itemDate.toDateString() === today.toDateString();
+      }).length,
       upcomingEvents: events.filter(e => new Date(e.date) >= new Date()).length,
     };
     setStats(calculatedStats);
@@ -949,7 +1419,9 @@ export default function NewsEventsManager() {
                 onClick={() => paginate(page)}
                 className={`px-3 py-2 rounded-xl font-bold ${
                   currentPage === page
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                    ? activeSection === 'news'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                      : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
                     : 'text-gray-700'
                 }`}
               >
@@ -970,13 +1442,32 @@ export default function NewsEventsManager() {
     </div>
   );
 
-  if (loading && news.length === 0 && events.length === 0) return <ModernLoadingSpinner message="Loading News & Events..." size="medium" />
+  if (loading && news.length === 0 && events.length === 0) {
+    return <ModernLoadingSpinner message={`Loading ${activeSection === 'news' ? 'News' : 'Events'}...`} />;
+  }
 
   return (
     <div className="space-y-6 p-4 min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50">
-      <ToastContainer position="top-right" autoClose={5000} />
+      {/* Custom Notification */}
+      <Notification
+        open={notification.open}
+        onClose={() => setNotification({ ...notification, open: false })}
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+      />
 
-      {/* Header Section with Notification Bell */}
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        open={showDeleteModal}
+        onClose={() => !deleting && setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+        itemName={itemToDelete?.title}
+        itemType={activeSection === 'news' ? 'news article' : 'event'}
+        loading={deleting}
+      />
+
+      {/* Header Section */}
       <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl shadow-lg border border-purple-200 p-6">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
@@ -984,11 +1475,14 @@ export default function NewsEventsManager() {
             <p className="text-gray-600 text-sm lg:text-base">Manage school news articles and events</p>
           </div>
           <div className="flex items-center gap-3">
-            <ModernNotificationSystem />
             <button onClick={fetchData} className="flex items-center gap-2 bg-gray-600 text-white px-4 lg:px-6 py-2 lg:py-3 rounded-2xl font-bold shadow-lg cursor-pointer text-sm">
               <FiRotateCw className={`text-xs ${loading ? 'animate-spin' : ''}`} /> Refresh
             </button>
-            <button onClick={handleCreate} className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 lg:px-6 py-2 lg:py-3 rounded-2xl font-bold shadow-lg cursor-pointer text-sm">
+            <button onClick={handleCreate} className={`flex items-center gap-2 text-white px-4 lg:px-6 py-2 lg:py-3 rounded-2xl font-bold shadow-lg cursor-pointer text-sm ${
+              activeSection === 'news' 
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600' 
+                : 'bg-gradient-to-r from-blue-600 to-cyan-600'
+            }`}>
               <FiPlus className="text-xs" /> Create {activeSection === 'news' ? 'News' : 'Event'}
             </button>
           </div>
@@ -1080,20 +1574,25 @@ export default function NewsEventsManager() {
             { id: 'events', label: 'Events', count: events.length, icon: IoCalendarClearOutline }
           ].map((tab) => {
             const Icon = tab.icon;
+            const isActive = activeSection === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveSection(tab.id)}
-                className={`flex-1 py-3 px-4 rounded-lg font-bold ${
-                  activeSection === tab.id
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                    : 'text-gray-600'
+                className={`flex-1 py-3 px-4 rounded-lg font-bold transition-all ${
+                  isActive
+                    ? tab.id === 'news'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                      : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <div className="flex items-center gap-2 justify-center">
                   <Icon className="text-lg" />
                   <span>{tab.label}</span>
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-white/20">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    isActive ? 'bg-white/20' : 'bg-gray-200'
+                  }`}>
                     {tab.count}
                   </span>
                 </div>
@@ -1130,21 +1629,21 @@ export default function NewsEventsManager() {
             ))}
           </select>
 
-          <button className="px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-700 font-bold text-sm flex items-center justify-center gap-2 cursor-pointer">
+          <button className="px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-700 font-bold text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors">
             <FiShare2 /> Export
           </button>
         </div>
       </div>
 
       {/* Items Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {currentItems.map((item) => (
           <ModernItemCard 
             key={item.id} 
             item={item} 
             type={activeSection}
             onEdit={handleEdit} 
-            onDelete={handleDelete} 
+            onDelete={handleDeleteClick} 
             onView={handleView}
           />
         ))}
@@ -1166,7 +1665,11 @@ export default function NewsEventsManager() {
           </p>
           <button 
             onClick={handleCreate} 
-            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl font-bold shadow-lg flex items-center gap-2 mx-auto text-sm lg:text-base cursor-pointer"
+            className={`text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl font-bold shadow-lg flex items-center gap-2 mx-auto text-sm lg:text-base cursor-pointer ${
+              activeSection === 'news' 
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600' 
+                : 'bg-gradient-to-r from-blue-600 to-cyan-600'
+            }`}
           >
             <FiPlus /> Create {activeSection === 'news' ? 'News' : 'Event'}
           </button>
@@ -1188,6 +1691,15 @@ export default function NewsEventsManager() {
           item={editingItem} 
           type={activeSection}
           loading={saving} 
+        />
+      )}
+      
+      {showDetailModal && selectedItem && (
+        <ModernItemDetailModal 
+          item={selectedItem} 
+          type={activeSection}
+          onClose={() => setShowDetailModal(false)} 
+          onEdit={handleEdit}
         />
       )}
     </div>

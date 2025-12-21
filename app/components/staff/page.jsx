@@ -36,46 +36,54 @@ import {
 import { Modal, Box, Typography, CircularProgress, Alert, Snackbar } from '@mui/material';
 
 // Modern Loading Spinner Component
-function ModernLoadingSpinner({ message = "Loading...", size = "medium" }) {
-  const sizes = {
-    small: { outer: 60, inner: 24 },
-    medium: { outer: 100, inner: 40 },
-    large: { outer: 120, inner: 48 }
-  }
 
-  const { outer, inner } = sizes[size]
+function ModernLoadingSpinner({
+  message = "Loading staff from the database…",
+  size = "medium",
+}) {
+  const sizes = {
+    small: 28,
+    medium: 36,
+    large: 48,
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-red-50 flex items-center justify-center p-4">
-      <div className="text-center">
-        <div className="relative inline-block">
-          <div className="relative">
-            <CircularProgress 
-              size={outer} 
-              thickness={4}
-              className="text-orange-600"
-            />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className={`bg-gradient-to-r from-orange-500 to-red-600 rounded-full opacity-20`}
-                   style={{ width: inner, height: inner }}></div>
-            </div>
-          </div>
-        </div>
-        <div className="mt-8 space-y-2">
-          <span className="block text-xl font-semibold text-gray-700 bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
-            {message}
-          </span>
-          <div className="flex justify-center space-x-2">
-            {[0, 1, 2].map(i => (
-              <div key={i} className="w-2 h-2 bg-orange-500 rounded-full" 
-                   style={{ animationDelay: `${i * 0.2}s` }}></div>
-            ))}
-          </div>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "10px",
+        }}
+      >
+        <CircularProgress size={sizes[size]} thickness={4} />
+
+        <div
+          style={{
+            fontSize: "18px",
+            color: "#6b7280",
+            fontWeight: 500,
+            textAlign: "center",
+            maxWidth: "260px",
+          }}
+        >
+          {message}
         </div>
       </div>
     </div>
-  )
+  );
 }
+
+
 
 // Delete Confirmation Modal
 function DeleteConfirmationModal({ 
@@ -1544,7 +1552,23 @@ export default function StaffManager() {
     </div>
   );
 
-  if (loading && staff.length === 0) return <ModernLoadingSpinner message="Loading staff data..." size="medium" />
+if (loading && staff.length === 0) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+      <div className="text-center">
+        <CircularProgress size={48} />
+
+        <p className="text-gray-700 text-lg mt-4 font-medium">
+          Loading Staff…
+        </p>
+
+        <p className="text-gray-400 text-sm mt-1">
+          Please wait while we fetch staff data
+        </p>
+      </div>
+    </div>
+  );
+}
 
   return (
     <div className="space-y-6 p-4 min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-red-50">
