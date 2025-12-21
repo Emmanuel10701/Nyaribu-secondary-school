@@ -35,10 +35,6 @@ import {
 } from 'react-icons/io5';
 import { Modal, Box, Typography, CircularProgress, Alert, Snackbar } from '@mui/material';
 
-// Import your local avatar images
-import male from "../../../images/avata/male.png";
-import female from "../../../images/avata/female.png";
-
 // Modern Loading Spinner Component
 function ModernLoadingSpinner({ message = "Loading...", size = "medium" }) {
   const sizes = {
@@ -317,12 +313,30 @@ function ModernStaffDetailModal({ staff, onClose, onEdit }) {
   if (!staff) return null
 
   const getImageUrl = (imagePath) => {
-    if (!imagePath) return null
-    if (imagePath.startsWith('http')) return imagePath
-    return imagePath.startsWith('/') ? imagePath : `/${imagePath}`
-  }
+    if (!imagePath || typeof imagePath !== 'string') {
+      return '/male.png'; // Default image
+    }
+    
+    // If it's already a full URL or starts with /, return as is
+    if (imagePath.startsWith('http') || imagePath.startsWith('/')) {
+      return imagePath;
+    }
+    
+    // If it's a base64 string (from file upload), return as is
+    if (imagePath.startsWith('data:image')) {
+      return imagePath;
+    }
+    
+    // If it's a path from API (without leading slash), add it
+    if (imagePath.startsWith('staff/')) {
+      return `/${imagePath}`;
+    }
+    
+    // Default fallback
+    return '/male.png';
+  };
 
-  const imageUrl = getImageUrl(staff.image) || male
+  const imageUrl = getImageUrl(staff.image);
 
   return (
     <Modal open={true} onClose={onClose}>
@@ -341,21 +355,35 @@ function ModernStaffDetailModal({ staff, onClose, onEdit }) {
               <div className="p-3 bg-white bg-opacity-20 rounded-2xl">
                 <FiEye className="text-xl" />
               </div>
-              <div>
-                <h2 className="text-2xl font-bold">Staff Details</h2>
-                <p className="text-orange-100 opacity-90 mt-1">
-                  Complete overview of staff member
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button onClick={() => onEdit(staff)} className="flex items-center gap-2 bg-yellow-500 text-white px-6 py-3 rounded-2xl font-bold shadow-lg cursor-pointer">
-                <FiEdit className="text-sm" /> Edit Staff
-              </button>
-              <button onClick={onClose} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-xl cursor-pointer">
-                <FiX className="text-xl" />
-              </button>
-            </div>
+<div className="px-4 py-2 sm:px-0"> 
+  {/* text-xl for mobile, scales up to text-2xl on larger screens */}
+  <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+    Staff Details
+  </h2>
+  
+  {/* text-xs for mobile, scales to text-sm/base later. leading-tight prevents overlap */}
+  <p className="text-xs md:text-sm text-orange-100 opacity-90 mt-0.5 md:mt-1 leading-tight">
+    Complete overview of staff member
+  </p>
+</div>            </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+  {/* Edit Button: Responsive padding and font size */}
+  <button 
+    onClick={() => onEdit(staff)} 
+    className="flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-bold shadow-lg cursor-pointer whitespace-nowrap"
+  >
+    <FiEdit className="text-xs sm:text-sm" /> 
+    <span>Edit Staff</span>
+  </button>
+
+  {/* Close Button: Slightly smaller on mobile */}
+  <button 
+    onClick={onClose} 
+    className="p-2 bg-white/10 text-white rounded-full cursor-pointer flex-shrink-0"
+  >
+    <FiX className="text-lg sm:text-xl" />
+  </button>
+</div>
           </div>
         </div>
 
@@ -368,6 +396,10 @@ function ModernStaffDetailModal({ staff, onClose, onEdit }) {
                     src={imageUrl}
                     alt={staff.name}
                     className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl object-cover shadow-lg"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/male.png';
+                    }}
                   />
                   <div>
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">{staff.name}</h1>
@@ -387,26 +419,35 @@ function ModernStaffDetailModal({ staff, onClose, onEdit }) {
                   </div>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-gray-50 to-orange-50 rounded-2xl p-6 border border-gray-200">
-                <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <FiBriefcase className="text-orange-600" />
-                  Contact Information
-                </h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Department:</span>
-                    <span className="text-gray-900 font-bold">{staff.department}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Email:</span>
-                    <span className="text-gray-900 font-bold">{staff.email}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Phone:</span>
-                    <span className="text-gray-900 font-bold">{staff.phone}</span>
-                  </div>
-                </div>
-              </div>
+<div className="bg-gradient-to-br from-gray-50 to-orange-50 rounded-2xl p-5 border border-gray-200 w-full lg:max-w-md shadow-sm">
+  <h3 className="text-sm font-semibold text-gray-900 mb-5 flex items-center gap-2 border-b border-orange-100 pb-2">
+    <FiBriefcase className="text-orange-600 text-xs" />
+    Contact Information
+  </h3>
+
+  {/* Grid layout for structured mapping */}
+  <div className="grid grid-cols-1 gap-4 text-[13px]">
+    
+    {/* Department */}
+    <div className="flex flex-col">
+      <span className="text-gray-400 text-[10px] uppercase tracking-wide">Department</span>
+      <span className="text-gray-700 font-medium">{staff.department}</span>
+    </div>
+
+    {/* Email */}
+    <div className="flex flex-col">
+      <span className="text-gray-400 text-[10px] uppercase tracking-wide">Email Address</span>
+      <span className="text-gray-700 font-medium break-all leading-tight">{staff.email}</span>
+    </div>
+
+    {/* Phone */}
+    <div className="flex flex-col">
+      <span className="text-gray-400 text-[10px] uppercase tracking-wide">Phone Number</span>
+      <span className="text-gray-700 font-medium">{staff.phone}</span>
+    </div>
+
+  </div>
+</div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -508,10 +549,28 @@ function ModernStaffCard({ staff, onEdit, onDelete, onView, selected, onSelect, 
   const [imageError, setImageError] = useState(false)
 
   const getImageUrl = (imagePath) => {
-    if (!imagePath) return null
-    if (imagePath.startsWith('http')) return imagePath
-    return imagePath.startsWith('/') ? imagePath : `/${imagePath}`
-  }
+    if (!imagePath || typeof imagePath !== 'string') {
+      return '/male.png'; // Default image
+    }
+    
+    // If it's already a full URL or starts with /, return as is
+    if (imagePath.startsWith('http') || imagePath.startsWith('/')) {
+      return imagePath;
+    }
+    
+    // If it's a base64 string (from file upload), return as is
+    if (imagePath.startsWith('data:image')) {
+      return imagePath;
+    }
+    
+    // If it's a path from API (without leading slash), add it
+    if (imagePath.startsWith('staff/')) {
+      return `/${imagePath}`;
+    }
+    
+    // Default fallback
+    return '/male.png';
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -521,106 +580,123 @@ function ModernStaffCard({ staff, onEdit, onDelete, onView, selected, onSelect, 
     }
   }
 
-  const imageUrl = getImageUrl(staff.image) || male
+  const imageUrl = getImageUrl(staff.image);
 
   return (
-    <div className={`bg-white rounded-2xl shadow-lg border-2 ${
-      selected ? 'border-orange-500 bg-orange-50' : 'border-gray-200'
-    }`}>
-      <div className="p-3 border-b border-gray-100 flex items-center">
+<div className={`bg-white rounded-[2rem] shadow-xl border ${
+  selected ? 'border-orange-500 ring-2 ring-orange-500/20' : 'border-gray-100'
+} w-full max-w-md overflow-hidden transition-none`}>
+  
+  {/* Image Section - Kept exactly as provided */}
+  <div className="relative h-64 w-full bg-gray-50 overflow-hidden">
+    {!imageError ? (
+     <img 
+  src={imageUrl} 
+  alt={staff.name} 
+  onClick={() => onView(staff)}
+  className="w-full h-full object-cover object-top cursor-pointer"
+  onError={() => setImageError(true)} 
+/>
+
+    ) : (
+      <div 
+        onClick={() => onView(staff)} 
+        className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-300 cursor-pointer"
+      >
+        <FiUser className="text-5xl" />
+      </div>
+    )}
+
+    {/* Overlay: Selection & Status */}
+    <div className="absolute top-4 left-4 right-4 flex justify-between items-center pointer-events-none">
+      <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm pointer-events-auto">
         <input 
           type="checkbox" 
           checked={selected} 
           onChange={(e) => onSelect(staff.id, e.target.checked)}
-          className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500 cursor-pointer" 
+          className="w-4 h-4 text-orange-600 border-gray-200 rounded-full focus:ring-0 cursor-pointer" 
         />
-        <span className="ml-2 text-sm text-gray-500">Select</span>
+      </div>
+      
+      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shadow-sm border ${getStatusColor(staff.status)} pointer-events-auto`}>
+        {staff.status || 'active'}
+      </span>
+    </div>
+  </div>
+
+  {/* Information Section - Modernized Mapping */}
+  <div className="p-6">
+    <div className="mb-6">
+      <h3 
+        onClick={() => onView(staff)} 
+        className="text-2xl font-black text-slate-900 leading-tight cursor-pointer truncate"
+      >
+        {staff.name}
+      </h3>
+      {/* Email Mapping: Subtle and clean */}
+      <p className="text-sm font-medium text-slate-400 mt-1 truncate">
+        {staff.email || 'no-email@company.com'}
+      </p>
+    </div>
+    
+    {/* Grid Info Mapping: Optimized for mobile viewing */}
+    <div className="grid grid-cols-2 gap-y-6 gap-x-4 mb-8">
+      {/* Department Mapping */}
+      <div className="space-y-1">
+        <span className="block text-[9px] text-slate-400 font-black uppercase tracking-[0.1em]">Department</span>
+        <div className="flex items-center gap-2">
+           <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0"></div>
+           <span className="text-xs font-bold text-slate-700 truncate">{staff.department}</span>
+        </div>
+      </div>
+      
+      {/* Role Mapping */}
+      <div className="space-y-1">
+        <span className="block text-[9px] text-slate-400 font-black uppercase tracking-[0.1em]">Role</span>
+        <span className="text-xs font-bold text-slate-700 truncate block">{staff.role}</span>
       </div>
 
-      <div className="relative h-40 overflow-hidden">
-        {imageUrl && !imageError ? (
-          <img 
-            src={imageUrl} 
-            alt={staff.name} 
-            onClick={() => onView(staff)}
-            className="w-full h-full object-cover cursor-pointer" 
-            onError={() => setImageError(true)} 
-          />
-        ) : (
-          <div 
-            onClick={() => onView(staff)} 
-            className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center text-gray-400 cursor-pointer"
-          >
-            <FiUser className="text-2xl mb-2" />
-            <span className="text-sm">No Image</span>
-          </div>
-        )}
-        
-        <div className="absolute top-2 right-2 flex gap-1">
-          <span className={`px-2 py-1 rounded-full text-xs font-bold border ${getStatusColor(staff.status)}`}>
-            {staff.status || 'active'}
-          </span>
+      {/* Position Mapping: Full width modern box */}
+      <div className="col-span-2 p-3 bg-slate-50 rounded-2xl flex items-center justify-between border border-slate-100/50">
+        <div className="flex flex-col min-w-0">
+          <span className="text-[9px] text-slate-400 font-black uppercase tracking-[0.1em]">Phone Number</span>
+          <span className="text-xs font-bold text-slate-800 truncate">{staff.phone}</span>
         </div>
-      </div>
-
-      <div className="p-4">
-        <h3 
-          onClick={() => onView(staff)} 
-          className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-orange-800 text-base mb-2 line-clamp-2 cursor-pointer"
-        >
-          {staff.name}
-        </h3>
-        
-        <div className="space-y-2 mb-3">
-          <div className="flex items-center justify-between text-xs">
-            <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold">
-              {staff.role}
-            </span>
-            <div className="flex items-center gap-1 text-blue-600 font-bold">
-              <FiBriefcase className="text-xs" />
-              <span className="text-xs truncate max-w-[80px]">{staff.position}</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-600 font-medium">{staff.department}</span>
-            <div className="flex items-center gap-1 text-green-600 font-bold">
-              <FiCheckCircle className="text-xs" />
-              <span>{staff.status || 'active'}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <div className="flex items-center gap-1">
-            <button 
-              onClick={() => onView(staff)} 
-              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-xl shadow-md cursor-pointer text-xs font-bold"
-            >
-              View
-            </button>
-          </div>
-          
-          <div className="flex items-center gap-1">
-            <button 
-              onClick={() => onEdit(staff)} 
-              disabled={actionLoading}
-              className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-2 py-1 rounded-xl disabled:opacity-50 shadow-md cursor-pointer text-xs font-bold"
-            >
-              Edit
-            </button>
-            <button 
-              onClick={() => onDelete(staff)} 
-              disabled={actionLoading}
-              className="bg-gradient-to-r from-red-500 to-red-600 text-white px-2 py-1 rounded-xl disabled:opacity-50 shadow-md cursor-pointer text-xs font-bold"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
+        <FiBriefcase className="text-slate-300 text-lg shrink-0 ml-2" />
       </div>
     </div>
-  )
+
+    {/* Modern Action Bar: No-hover, mobile-ready buttons */}
+    <div className="flex items-center gap-3">
+      <button 
+        onClick={() => onView(staff)} 
+        className="px-5 py-3 bg-slate-100 text-slate-600 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-none active:bg-slate-200"
+      >
+        View
+      </button>
+      
+      <button 
+        onClick={() => onEdit(staff)} 
+        disabled={actionLoading}
+        className="flex-1 bg-slate-900 text-white py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest disabled:opacity-50 transition-none active:scale-[0.98]"
+      >
+        Edit Staff
+      </button>
+      
+      <button 
+        onClick={() => onDelete(staff)} 
+        disabled={actionLoading}
+        className="p-3 bg-red-50 text-red-500 rounded-2xl border border-red-100 disabled:opacity-50 transition-none active:bg-red-100"
+      >
+        <FiTrash2 size={18} />
+      </button>
+    </div>
+  </div>
+</div>
+
+
+
+)
 }
 
 // Modern Staff Modal Component
@@ -632,7 +708,7 @@ function ModernStaffModal({ onClose, onSave, staff, loading }) {
     department: staff?.department || 'Sciences',
     email: staff?.email || '',
     phone: staff?.phone || '',
-    image: staff?.image || male,
+    image: staff?.image || '/male.png',
     bio: staff?.bio || '',
     responsibilities: Array.isArray(staff?.responsibilities) ? staff.responsibilities : [],
     expertise: Array.isArray(staff?.expertise) ? staff.expertise : [],
@@ -641,7 +717,7 @@ function ModernStaffModal({ onClose, onSave, staff, loading }) {
   });
 
   const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState(staff?.image || male)
+  const [imagePreview, setImagePreview] = useState(staff?.image || '/male.png')
   const [newResponsibility, setNewResponsibility] = useState('')
   const [newExpertise, setNewExpertise] = useState('')
   const [newAchievement, setNewAchievement] = useState('')
@@ -649,13 +725,39 @@ function ModernStaffModal({ onClose, onSave, staff, loading }) {
   const roles = ['Principal', 'Deputy Principal', 'Teacher', 'BOM Member', 'Support Staff', 'Librarian', 'Counselor'];
   const departments = ['Sciences', 'Mathematics', 'Languages', 'Humanities', 'Administration', 'Sports', 'Guidance'];
 
+  useEffect(() => {
+    if (staff) {
+      // Get the correct image URL for preview
+      const getPreviewUrl = (imgPath) => {
+        if (!imgPath || typeof imgPath !== 'string') return '/male.png';
+        if (imgPath.startsWith('/') || imgPath.startsWith('http') || imgPath.startsWith('data:image')) {
+          return imgPath;
+        }
+        if (imgPath.startsWith('staff/')) {
+          return `/${imgPath}`;
+        }
+        return '/male.png';
+      };
+      
+      setImagePreview(getPreviewUrl(staff.image));
+      setFormData(prev => ({
+        ...prev,
+        image: staff.image || '/male.png'
+      }));
+    }
+  }, [staff]);
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setImageFile(file);
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
-      setFormData({ ...formData, image: '' });
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const previewUrl = e.target.result;
+        setImagePreview(previewUrl);
+        setFormData(prev => ({ ...prev, image: '' })); // Clear image path when uploading file
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -698,7 +800,36 @@ function ModernStaffModal({ onClose, onSave, staff, loading }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await onSave(formData, staff?.id);
+    
+    // Prepare form data
+    const submitData = new FormData();
+    
+    submitData.append('name', formData.name);
+    submitData.append('role', formData.role);
+    submitData.append('position', formData.position);
+    submitData.append('department', formData.department);
+    submitData.append('email', formData.email);
+    submitData.append('phone', formData.phone);
+    submitData.append('bio', formData.bio);
+    submitData.append('status', formData.status);
+    
+    submitData.append('responsibilities', JSON.stringify(formData.responsibilities));
+    submitData.append('expertise', JSON.stringify(formData.expertise));
+    submitData.append('achievements', JSON.stringify(formData.achievements));
+    
+    // Handle image
+    if (imageFile) {
+      // Upload new file
+      submitData.append('image', imageFile);
+    } else if (formData.image === '/male.png' || formData.image === '/female.png') {
+      // Using default avatar - don't send image (backend will use default logic)
+      submitData.append('image', '');
+    } else if (formData.image) {
+      // If image is already a path from API, we might need to handle differently
+      // For now, don't send it (assuming backend will keep existing)
+    }
+    
+    await onSave(submitData, staff?.id);
   };
 
   const handleChange = (field, value) => {
@@ -753,6 +884,10 @@ function ModernStaffModal({ onClose, onSave, staff, loading }) {
                           src={imagePreview}
                           alt="Preview"
                           className="w-20 h-20 rounded-2xl object-cover shadow-lg"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = '/male.png';
+                          }}
                         />
                       </div>
                       <div className="flex-1">
@@ -781,11 +916,11 @@ function ModernStaffModal({ onClose, onSave, staff, loading }) {
                           type="button"
                           onClick={() => {
                             setImageFile(null);
-                            setImagePreview(male);
-                            setFormData({ ...formData, image: male });
+                            setImagePreview('/male.png');
+                            setFormData(prev => ({ ...prev, image: '/male.png' }));
                           }}
                           className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 ${
-                            formData.image === male
+                            formData.image === '/male.png'
                               ? 'border-orange-500 bg-orange-50' 
                               : 'border-gray-200'
                           }`}
@@ -802,11 +937,11 @@ function ModernStaffModal({ onClose, onSave, staff, loading }) {
                           type="button"
                           onClick={() => {
                             setImageFile(null);
-                            setImagePreview(female);
-                            setFormData({ ...formData, image: female });
+                            setImagePreview('/female.png');
+                            setFormData(prev => ({ ...prev, image: '/female.png' }));
                           }}
                           className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 ${
-                            formData.image === female
+                            formData.image === '/female.png'
                               ? 'border-orange-500 bg-orange-50' 
                               : 'border-gray-200'
                           }`}
@@ -1317,35 +1452,16 @@ export default function StaffManager() {
   const handleSubmit = async (formData, id) => {
     setSaving(true);
     try {
-      const submitData = new FormData();
-      
-      submitData.append('name', formData.name);
-      submitData.append('role', formData.role);
-      submitData.append('position', formData.position);
-      submitData.append('department', formData.department);
-      submitData.append('email', formData.email);
-      submitData.append('phone', formData.phone);
-      submitData.append('bio', formData.bio);
-      submitData.append('status', formData.status);
-      
-      submitData.append('responsibilities', JSON.stringify(formData.responsibilities));
-      submitData.append('expertise', JSON.stringify(formData.expertise));
-      submitData.append('achievements', JSON.stringify(formData.achievements));
-      
-      if (formData.image && formData.image !== male && formData.image !== female) {
-        submitData.append('image', formData.image);
-      }
-
       let response;
       if (id) {
         response = await fetch(`/api/staff/${id}`, {
           method: 'PUT',
-          body: submitData,
+          body: formData,
         });
       } else {
         response = await fetch('/api/staff', {
           method: 'POST',
-          body: submitData,
+          body: formData,
         });
       }
 
