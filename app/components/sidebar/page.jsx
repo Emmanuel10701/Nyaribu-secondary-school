@@ -23,7 +23,7 @@ import {
   FiCheckCircle,
   FiDownload,
   FiFilter,
-  FiSearch,
+  FiSearch,FiDollarSign,
   FiFolder,
   FiFile,
   FiVideo,
@@ -75,6 +75,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
     totalResources: 0,
     recentResources: 0,
     totalStudent: 0,
+    totalFees:0,
     activeResources: 0,
     totalCareers: 0,
     resourcesByType: {
@@ -206,7 +207,8 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
         fetch('/api/applyadmission'),
         fetch('/api/resources?accessLevel=admin&limit=100'),
         fetch('/api/career'),
-        fetch('/api/student')
+        fetch('/api/student'),
+        fetch('/api/feebalances')
       ]);
 
       // Process responses and get actual counts
@@ -224,6 +226,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
       const careers = careersRes.status === 'fulfilled' ? await careersRes.value.json() : { careers: [] };
 
       const student = studentRes.status === 'fulfilled' ? await studentRes.value.json() : { students: [] };
+      const fees = studentRes.status === 'fulfilled' ? await studentRes.value.json() : { feebalances: [] };
 
       const activeStudents = students.students?.filter(s => s.status === 'Active').length || 0;
       const activeCouncil = council.councilMembers?.filter(c => c.status === 'Active').length || 0;
@@ -257,6 +260,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
 
       setRealStats({
         totalStudents: students.students?.length || 0,
+
         activeStudents,
         totalStaff: staff.staff?.length || 0,
         totalSubscribers: subscribers.subscribers?.length || 0,
@@ -452,7 +456,13 @@ id: 'careers',
       icon: FiFolder,
       badge: 'emerald',
     },
-{
+    {
+      id: 'feebalances',
+      label: 'Fee Balances',
+      icon: FiDollarSign,
+      badge: 'yellow'
+    },
+    {
       id: 'student',
       label: 'Student Records',
       icon: FiInfo,

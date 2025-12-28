@@ -4,7 +4,7 @@ import { prisma } from '@/libs/prisma';
 
 // Constants
 const JWT_SECRET = process.env.JWT_SECRET || 'nyaribu-student-secret-key-2024';
-const STUDENT_TOKEN_EXPIRY = '15m'; // 15 minutes
+const STUDENT_TOKEN_EXPIRY = '2h'; // Changed from 15m to 2 hours
 
 // Generate student JWT token
 const generateStudentToken = (student) => {
@@ -22,27 +22,62 @@ const generateStudentToken = (student) => {
   );
 };
 
-// Validate student credentials
+// Clean and normalize name for comparison
+const normalizeName = (name) => {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+    .replace(/[^a-z\s]/g, '') // Remove special characters and numbers
+    .split(' ')
+    .filter(word => word.length > 0) // Remove empty strings
+    .sort(); // Sort alphabetically for comparison
+};
+
+// Find student by admission number with flexible name matching
+const findStudentByName = (student, nameParts) => {
+  // Get all possible name combinations from database student
+  const dbNameVariations = [
+    student.firstName?.toLowerCase() || '',
+    student.lastName?.toLowerCase() || '',
+    student.middleName?.toLowerCase() || ''
+  ].filter(name => name && name.length > 0);
+
+  // Sort both arrays for comparison
+  const sortedNameParts = [...nameParts].sort();
+  const sortedDbNames = [...dbNameVariations].sort();
+
+  // Check if all entered name parts exist in database names
+  const allPartsMatch = sortedNameParts.every(part => {
+    return sortedDbNames.some(dbName => {
+      // Exact match or partial match (for abbreviations)
+      return dbName === part || 
+             dbName.startsWith(part) || 
+             part.startsWith(dbName) ||
+             (part.length === 1 && dbName[0] === part); // Handle initials
+    });
+  });
+
+  return allPartsMatch;
+};
+
+// Validate student credentials with flexible name matching
 const validateStudentCredentials = async (fullName, admissionNumber) => {
   try {
     // Clean inputs
     const cleanAdmissionNumber = admissionNumber.trim().toUpperCase();
-    const cleanFullName = fullName.trim().toLowerCase();
+    const cleanFullName = fullName.trim();
 
-    // Parse name parts
-    const nameParts = cleanFullName.split(' ').filter(part => part.length > 0);
+    // Parse and normalize name parts
+    const nameParts = normalizeName(cleanFullName);
     
-    if (nameParts.length < 2) {
+    if (nameParts.length < 1) {
       return { 
         success: false, 
-        error: 'Please enter your full name (first and last name)',
+        error: 'Please enter your name',
         requiresContact: false 
       };
     }
-
-    const firstName = nameParts[0];
-    const lastName = nameParts[nameParts.length - 1];
-    const middleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : null;
 
     // Find student by admission number
     const student = await prisma.databaseStudent.findUnique({
@@ -55,27 +90,18 @@ const validateStudentCredentials = async (fullName, admissionNumber) => {
     if (!student) {
       return { 
         success: false, 
-        error: 'Student not found. Please contact your class teacher or the school administrator/secretary to add or confirm your records.',
+        error: 'Student not found with this admission number. Please contact your class teacher or the school administrator/secretary to add or confirm your records.',
         requiresContact: true 
       };
     }
 
-    // Check name match (case insensitive)
-    const isFirstNameMatch = student.firstName.toLowerCase() === firstName;
-    const isLastNameMatch = student.lastName.toLowerCase() === lastName;
-    
-    let isMiddleNameMatch = true;
-    if (middleName && student.middleName) {
-      isMiddleNameMatch = student.middleName.toLowerCase() === middleName.toLowerCase();
-    } else if (middleName && !student.middleName) {
-      // If user entered middle name but student doesn't have one in database
-      isMiddleNameMatch = false;
-    }
+    // Check name match with flexible matching
+    const isNameMatch = findStudentByName(student, nameParts);
 
-    if (!isFirstNameMatch || !isLastNameMatch || !isMiddleNameMatch) {
+    if (!isNameMatch) {
       return { 
         success: false, 
-        error: 'Student not found. Please contact your class teacher or the school administrator/secretary to add or confirm your records.',
+        error: 'Name does not match admission number. Please check and try again, or contact your class teacher or the school administrator/secretary to confirm your details.',
         requiresContact: true 
       };
     }
@@ -110,7 +136,7 @@ export async function POST(request) {
       );
     }
 
-    // Validate student credentials
+    // Validate student credentials with flexible name matching
     const validation = await validateStudentCredentials(fullName, admissionNumber);
 
     if (!validation.success) {
@@ -126,10 +152,10 @@ export async function POST(request) {
 
     const student = validation.student;
 
-    // Generate JWT token
+    // Generate JWT token with 2-hour expiry
     const token = generateStudentToken(student);
 
-    // Create student session record - handle case where studentSession might not exist
+    // Create student session record with 2-hour expiry
     try {
       await prisma.studentSession.create({
         data: {
@@ -137,7 +163,7 @@ export async function POST(request) {
           admissionNumber: student.admissionNumber,
           name: `${student.firstName} ${student.lastName}`,
           token,
-          expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+          expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours
           ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
           userAgent: request.headers.get('user-agent') || 'unknown'
         }
@@ -167,7 +193,7 @@ export async function POST(request) {
         address: student.address
       },
       token,
-      expiresIn: '15 minutes',
+      expiresIn: '2 hours',
       permissions: {
         canViewResources: true,
         canViewAssignments: true,
@@ -176,7 +202,7 @@ export async function POST(request) {
     }, {
       status: 200,
       headers: {
-        'Set-Cookie': `student_token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=900; Secure=${process.env.NODE_ENV === 'production'}`
+        'Set-Cookie': `student_token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=7200; Secure=${process.env.NODE_ENV === 'production'}`
       }
     });
 

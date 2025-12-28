@@ -30,6 +30,7 @@ import {
   FiThumbsUp,
   FiThumbsDown,
   FiPercent,
+  FiDollarSign,
   FiZap,
   FiGlobe,
   FiMapPin,
