@@ -184,19 +184,18 @@ export default function ModernNavbar() {
     </a>
     
     <a
-      href="/pages/Assignments-and-learning-resources"
+      href="/pages/StudentPortal"
       className={`flex items-center gap-2 px-3 py-2 text-xs font-medium ${
-        isActiveLink('/pages/Assignments-and-learning-resources')
+        isActiveLink('/pages/StudentPortal')
           ? 'text-blue-600 bg-blue-50'
           : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
       }`}
       onClick={() => setIsAcademicDropdownOpen(false)}
     >
       <FiFileText className="text-[12px]" />
-      <span>Assignments & Resources</span>
+      <span>Student Portal</span>
     </a>
 
-    {/* FIXED: Removed the double "/pages//pages/" */}
     <a
       href="/pages/Guidance-and-Councelling"
       className={`flex items-center gap-2 px-3 py-2 text-xs font-medium ${
@@ -289,7 +288,7 @@ export default function ModernNavbar() {
                   { name: 'About', href: '/pages/AboutUs', icon: FiInfo },
                   { name: 'Academics', href: '/pages/academics', icon: FiBook },
                   // ADDED: Assignments & Resources as main link in mobile
-                  { name: 'Assignments & Resources', href: '/pages/Assignments-and-learning-resources', icon: FiFileText },
+                  { name: 'Student Portal', href: '/pages/StudentPortal', icon: FiFileText },
                   { name: 'Admissions', href: '/pages/admissions', icon: FiUserPlus },
                   { name: 'Staff', href: '/pages/staff', icon: FiUsers },
                   { name: 'Gallery', href: '/pages/gallery', icon: FiImage },

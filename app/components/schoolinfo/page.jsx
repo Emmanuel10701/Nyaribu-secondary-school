@@ -1179,7 +1179,9 @@ function ModernVideoUpload({
   )
 }
 
-// Additional Results Upload Component with Remove functionality
+
+
+// Additional Results Upload Component with PROPER add/replace/remove functionality
 function AdditionalResultsUpload({ 
   files = [], 
   onFilesChange, 
@@ -1190,218 +1192,236 @@ function AdditionalResultsUpload({
 }) {
   const [dragOver, setDragOver] = useState(false);
   const [localFiles, setLocalFiles] = useState([]);
-  const [cancelledExistingFiles, setCancelledExistingFiles] = useState([]);
-  const [focusedInput, setFocusedInput] = useState(null);
-  const [removedFiles, setRemovedFiles] = useState([]);
+  const [filesToAdd, setFilesToAdd] = useState([]);
+  const [filesToReplace, setFilesToReplace] = useState([]);
+  const [filesToRemove, setFilesToRemove] = useState([]);
   const fileInputRef = useRef(null);
 
+  // Initialize local files state
   useEffect(() => {
-    const existingFileObjects = (existingFiles || []).map(file => {
-      const existingInState = localFiles.find(f => 
-        f.isExisting && (f.filepath === file.filepath || f.filename === file.filename)
-      );
-      
-      return {
-        ...file,
-        isExisting: true,
-        id: file.filepath || file.filename || `existing_${Date.now()}_${Math.random()}`,
-        year: existingInState?.year || file.year || '',
-        description: existingInState?.description || file.description || '',
-        isModified: existingInState?.isModified || false
-      };
-    });
-    
-    const newFileObjects = (files || []).filter(f => {
-      return !localFiles.some(lf => 
-        lf.isNew && lf.file === f
-      );
-    }).map(f => ({
-      file: f,
-      year: '',
-      description: '',
-      isNew: true,
-      id: `new_${Date.now()}_${Math.random()}`
+    // Load existing files from props
+    const existingFileObjects = (existingFiles || []).map((file, index) => ({
+      ...file,
+      id: file.filepath || file.filename || `existing_${index}`,
+      isExisting: true,
+      isModified: false,
+      isRemoved: false,
+      isReplaced: false,
+      originalFilePath: file.filepath || file.filename
     }));
     
-    const updatedFiles = [...existingFileObjects];
+    // Load new files from props that haven't been added yet
+    const newFileObjects = (files || []).filter(file => {
+      // Check if this file is already in local state
+      return !localFiles.some(lf => 
+        (lf.file && file.name === lf.file.name && file.size === lf.file.size) ||
+        (lf.filename === file.name)
+      );
+    }).map((file, index) => ({
+      id: `new_${Date.now()}_${index}`,
+      file: file,
+      filename: file.name,
+      year: file.year || '',
+      description: file.description || '',
+      isNew: true,
+      isModified: true,
+      filetype: file.type?.split('/')[1] || 'file',
+      filesize: file.size || file.filesize || 0
+    }));
     
-    localFiles.filter(f => f.isNew).forEach(newFile => {
-      if (!updatedFiles.some(f => f.id === newFile.id)) {
-        updatedFiles.push(newFile);
+    // Combine all files
+    const allFiles = [...existingFileObjects, ...newFileObjects];
+    
+    // Remove duplicates
+    const uniqueFiles = [];
+    const seenIds = new Set();
+    
+    allFiles.forEach(file => {
+      if (!seenIds.has(file.id)) {
+        seenIds.add(file.id);
+        uniqueFiles.push(file);
       }
     });
     
-    newFileObjects.forEach(newFile => {
-      updatedFiles.push(newFile);
-    });
-    
-    setLocalFiles(updatedFiles);
+    setLocalFiles(uniqueFiles);
   }, [existingFiles, files]);
 
   const handleFileChange = (e) => {
-    const newFiles = Array.from(e.target.files);
-    if (newFiles.length > 0) {
-      const newFileObjects = newFiles.map(file => ({
-        file,
+    const newFileList = Array.from(e.target.files);
+    if (newFileList.length > 0) {
+      addNewFiles(newFileList, false); // false = not replacing
+    }
+  };
+
+  const addNewFiles = (fileList, isReplacement = false, replaceFileId = null) => {
+    const newFileObjects = fileList.map((file, index) => {
+      const fileId = `new_${Date.now()}_${index}`;
+      return {
+        id: fileId,
+        file: file,
+        filename: file.name,
         year: '',
         description: '',
         isNew: true,
-        id: `new_${Date.now()}_${Math.random()}`
-      }));
-      
-      const updatedFiles = [...localFiles, ...newFileObjects];
-      setLocalFiles(updatedFiles);
-      
-      const filesForParent = updatedFiles
-        .filter(f => !f.isExisting || f.isNew)
-        .map(f => f.file ? f.file : f);
-      onFilesChange(filesForParent);
+        isModified: true,
+        isReplacement: isReplacement,
+        replacesFileId: replaceFileId,
+        filetype: file.type.split('/')[1] || 'file',
+        filesize: file.size
+      };
+    });
+    
+    // Add to filesToAdd state for tracking
+    if (!isReplacement) {
+      setFilesToAdd(prev => [...prev, ...newFileObjects.map(f => f.file)]);
+    } else {
+      setFilesToReplace(prev => [...prev, ...newFileObjects.map(f => ({
+        newFile: f.file,
+        originalFileId: replaceFileId
+      }))]);
+    }
+    
+    // Update local files state
+    if (isReplacement && replaceFileId) {
+      // For replacements, remove the old file and add new one
+      setLocalFiles(prev => {
+        // Mark old file as replaced
+        const updated = prev.map(file => 
+          file.id === replaceFileId ? { ...file, isReplaced: true } : file
+        );
+        // Add new files
+        return [...updated, ...newFileObjects];
+      });
+    } else {
+      // For new additions, just add to the list
+      setLocalFiles(prev => [...prev, ...newFileObjects]);
+    }
+    
+    // Notify parent about new files
+    const newFilesForParent = newFileObjects.map(f => f.file);
+    onFilesChange([...files, ...newFilesForParent]);
+    
+    toast.success(`${fileList.length} file(s) ${isReplacement ? 'replaced' : 'added'}. Fill in year and description.`);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     setDragOver(false);
     const newFiles = Array.from(e.dataTransfer.files);
     if (newFiles.length > 0) {
-      const newFileObjects = newFiles.map(file => ({
-        file,
-        year: '',
-        description: '',
-        isNew: true,
-        id: `new_${Date.now()}_${Math.random()}`
-      }));
-      
-      const updatedFiles = [...localFiles, ...newFileObjects];
-      setLocalFiles(updatedFiles);
-      
-      const filesForParent = updatedFiles
-        .filter(f => !f.isExisting || f.isNew)
-        .map(f => f.file ? f.file : f);
-      onFilesChange(filesForParent);
+      addNewFiles(newFiles, false);
     }
   };
 
-  const handleYearChange = (index, year) => {
-    const updatedFiles = [...localFiles];
-    const fileToUpdate = updatedFiles[index];
-    
-    const updatedFile = { 
-      ...fileToUpdate, 
-      year,
-      isModified: fileToUpdate.isExisting ? true : fileToUpdate.isModified
-    };
-    
-    updatedFiles[index] = updatedFile;
-    setLocalFiles(updatedFiles);
-    
-    const filesForParent = updatedFiles
-      .filter(f => !f.isExisting || f.isNew || f.isModified)
-      .map(f => {
-        if (f.isExisting && f.isModified) {
-          return {
-            ...f,
-            year: f.year,
-            description: f.description,
-            isModified: true
-          };
-        } else if (f.isNew && f.file) {
-          return f.file;
-        }
-        return f;
-      });
-    
-    onFilesChange(filesForParent);
+  const handleYearChange = (id, year) => {
+    setLocalFiles(prev => prev.map(file => 
+      file.id === id ? { 
+        ...file, 
+        year,
+        isModified: true
+      } : file
+    ));
   };
 
-  const handleDescriptionChange = (index, description) => {
-    const updatedFiles = [...localFiles];
-    const fileToUpdate = updatedFiles[index];
-    
-    const updatedFile = { 
-      ...fileToUpdate, 
-      description,
-      isModified: fileToUpdate.isExisting ? true : fileToUpdate.isModified
-    };
-    
-    updatedFiles[index] = updatedFile;
-    setLocalFiles(updatedFiles);
-    
-    const filesForParent = updatedFiles
-      .filter(f => !f.isExisting || f.isNew || f.isModified)
-      .map(f => {
-        if (f.isExisting && f.isModified) {
-          return {
-            ...f,
-            year: f.year,
-            description: f.description,
-            isModified: true
-          };
-        } else if (f.isNew && f.file) {
-          return f.file;
-        }
-        return f;
-      });
-    
-    onFilesChange(filesForParent);
+  const handleDescriptionChange = (id, description) => {
+    setLocalFiles(prev => prev.map(file => 
+      file.id === id ? { 
+        ...file, 
+        description,
+        isModified: true
+      } : file
+    ));
   };
 
-  const handleReplaceExisting = (index) => {
-    const fileToReplace = localFiles[index];
+  const handleReplaceExisting = (id) => {
+    const fileToReplace = localFiles.find(f => f.id === id);
     
-    if (fileToReplace.isExisting && !fileToReplace.isNew) {
-      setCancelledExistingFiles(prev => [...prev, fileToReplace]);
-      
-      if (onCancelExisting) {
-        onCancelExisting(fileToReplace);
-      }
-      
-      const updatedFiles = localFiles.filter((_, i) => i !== index);
-      setLocalFiles(updatedFiles);
-      
-      const filesForParent = updatedFiles
-        .filter(f => !f.isExisting || f.isNew || f.isModified)
-        .map(f => f.file ? f.file : f);
-      
-      onFilesChange(filesForParent);
-      
-      setTimeout(() => {
-        if (fileInputRef.current) {
-          fileInputRef.current.click();
+    if (fileToReplace && fileToReplace.isExisting) {
+      // Open file dialog for replacement
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.txt';
+      input.onchange = (e) => {
+        const replacementFile = e.target.files[0];
+        if (replacementFile) {
+          // Add the replacement file
+          addNewFiles([replacementFile], true, id);
+          
+          // Notify parent about cancelled existing file
+          if (onCancelExisting) {
+            onCancelExisting(fileToReplace);
+          }
         }
-      }, 100);
+      };
+      input.click();
     }
   };
 
-  const handleRemoveExisting = (index) => {
-    const fileToRemove = localFiles[index];
+  const handleRemoveExisting = (id) => {
+    const fileToRemove = localFiles.find(f => f.id === id);
     
-    if (fileToRemove.isExisting && !fileToRemove.isNew) {
-      setRemovedFiles(prev => [...prev, fileToRemove]);
+    if (fileToRemove && fileToRemove.isExisting) {
+      // Mark file for removal
+      setLocalFiles(prev => prev.map(file => 
+        file.id === id ? { ...file, isRemoved: true } : file
+      ));
       
+      // Add to removal tracking
+      setFilesToRemove(prev => [...prev, fileToRemove]);
+      
+      // Notify parent
       if (onRemoveExisting) {
         onRemoveExisting(fileToRemove);
       }
       
-      const updatedFiles = localFiles.filter((_, i) => i !== index);
-      setLocalFiles(updatedFiles);
+      toast.warning('File marked for removal. Save changes to delete permanently.');
+    }
+  };
+
+  const handleRemoveNewFile = (id) => {
+    const fileToRemove = localFiles.find(f => f.id === id);
+    
+    if (fileToRemove && fileToRemove.isNew) {
+      // Remove from local state
+      setLocalFiles(prev => prev.filter(file => file.id !== id));
       
-      const filesForParent = updatedFiles
-        .filter(f => !f.isExisting || f.isNew || f.isModified)
-        .map(f => f.file ? f.file : f);
+      // Remove from tracking states
+      setFilesToAdd(prev => prev.filter(f => 
+        f !== fileToRemove.file && 
+        f.name !== fileToRemove.filename
+      ));
       
-      onFilesChange(filesForParent);
+      setFilesToReplace(prev => prev.filter(f => 
+        f.newFile !== fileToRemove.file &&
+        f.originalFileId !== fileToRemove.replacesFileId
+      ));
       
-      toast.success('Existing file marked for removal. Save changes to confirm.');
+      // Remove from parent state
+      if (fileToRemove.file) {
+        const updatedFiles = files.filter(f => 
+          f !== fileToRemove.file && 
+          f.name !== fileToRemove.filename
+        );
+        onFilesChange(updatedFiles);
+      }
+      
+      toast.info('New file removed from list.');
     }
   };
 
   const getFileIcon = (fileType) => {
     if (!fileType) return <FaFile className="text-gray-500" />;
-    if (fileType.includes('pdf')) return <FaFilePdf className="text-red-500" />;
-    if (fileType.includes('image')) return <FaFileAlt className="text-green-500" />;
-    if (fileType.includes('video')) return <FaFileVideo className="text-blue-500" />;
-    if (fileType.includes('audio')) return <FaFileAudio className="text-purple-500" />;
+    const type = fileType.toLowerCase();
+    if (type.includes('pdf')) return <FaFilePdf className="text-red-500" />;
+    if (type.includes('image')) return <FaFileAlt className="text-green-500" />;
+    if (type.includes('word') || type.includes('doc')) return <FaFileAlt className="text-blue-500" />;
+    if (type.includes('excel') || type.includes('sheet') || type.includes('xls')) return <FaFileAlt className="text-green-600" />;
     return <FaFile className="text-gray-500" />;
   };
 
@@ -1413,174 +1433,12 @@ function AdditionalResultsUpload({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getFileType = (file) => {
-    if (file.filetype) return file.filetype;
-    if (file.file?.type) {
-      if (file.file.type.includes('pdf')) return 'pdf';
-      if (file.file.type.includes('image')) return 'image';
-      if (file.file.type.includes('video')) return 'video';
-      if (file.file.type.includes('audio')) return 'audio';
-      if (file.file.type.includes('word')) return 'doc';
-      if (file.file.type.includes('excel')) return 'xls';
-    }
-    return 'document';
-  };
+  // Filter files for display (excluding removed ones)
+  const displayFiles = localFiles.filter(file => !file.isRemoved);
 
-  return (
-    <div className="space-y-3">
-      <div className="flex justify-between items-center">
-        <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-          <FaPaperclip className="text-gray-500" />
-          <span>{label}</span>
-        </label>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-lg hover:from-blue-700 hover:to-blue-800 transition duration-200 font-bold shadow cursor-pointer text-xs"
-        >
-          <FaPlus className="text-xs" /> Add File
-        </button>
-      </div>
-
-      <div
-        className={`border-2 border-dashed rounded-xl p-4 text-center transition-all duration-300 cursor-pointer group ${
-          dragOver 
-            ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-blue-100' 
-            : 'border-gray-300 hover:border-blue-300 bg-gradient-to-br from-gray-50 to-gray-100 hover:shadow-sm'
-        }`}
-        onDrop={handleDrop}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-        onDragLeave={() => setDragOver(false)}
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <div className="relative">
-          <FaUpload className={`mx-auto text-2xl mb-2 transition-all duration-300 ${
-            dragOver ? 'text-blue-500 scale-110' : 'text-gray-400 group-hover:text-blue-500'
-          }`} />
-        </div>
-        <p className="text-gray-700 mb-1 font-medium transition-colors duration-300 group-hover:text-gray-800 text-sm">
-          {dragOver ? '📁 Drop files here!' : 'Drag & drop or click to upload additional results'}
-        </p>
-        <p className="text-xs text-gray-600 transition-colors duration-300 group-hover:text-gray-700">
-          PDF, Images, Documents • Max 50MB each
-        </p>
-        <input 
-          ref={fileInputRef}
-          type="file" 
-          multiple
-          onChange={handleFileChange} 
-          className="hidden" 
-          id="additional-results-upload" 
-        />
-      </div>
-
-      {localFiles.length > 0 && (
-        <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
-          {localFiles.map((fileObj, index) => {
-            const isExisting = fileObj.isExisting && !fileObj.isNew;
-            const fileType = getFileType(fileObj);
-            
-            return (
-              <div key={fileObj.id} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="p-2 bg-gray-100 rounded-lg">
-                      {getFileIcon(fileType)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-900 text-sm truncate">
-                        {fileObj.file?.name || fileObj.filename || 'File'}
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
-                        {fileObj.file?.size && (
-                          <>
-                            <span>{formatFileSize(fileObj.file.size)}</span>
-                            <span>•</span>
-                          </>
-                        )}
-                        <span className="capitalize">{fileType}</span>
-                        {isExisting && (
-                          <>
-                            <span>•</span>
-                            <span className="text-blue-600 font-medium">Existing</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  {isExisting && (
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleReplaceExisting(index)}
-                        className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition duration-200 font-bold shadow cursor-pointer flex items-center gap-1 text-sm"
-                        title="Replace file"
-                      >
-                        <FaUpload className="text-xs" />
-                        Replace
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveExisting(index)}
-                        className="bg-gradient-to-r from-red-600 to-red-700 text-white px-3 py-2 rounded-lg hover:from-red-700 hover:to-red-800 transition duration-200 font-bold shadow cursor-pointer flex items-center gap-1 text-sm"
-                        title="Remove file"
-                      >
-                        <FaTrash className="text-xs" />
-                        Remove
-                      </button>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1.5">
-                      Year {isExisting ? '(Update)' : ''}
-                    </label>
-                    <input
-                      type="number"
-                      min="2000"
-                      max="2100"
-                      value={fileObj.year || ''}
-                      onChange={(e) => handleYearChange(index, e.target.value)}
-                      onFocus={() => setFocusedInput(`${index}-year`)}
-                      onBlur={() => setFocusedInput(null)}
-                      placeholder="e.g., 2024"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                      autoComplete="off"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1.5">
-                      Description {isExisting ? '(Update)' : ''}
-                    </label>
-                    <input
-                      type="text"
-                      value={fileObj.description || ''}
-                      onChange={(e) => handleDescriptionChange(index, e.target.value)}
-                      onFocus={() => setFocusedInput(`${index}-description`)}
-                      onBlur={() => setFocusedInput(null)}
-                      placeholder="e.g., Term 1 Results, Mid-term Analysis"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                      autoComplete="off"
-                    />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-      
-      {(cancelledExistingFiles.length > 0 || removedFiles.length > 0) && (
-        <div className="text-xs text-gray-500 italic">
-          {cancelledExistingFiles.length + removedFiles.length} existing file(s) marked for removal on save
-        </div>
-      )}
-    </div>
-  );
+ 
 }
+
 
 // Modern Admission Curriculum Layout
 function ModernAdmissionCurriculumView({ curriculumPDF, curriculumPdfName }) {
@@ -1962,7 +1820,7 @@ return (
 );
 }
 
-// Modern Exam Mapping Section
+// Modern Exam Mapping Section - UPDATED with proper file handling
 function ModernExamMappingView({ 
   examResults, 
   additionalResultsFiles = [],
@@ -1971,9 +1829,11 @@ function ModernExamMappingView({
   const [isEditing, setIsEditing] = useState(false);
   const [editedYears, setEditedYears] = useState({});
   const [localAdditionalFiles, setLocalAdditionalFiles] = useState([]);
-  const [cancelledFiles, setCancelledFiles] = useState([]);
-  const [removedFiles, setRemovedFiles] = useState([]);
+  const [filesToAdd, setFilesToAdd] = useState([]);
+  const [filesToReplace, setFilesToReplace] = useState([]);
+  const [filesToRemove, setFilesToRemove] = useState([]);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (examResults) {
@@ -1990,7 +1850,11 @@ function ModernExamMappingView({
       setLocalAdditionalFiles(additionalResultsFiles.map(file => ({
         ...file,
         isExisting: true,
-        id: file.filepath || file.filename
+        id: file.filepath || file.filename || `existing_${Date.now()}_${Math.random()}`,
+        isModified: false,
+        isRemoved: false,
+        isReplaced: false,
+        originalFilePath: file.filepath || file.filename
       })));
     }
   }, [examResults, additionalResultsFiles]);
@@ -2002,61 +1866,242 @@ function ModernExamMappingView({
     }));
   };
 
+  const handleFileYearChange = (id, year) => {
+    setLocalAdditionalFiles(prev => prev.map(file => 
+      file.id === id ? { 
+        ...file, 
+        year,
+        isModified: true
+      } : file
+    ));
+  };
+
+  const handleFileDescriptionChange = (id, description) => {
+    setLocalAdditionalFiles(prev => prev.map(file => 
+      file.id === id ? { 
+        ...file, 
+        description,
+        isModified: true
+      } : file
+    ));
+  };
+
+  const handleAddNewFile = (newFiles, isReplacement = false, replaceFileId = null) => {
+    const fileObjects = Array.from(newFiles).map((file, index) => ({
+      file,
+      filename: file.name,
+      year: '',
+      description: '',
+      isNew: true,
+      isReplacement: isReplacement,
+      replacesFileId: replaceFileId,
+      id: `new_${Date.now()}_${index}`,
+      filesize: file.size,
+      filetype: file.type.split('/')[1] || 'file',
+      isModified: true
+    }));
+    
+    if (!isReplacement) {
+      setFilesToAdd(prev => [...prev, ...fileObjects.map(f => f.file)]);
+    } else {
+      setFilesToReplace(prev => [...prev, ...fileObjects.map(f => ({
+        newFile: f.file,
+        originalFileId: replaceFileId
+      }))]);
+    }
+    
+    // Update local files
+    if (isReplacement && replaceFileId) {
+      setLocalAdditionalFiles(prev => {
+        const updated = prev.map(file => 
+          file.id === replaceFileId ? { ...file, isReplaced: true } : file
+        );
+        return [...updated, ...fileObjects];
+      });
+    } else {
+      setLocalAdditionalFiles(prev => [...prev, ...fileObjects]);
+    }
+    
+    toast.success(`${newFiles.length} new file(s) ${isReplacement ? 'replaced' : 'added'}. Fill in year and description.`);
+  };
+
+  const handleFileDrop = (e) => {
+    e.preventDefault();
+    const newFiles = Array.from(e.dataTransfer.files);
+    if (newFiles.length > 0) {
+      handleAddNewFile(newFiles, false);
+    }
+  };
+
+  const handleFileUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileInputChange = (e) => {
+    const newFiles = Array.from(e.target.files);
+    if (newFiles.length > 0) {
+      handleAddNewFile(newFiles, false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveLocalFile = (id) => {
+    const fileToRemove = localAdditionalFiles.find(f => f.id === id);
+    
+    if (!fileToRemove) return;
+    
+    if (fileToRemove.isExisting) {
+      // For existing files, mark for removal
+      setLocalAdditionalFiles(prev => prev.map(file => 
+        file.id === id ? { ...file, isRemoved: true } : file
+      ));
+      setFilesToRemove(prev => [...prev, fileToRemove]);
+      toast.warning('Existing file marked for removal. Save changes to delete permanently.');
+    } else {
+      // For new files, remove immediately
+      setLocalAdditionalFiles(prev => prev.filter(file => file.id !== id));
+      
+      // Remove from tracking states
+      setFilesToAdd(prev => prev.filter(f => 
+        f !== fileToRemove.file && 
+        f.name !== fileToRemove.filename
+      ));
+      
+      setFilesToReplace(prev => prev.filter(f => 
+        f.newFile !== fileToRemove.file &&
+        f.originalFileId !== fileToRemove.replacesFileId
+      ));
+      
+      toast.info('New file removed from list.');
+    }
+  };
+
+  const handleReplaceFile = (id) => {
+    const fileToReplace = localAdditionalFiles.find(f => f.id === id);
+    
+    if (fileToReplace && fileToReplace.isExisting) {
+      // Open file dialog for replacement
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.txt';
+      input.onchange = (e) => {
+        const replacementFile = e.target.files[0];
+        if (replacementFile) {
+          handleAddNewFile([replacementFile], true, id);
+        }
+      };
+      input.click();
+    }
+  };
+
   const handleSaveYears = async () => {
     try {
       setLoading(true);
       
       const formData = new FormData();
       
+      // Add year changes for main exam results
       Object.entries(editedYears).forEach(([key, year]) => {
         if (year && year !== (examResults[key]?.year || '')) {
           formData.append(`${key}Year`, year);
         }
       });
       
-      const newAdditionalFiles = localAdditionalFiles.filter(file => file.isNew && file.file);
+      // Add new additional files (non-replacements)
+      const newAdditionalFiles = localAdditionalFiles.filter(file => 
+        file.isNew && file.file && !file.isReplacement && !file.isRemoved
+      );
+      
       newAdditionalFiles.forEach((fileObj, index) => {
         if (fileObj.file) {
           formData.append(`additionalResultsFile_${index}`, fileObj.file);
-          if (fileObj.year) {
-            formData.append(`additionalResultsYear_${index}`, fileObj.year);
-          }
-          if (fileObj.description) {
-            formData.append(`additionalResultsDesc_${index}`, fileObj.description);
+          formData.append(`additionalResultsYear_${index}`, fileObj.year || '');
+          formData.append(`additionalResultsDesc_${index}`, fileObj.description || '');
+        }
+      });
+      
+      // Add replacement files (these replace existing ones)
+      const replacementFiles = localAdditionalFiles.filter(file => 
+        file.isNew && file.isReplacement && file.file && !file.isRemoved
+      );
+      
+      replacementFiles.forEach((fileObj, index) => {
+        if (fileObj.file && fileObj.replacesFileId) {
+          const originalFile = localAdditionalFiles.find(f => f.id === fileObj.replacesFileId);
+          if (originalFile) {
+            formData.append(`additionalResultsFile_${newAdditionalFiles.length + index}`, fileObj.file);
+            formData.append(`additionalResultsYear_${newAdditionalFiles.length + index}`, fileObj.year || '');
+            formData.append(`additionalResultsDesc_${newAdditionalFiles.length + index}`, fileObj.description || '');
+            formData.append(`replacesAdditionalFilepath_${newAdditionalFiles.length + index}`, originalFile.filepath || originalFile.filename);
           }
         }
       });
       
+      // Add updates for existing additional files (non-modified, non-removed)
       const existingFilesWithUpdates = localAdditionalFiles.filter(file => 
-        file.isExisting && (file.year || file.description) && !cancelledFiles.includes(file) && !removedFiles.includes(file)
+        file.isExisting && 
+        !file.isRemoved && 
+        !file.isReplaced &&
+        (file.year || file.description || file.isModified)
       );
       
       existingFilesWithUpdates.forEach((fileObj, index) => {
-        if (fileObj.filepath) {
-          formData.append(`existingAdditionalFilepath_${index}`, fileObj.filepath);
-          if (fileObj.year) {
-            formData.append(`existingAdditionalYear_${index}`, fileObj.year);
-          }
-          if (fileObj.description) {
-            formData.append(`existingAdditionalDesc_${index}`, fileObj.description);
-          }
+        if (fileObj.filepath || fileObj.filename) {
+          formData.append(`existingAdditionalFilepath_${index}`, fileObj.filepath || fileObj.filename);
+          formData.append(`existingAdditionalYear_${index}`, fileObj.year || '');
+          formData.append(`existingAdditionalDesc_${index}`, fileObj.description || '');
         }
       });
       
-      if (cancelledFiles.length > 0) {
-        formData.append('cancelledAdditionalFiles', JSON.stringify(
-          cancelledFiles.map(f => f.filepath || f.filename)
-        ));
-      }
+      // Handle removed files
+      const removedFiles = localAdditionalFiles.filter(file => 
+        file.isExisting && file.isRemoved
+      );
       
       if (removedFiles.length > 0) {
         formData.append('removedAdditionalFiles', JSON.stringify(
-          removedFiles.map(f => f.filepath || f.filename)
+          removedFiles.map(f => ({
+            filepath: f.filepath || f.filename,
+            filename: f.filename || f.name
+          }))
         ));
       }
       
+      // Handle replaced files
+      const replacedFiles = localAdditionalFiles.filter(file => 
+        file.isExisting && file.isReplaced
+      );
+      
+      if (replacedFiles.length > 0) {
+        formData.append('cancelledAdditionalFiles', JSON.stringify(
+          replacedFiles.map(f => ({
+            filepath: f.filepath || f.filename,
+            filename: f.filename || f.name
+          }))
+        ));
+      }
+      
+      // Flag to indicate we're updating additional files
+      if (newAdditionalFiles.length > 0 || replacementFiles.length > 0 || 
+          existingFilesWithUpdates.length > 0 || removedFiles.length > 0 || replacedFiles.length > 0) {
+        formData.append('updateAdditionalFiles', 'true');
+      }
+      
+      console.log('📤 FormData for exam results update:');
+      console.log(`  - New files: ${newAdditionalFiles.length}`);
+      console.log(`  - Replacement files: ${replacementFiles.length}`);
+      console.log(`  - Updated existing files: ${existingFilesWithUpdates.length}`);
+      console.log(`  - Removed files: ${removedFiles.length}`);
+      console.log(`  - Replaced files: ${replacedFiles.length}`);
+      
       await onUpdateExamResults(formData);
       setIsEditing(false);
+      // Reset tracking states
+      setFilesToAdd([]);
+      setFilesToReplace([]);
+      setFilesToRemove([]);
       toast.success('Exam results updated successfully!');
     } catch (error) {
       toast.error('Failed to update exam results');
@@ -2066,266 +2111,458 @@ function ModernExamMappingView({
     }
   };
 
-  const handleCancelExistingFile = (file) => {
-    setCancelledFiles(prev => [...prev, file]);
-    setLocalAdditionalFiles(prev => prev.filter(f => 
-      f.filepath !== file.filepath && f.filename !== file.filename
-    ));
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setFilesToAdd([]);
+    setFilesToReplace([]);
+    setFilesToRemove([]);
+    // Reset local additional files to original state
+    if (additionalResultsFiles && additionalResultsFiles.length > 0) {
+      setLocalAdditionalFiles(additionalResultsFiles.map(file => ({
+        ...file,
+        isExisting: true,
+        id: file.filepath || file.filename,
+        isModified: false,
+        isRemoved: false,
+        isReplaced: false
+      })));
+    } else {
+      setLocalAdditionalFiles([]);
+    }
+    toast.success('All changes cancelled.');
   };
 
-  const handleRemoveExistingFile = (file) => {
-    setRemovedFiles(prev => [...prev, file]);
-    setLocalAdditionalFiles(prev => prev.filter(f => 
-      f.filepath !== file.filepath && f.filename !== file.filename
-    ));
-    toast.success('Existing file marked for removal. Save changes to confirm.');
+  const getFileIcon = (filetype) => {
+    if (!filetype) return <FaFile className="text-gray-500" />;
+    const type = filetype.toLowerCase();
+    if (type.includes('pdf')) return <FaFilePdf className="text-red-500" />;
+    if (type.includes('image')) return <FaFileAlt className="text-green-500" />;
+    if (type.includes('word') || type.includes('doc')) return <FaFileAlt className="text-blue-500" />;
+    if (type.includes('excel') || type.includes('sheet') || type.includes('xls')) return <FaFileAlt className="text-green-600" />;
+    return <FaFile className="text-gray-500" />;
   };
+
+  const formatFileSize = (bytes) => {
+    if (!bytes || bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Filter files for display (excluding removed ones)
+  const displayFiles = localAdditionalFiles.filter(file => !file.isRemoved);
 
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
         {/* Header Section */}
-<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-  <div className="flex items-center gap-4">
-    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 via-purple-500 to-indigo-400 flex items-center justify-center shadow-xl shadow-purple-200 ring-4 ring-purple-50">
-      <FaAward className="text-white text-xl" />
-    </div>
-    <div>
-      <h3 className="text-xl font-black tracking-tight text-slate-900">Exam Results Mapping</h3>
-      <div className="flex items-center gap-2 mt-0.5">
-        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-        <p className="text-sm font-medium text-slate-500">Verified Academic performance records</p>
-      </div>
-    </div>
-  </div>
-  
-  {!isEditing && (
-    <div className="hidden md:block px-4 py-1.5 bg-slate-50 border border-slate-200 rounded-full">
-      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Global Status: Synchronized</p>
-    </div>
-  )}
-</div>
-
-{/* Results Grid Mapping */}
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-  {Object.entries(examResults).map(([key, result]) => {
-    const displayName = key.replace(/([A-Z])/g, ' $1').trim();
-    
-    return (
-      <div
-        key={key}
-        className="group relative bg-white rounded-3xl p-6 border border-slate-200 hover:border-purple-300 shadow-sm hover:shadow-2xl hover:shadow-purple-100 transition-all duration-500 flex flex-col gap-5 overflow-hidden"
-      >
-        {/* Subtle Background Accent */}
-        <div className="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-[100px] -mr-10 -mt-10 transition-transform group-hover:scale-110 duration-500" />
-
-        <div className="relative flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <h4 className="text-base font-bold text-slate-900 truncate group-hover:text-purple-700 transition-colors">
-              {displayName}
-            </h4>
-            <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400">
-              Official Transcript
-            </span>
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 group-hover:bg-purple-600 group-hover:rotate-6 transition-all duration-300">
-            <FaFilePdf className="text-purple-500 group-hover:text-white text-xl" />
-          </div>
-        </div>
-
-        <div className="relative">
-          {isEditing ? (
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold text-slate-500 uppercase ml-1">Examination Year</label>
-              <input
-                type="number"
-                min="2000"
-                max="2100"
-                value={editedYears[key] || ''}
-                onChange={(e) => handleYearChange(key, e.target.value)}
-                placeholder="YYYY"
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 text-sm font-semibold transition-all outline-none"
-              />
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 via-purple-500 to-indigo-400 flex items-center justify-center shadow-xl shadow-purple-200 ring-4 ring-purple-50">
+              <FaAward className="text-white text-xl" />
             </div>
-          ) : (
-            <div className="flex items-center justify-between bg-slate-50/50 rounded-2xl px-4 py-3 border border-slate-100">
-              <span className="text-xs font-bold text-slate-400">Year of Completion</span>
-              <span className="text-sm font-black text-slate-900 bg-white px-3 py-1 rounded-lg shadow-sm border border-slate-100">
-                {result.year || '----'}
-              </span>
+            <div>
+              <h3 className="text-xl font-black tracking-tight text-slate-900">Exam Results Mapping</h3>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <p className="text-sm font-medium text-slate-500">Verified Academic performance records</p>
+              </div>
+            </div>
+          </div>
+          
+          {!isEditing && (
+            <div className="hidden md:block px-4 py-1.5 bg-slate-50 border border-slate-200 rounded-full">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Global Status: Synchronized</p>
             </div>
           )}
         </div>
 
-        {result.pdf && (
-          <div className="relative space-y-4">
-            <div className="flex items-center gap-3 py-2">
-               <div className="w-1 h-8 rounded-full bg-purple-200" />
-               <p className="text-xs font-medium text-slate-600 truncate">
-                 {result.name || `${displayName}_Results.pdf`}
-               </p>
-            </div>
-
-            <div className="flex gap-3">
-              <a
-                href={result.pdf}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-purple-200 transition-all shadow-sm"
+        {/* Results Grid Mapping */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+          {Object.entries(examResults).map(([key, result]) => {
+            const displayName = key.replace(/([A-Z])/g, ' $1').trim();
+            
+            return (
+              <div
+                key={key}
+                className="group relative bg-white rounded-3xl p-6 border border-slate-200 hover:border-purple-300 shadow-sm hover:shadow-2xl hover:shadow-purple-100 transition-all duration-500 flex flex-col gap-5 overflow-hidden"
               >
-                <FaEye className="text-purple-500" /> View
-              </a>
-              <a
-                href={result.pdf}
-                download
-                className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-xl bg-slate-900 text-white hover:bg-purple-600 shadow-lg shadow-slate-200 hover:shadow-purple-200 transition-all"
-              >
-                <FaDownload /> Save
-              </a>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  })}
-</div>
-        
- <div className="pt-8 border-t border-slate-100/80">
-  {/* Modern Header & Description Section */}
-  <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
-    <div className="space-y-2">
-      <div className="flex items-center gap-3">
-        <div className="h-6 w-1 rounded-full bg-gradient-to-t from-amber-600 to-amber-300" />
-        <h4 className="text-lg font-bold tracking-tight text-slate-900">
-          Additional Results Files
-        </h4>
-      </div>
-      <p className="text-sm leading-relaxed text-slate-500 max-w-2xl">
-        Manage your academic portfolio by organizing supplementary transcripts and examination records. 
-        All files are stored securely and can be previewed or downloaded instantly.
-      </p>
-    </div>
-    
-    <div className="flex items-center gap-2 self-start lg:self-center">
-      <div className="flex -space-x-2">
-         {/* Decorative file stack effect */}
-         {[...Array(Math.min(localAdditionalFiles.length, 3))].map((_, i) => (
-           <div key={i} className="w-8 h-8 rounded-lg border-2 border-white bg-slate-100 flex items-center justify-center shadow-sm">
-             <FaFile className="text-[10px] text-slate-400" />
-           </div>
-         ))}
-      </div>
-      <span className="ml-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-sm">
-        {localAdditionalFiles.length} {localAdditionalFiles.length === 1 ? 'Resource' : 'Resources'}
-      </span>
-    </div>
-  </div>
+                {/* Subtle Background Accent */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-[100px] -mr-10 -mt-10 transition-transform group-hover:scale-110 duration-500" />
 
-  {isEditing ? (
-    <div className="bg-slate-50/50 p-6 rounded-3xl border-2 border-dashed border-slate-200 transition-all">
-      <AdditionalResultsUpload
-        files={localAdditionalFiles.filter(f => f.isNew)}
-        onFilesChange={(newFiles) => {
-          const existingFiles = localAdditionalFiles.filter(f => f.isExisting);
-          setLocalAdditionalFiles([...existingFiles, ...newFiles]);
-        }}
-        label="Drop new documents here"
-        existingFiles={localAdditionalFiles.filter(f => f.isExisting)}
-        onCancelExisting={handleCancelExistingFile}
-        onRemoveExisting={handleRemoveExistingFile}
-      />
-    </div>
-  ) : (
-    <div className="space-y-4">
-      {localAdditionalFiles.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {localAdditionalFiles.map((file, index) => (
-            <div 
-              key={index} 
-              className="group bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:border-amber-200 transition-all duration-300 flex flex-col justify-between"
-            >
-              <div className="flex items-start gap-4">
-                {/* Modern File Branding */}
-                <div className={`relative w-12 h-14 rounded-xl flex flex-col items-center justify-center transition-transform group-hover:scale-110 duration-300 ${
-                  file.filetype === 'pdf' ? 'bg-red-50 text-red-500' : 'bg-amber-50 text-amber-600'
-                }`}>
-                  <FaFilePdf className="text-xl" />
-                  <span className="absolute -bottom-1 text-[8px] font-black uppercase px-1 rounded bg-white border shadow-sm">
-                    {file.filetype || 'FILE'}
-                  </span>
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h5 className="text-sm font-bold text-slate-800 truncate max-w-[140px]">
-                      {file.filename || file.name || `Document ${index + 1}`}
-                    </h5>
-                    {file.year && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-900 text-white">
-                        {file.year}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {file.description && (
-                    <p className="text-[11px] text-slate-500 line-clamp-2 mb-2 leading-snug">
-                      {file.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-medium text-slate-400">
-                      {(file.filesize / 1024).toFixed(0)} KB
+                <div className="relative flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-base font-bold text-slate-900 truncate group-hover:text-purple-700 transition-colors">
+                      {displayName}
+                    </h4>
+                    <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400">
+                      Official Transcript
                     </span>
                   </div>
+                  <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 group-hover:bg-purple-600 group-hover:rotate-6 transition-all duration-300">
+                    <FaFilePdf className="text-purple-500 group-hover:text-white text-xl" />
+                  </div>
+                </div>
+
+                <div className="relative">
+                  {isEditing ? (
+                    <div className="space-y-1.5">
+                      <label className="block text-[11px] font-bold text-slate-500 uppercase ml-1">Examination Year</label>
+                      <input
+                        type="number"
+                        min="2000"
+                        max="2100"
+                        value={editedYears[key] || ''}
+                        onChange={(e) => handleYearChange(key, e.target.value)}
+                        placeholder="YYYY"
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 text-sm font-semibold transition-all outline-none"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between bg-slate-50/50 rounded-2xl px-4 py-3 border border-slate-100">
+                      <span className="text-xs font-bold text-slate-400">Year of Completion</span>
+                      <span className="text-sm font-black text-slate-900 bg-white px-3 py-1 rounded-lg shadow-sm border border-slate-100">
+                        {result.year || '----'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {result.pdf && (
+                  <div className="relative space-y-4">
+                    <div className="flex items-center gap-3 py-2">
+                      <div className="w-1 h-8 rounded-full bg-purple-200" />
+                      <p className="text-xs font-medium text-slate-600 truncate">
+                        {result.name || `${displayName}_Results.pdf`}
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <a
+                        href={result.pdf}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-purple-200 transition-all shadow-sm"
+                      >
+                        <FaEye className="text-purple-500" /> View
+                      </a>
+                      <a
+                        href={result.pdf}
+                        download
+                        className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-xl bg-slate-900 text-white hover:bg-purple-600 shadow-lg shadow-slate-200 hover:shadow-purple-200 transition-all"
+                      >
+                        <FaDownload /> Save
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        
+        <div className="pt-8 border-t border-slate-100/80">
+          {/* Modern Header & Description Section */}
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
+            <div className="space-y-4 flex-1">
+              {/* Title with Edit Button for Desktop */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-6 w-1 rounded-full bg-gradient-to-t from-amber-600 to-amber-300" />
+                  <h4 className="text-lg font-bold tracking-tight text-slate-900">
+                    Additional Results Files
+                  </h4>
+                </div>
+                
+                {/* Edit Button - Desktop */}
+                <div className="hidden sm:block">
+                 <button
+  onClick={() => setIsEditing(prev => !prev)}
+  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-200
+    ${isEditing
+      ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm'
+      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}
+  `}
+>
+  {isEditing ? 'Done' : 'Edit  and Add Files'}
+</button>
+
                 </div>
               </div>
+              
+              <p className="text-sm leading-relaxed text-slate-500 max-w-2xl">
+                Manage your academic portfolio by organizing supplementary transcripts and examination records. 
+                All files are stored securely and can be previewed or downloaded instantly.
+              </p>
+              
+              {/* Edit Button - Mobile (below description) */}
+              <div className="sm:hidden pt-2">
+              <button
+  onClick={() => setIsEditing(prev => !prev)}
+  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-200
+    ${isEditing
+      ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm'
+      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}
+  `}
+>
+  {isEditing ? 'Done' : 'Edit Files'}
+</button>
 
-              {file.filepath && (
-                <div className="mt-5 grid grid-cols-2 gap-2">
-                  <a
-                    href={file.filepath}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 py-2 text-[11px] font-bold rounded-lg bg-slate-50 text-slate-700 border border-slate-100 hover:bg-slate-100 transition-colors"
-                  >
-                    <FaExternalLinkAlt className="text-[10px]" />
-                    Preview
-                  </a>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 self-start lg:self-center">
+              <div className="flex -space-x-2">
+                {/* Decorative file stack effect */}
+                {[...Array(Math.min(displayFiles.length, 3))].map((_, i) => (
+                  <div key={i} className="w-8 h-8 rounded-lg border-2 border-white bg-slate-100 flex items-center justify-center shadow-sm">
+                    <FaFile className="text-[10px] text-slate-400" />
+                  </div>
+                ))}
+              </div>
+              <span className="ml-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-sm">
+                {displayFiles.length} {displayFiles.length === 1 ? 'Resource' : 'Resources'}
+              </span>
+            </div>
+          </div>
 
-                  <a
-                    href={file.filepath}
-                    download={file.filename || 'document.pdf'}
-                    className="flex items-center justify-center gap-2 py-2 text-[11px] font-bold rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-200 hover:brightness-110 transition-all"
-                  >
-                    <FaDownload className="text-[10px]" />
-                    Get File
-                  </a>
+          {isEditing ? (
+            <div className="space-y-6">
+              {/* Upload Area for Edit Mode */}
+              <div 
+                className="border-2 border-dashed border-amber-300 rounded-3xl p-8 text-center transition-all duration-300 cursor-pointer bg-gradient-to-br from-amber-50/50 to-orange-50/30 hover:border-amber-400 hover:bg-amber-50"
+                onDrop={handleFileDrop}
+                onDragOver={(e) => { e.preventDefault(); }}
+                onDragLeave={(e) => { e.preventDefault(); }}
+                onClick={handleFileUploadClick}
+              >
+                <div className="relative">
+                  <FaUpload className="mx-auto text-3xl mb-3 text-amber-500" />
+                </div>
+                <p className="text-gray-700 mb-1 font-medium text-sm">
+                  Click to upload or drag & drop new files
+                </p>
+                <p className="text-xs text-gray-600">
+                  PDF, Images, Documents • Max 50MB each
+                </p>
+                <input 
+                  ref={fileInputRef}
+                  type="file" 
+                  multiple
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                />
+              </div>
+
+              {/* Files List in Edit Mode */}
+              {displayFiles.length > 0 && (
+                <div className="space-y-4">
+                  <h5 className="text-sm font-bold text-gray-700">
+                    Files to be saved ({displayFiles.length} files):
+                    {filesToRemove.length > 0 && <span className="ml-2 text-red-600">({filesToRemove.length} marked for deletion)</span>}
+                  </h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {displayFiles.map((file) => (
+                      <div 
+                        key={file.id} 
+                        className={`bg-white rounded-xl p-4 border ${file.isReplaced ? 'border-yellow-200 bg-yellow-50' : file.isNew ? 'border-green-200 bg-green-50' : 'border-gray-200'}`}
+                      >
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="p-2 bg-gray-100 rounded-lg">
+                            {getFileIcon(file.filetype)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-gray-900 text-sm truncate">
+                              {file.filename || file.name || 'Document'}
+                              {file.isReplaced && <span className="ml-2 text-xs text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded">(Replaced)</span>}
+                              {file.isNew && !file.isReplacement && <span className="ml-2 text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded">(New)</span>}
+                              {file.isNew && file.isReplacement && <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded">(Replacement)</span>}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {formatFileSize(file.filesize || file.size)} • 
+                              {file.isExisting ? ' Existing' : ' New'} • 
+                              {file.isModified && ' Modified'}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            {file.isExisting && !file.isReplaced ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleReplaceFile(file.id)}
+                                  className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1"
+                                  title="Replace file"
+                                >
+                                  <FaUpload className="text-xs" /> Replace
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveLocalFile(file.id)}
+                                  className="px-3 py-1.5 text-xs bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-1"
+                                  title="Remove file"
+                                >
+                                  <FaTrash className="text-xs" /> Delete
+                                </button>
+                              </>
+                            ) : file.isNew ? (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveLocalFile(file.id)}
+                                className="px-3 py-1.5 text-xs bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-1"
+                                title="Remove file"
+                              >
+                                <FaTimes className="text-xs" /> Remove
+                              </button>
+                            ) : null}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-xs font-bold text-gray-600 mb-1">
+                              Year
+                            </label>
+                            <input
+                              type="number"
+                              min="2000"
+                              max="2100"
+                              value={file.year || ''}
+                              onChange={(e) => handleFileYearChange(file.id, e.target.value)}
+                              placeholder="YYYY"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm"
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-xs font-bold text-gray-600 mb-1">
+                              Description
+                            </label>
+                            <input
+                              type="text"
+                              value={file.description || ''}
+                              onChange={(e) => handleFileDescriptionChange(file.id, e.target.value)}
+                              placeholder="Brief description..."
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
-          ))}
+          ) : (
+            <div className="space-y-4">
+              {displayFiles.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {displayFiles.map((file) => (
+                    <div 
+                      key={file.id} 
+                      className="group bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:border-amber-200 transition-all duration-300 flex flex-col justify-between"
+                    >
+                      <div className="flex items-start gap-4">
+                        {/* Modern File Branding */}
+                        <div className={`relative w-12 h-14 rounded-xl flex flex-col items-center justify-center transition-transform group-hover:scale-110 duration-300 ${
+                          file.filetype === 'pdf' ? 'bg-red-50 text-red-500' : 'bg-amber-50 text-amber-600'
+                        }`}>
+                          <FaFilePdf className="text-xl" />
+                          <span className="absolute -bottom-1 text-[8px] font-black uppercase px-1 rounded bg-white border shadow-sm">
+                            {file.filetype || 'FILE'}
+                          </span>
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <h5 className="text-sm font-bold text-slate-800 truncate max-w-[140px]">
+                              {file.filename || file.name || 'Document'}
+                              {file.isNew && <span className="ml-1 text-[10px] text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full">NEW</span>}
+                            </h5>
+                            {file.year && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-900 text-white">
+                                {file.year}
+                              </span>
+                            )}
+                          </div>
+                          
+                          {file.description && (
+                            <p className="text-[11px] text-slate-500 line-clamp-2 mb-2 leading-snug">
+                              {file.description}
+                            </p>
+                          )}
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-medium text-slate-400">
+                              {formatFileSize(file.filesize || file.size)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {file.filepath ? (
+                        <div className="mt-5 grid grid-cols-2 gap-2">
+                          <a
+                            href={file.filepath}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 py-2 text-[11px] font-bold rounded-lg bg-slate-50 text-slate-700 border border-slate-100 hover:bg-slate-100 transition-colors"
+                          >
+                            <FaExternalLinkAlt className="text-[10px]" />
+                            Preview
+                          </a>
+
+                          <a
+                            href={file.filepath}
+                            download={file.filename || 'document.pdf'}
+                            className="flex items-center justify-center gap-2 py-2 text-[11px] font-bold rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-200 hover:brightness-110 transition-all"
+                          >
+                            <FaDownload className="text-[10px]" />
+                            Get File
+                          </a>
+                        </div>
+                      ) : file.file && file.isNew ? (
+                        <div className="mt-4 flex items-center gap-2">
+                          <button
+                            onClick={() => handleRemoveLocalFile(file.id)}
+                            className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded-lg font-bold hover:bg-red-200 transition-colors"
+                          >
+                            Remove
+                          </button>
+                          <a
+                            href={URL.createObjectURL(file.file)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 text-xs bg-white border border-slate-200 rounded-lg font-bold hover:bg-slate-50 transition-colors"
+                          >
+                            Preview
+                          </a>
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* Empty State */
+                <div className="text-center py-16 px-4 bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white shadow-inner mb-4">
+                    <FaFile className="text-slate-200 text-3xl" />
+                  </div>
+                  <h5 className="text-slate-900 font-bold">No documents attached</h5>
+                  <p className="text-slate-400 text-xs mt-2 max-w-xs mx-auto leading-relaxed">
+                    Your supplementary result files will appear here once uploaded in the editor.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      ) : (
-        /* Empty State */
-        <div className="text-center py-16 px-4 bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-200">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white shadow-inner mb-4">
-            <FaFile className="text-slate-200 text-3xl" />
-          </div>
-          <h5 className="text-slate-900 font-bold">No documents attached</h5>
-          <p className="text-slate-400 text-xs mt-2 max-w-xs mx-auto leading-relaxed">
-            Your supplementary result files will appear here once uploaded in the editor.
-          </p>
-        </div>
-      )}
-    </div>
-  )}
-</div>
         
         {isEditing && (
           <div className="flex justify-end gap-3 pt-5 border-t border-gray-100 mt-6">
             <button
-              onClick={() => setIsEditing(false)}
+              onClick={handleCancelEdit}
               className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 font-bold cursor-pointer text-sm"
             >
               Cancel
@@ -2350,9 +2587,20 @@ function ModernExamMappingView({
           </div>
         )}
       </div>
+
+      {/* Hidden file input for replacements */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+        onChange={handleFileInputChange}
+      />
     </div>
   );
 }
+
 
 // Customizable Fee Breakdown Component
 function CustomFeeBreakdown({ 
@@ -4217,19 +4465,19 @@ export default function ModernSchoolInformation() {
     }
   }
 
-  const handleUpdateExamResults = async (formData) => {
-    try {
-      setActionLoading(true);
-      const result = await schoolApiService.updateSchoolInfo(formData);
-      setSchoolInfo(result.school);
-      toast.success('Exam results updated successfully!');
-    } catch (error) {
-      toast.error(error.message || 'Failed to update exam results!');
-      throw error;
-    } finally {
-      setActionLoading(false);
-    }
-  };
+const handleUpdateExamResults = async (formData) => {
+  try {
+    setActionLoading(true);
+    const result = await schoolApiService.updateSchoolInfo(formData);
+    setSchoolInfo(result.school);
+    toast.success('Exam results updated successfully!');
+  } catch (error) {
+    toast.error(error.message || 'Failed to update exam results!');
+    throw error;
+  } finally {
+    setActionLoading(false);
+  }
+};
 
   if (loading && !schoolInfo) {
     return <ModernLoadingSpinner message="Loading school information..." size="medium" />
@@ -4924,4 +5172,5 @@ export default function ModernSchoolInformation() {
       )}
     </div>
   )
-}
+}   
+

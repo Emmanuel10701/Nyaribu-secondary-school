@@ -536,40 +536,81 @@ export async function POST(req) {
     let additionalResultsFiles = [];
 
     try {
-      // Find the maximum index for new additional files
-      let maxNewIndex = 0;
-      for (const [key] of formData.entries()) {
-        if (key.startsWith('additionalResultsFile_')) {
-          const index = parseInt(key.replace('additionalResultsFile_', ''));
-          if (index > maxNewIndex) maxNewIndex = index;
-        }
-      }
+      // 1) Start with existing additional files (POST has none; PUT will override below)
+      // For POST this will just build a fresh array from uploads
+      // For PUT we will use existing where appropriate (handled further down)
+      // Support two client patterns:
+      //  - multiple files under 'additionalFiles' (getAll)
+      //  - indexed pattern 'additionalResultsFile_{i}' with 'additionalResultsYear_{i}', 'additionalResultsDesc_{i}'
+      
+      // Helper to push uploaded file object into array
+      const pushUploadedAdditional = (arr, uploadResult, year = '', description = '') => {
+        if (!uploadResult || !uploadResult.path) return;
+        arr.push({
+          filename: uploadResult.name,
+          filepath: uploadResult.path,
+          filetype: uploadResult.type,
+          year: year ? year.trim() : null,
+          description: description ? description.trim() : null,
+          filesize: uploadResult.size
+        });
+      };
 
-      // Process each new file
-      for (let i = 0; i <= maxNewIndex; i++) {
-        const file = formData.get(`additionalResultsFile_${i}`);
-        const year = formData.get(`additionalResultsYear_${i}`) || '';
-        const description = formData.get(`additionalResultsDesc_${i}`) || '';
-        
+      // 2) First handle "modal" style multiple files: formData.getAll('additionalFiles')
+      const modalFiles = formData.getAll('additionalFiles') || [];
+      for (let i = 0; i < modalFiles.length; i++) {
+        const file = modalFiles[i];
         if (file && file.size > 0) {
           try {
             const uploadResult = await handleAdditionalFileUpload(file, null);
-            if (uploadResult.path) {
-              additionalResultsFiles.push({
-                filename: uploadResult.name,
-                filepath: uploadResult.path,
-                filetype: uploadResult.type,
-                year: year.trim() || null,
-                description: description.trim() || null,
-                filesize: uploadResult.size
-              });
-            }
-          } catch (uploadError) {
-            console.warn(`Failed to upload additional file ${i}:`, uploadError.message);
-            // Continue with other files
+            pushUploadedAdditional(additionalResultsFiles, uploadResult, null, null);
+          } catch (err) {
+            console.warn(`Failed to upload modal additional file ${i}:`, err.message);
           }
         }
       }
+
+      // 3) Then handle indexed pattern additionalResultsFile_{i} (with year/desc)
+      const newFileEntries = [];
+      for (const [key, value] of formData.entries()) {
+        if (key.startsWith('additionalResultsFile_')) {
+          const index = key.replace('additionalResultsFile_', '');
+          newFileEntries.push({
+            index,
+            file: value,
+            year: formData.get(`additionalResultsYear_${index}`) || '',
+            description: formData.get(`additionalResultsDesc_${index}`) || ''
+          });
+        }
+      }
+
+      for (const entry of newFileEntries) {
+        if (entry.file && entry.file.size > 0) {
+          try {
+            // If a corresponding existing filepath was provided (replacement scenario),
+            // the client may supply existingAdditionalFilepath_{index}. We pass it to handler
+            // so the old file is removed and replaced.
+            const existingFilePathField = formData.get(`existingAdditionalFilepath_${entry.index}`) || formData.get(`replaceAdditionalFilepath_${entry.index}`) || null;
+            const uploadResult = await handleAdditionalFileUpload(entry.file, existingFilePathField || null);
+            pushUploadedAdditional(additionalResultsFiles, uploadResult, entry.year, entry.description);
+          } catch (err) {
+            console.warn(`Failed to upload indexed additional file ${entry.index}:`, err.message);
+          }
+        }
+      }
+
+      // 4) Deduplicate by filepath (keep first seen)
+      const unique = [];
+      const seenPaths = new Set();
+      for (const f of additionalResultsFiles) {
+        const p = f.filepath || f.path || f.file;
+        if (p && !seenPaths.has(p)) {
+          seenPaths.add(p);
+          unique.push(f);
+        }
+      }
+      additionalResultsFiles = unique;
+
     } catch (additionalError) {
       console.warn('Additional files upload error:', additionalError.message);
       additionalResultsFiles = [];
@@ -908,7 +949,7 @@ const cleanSchoolResponse = (school) => {
   return response;
 };
 
-// 🟠 PUT update existing info - COMPLETELY FIXED with proper additional files handling
+// 🟠 PUT update existing info - COMPLETE VERSION WITH MULTIPLE FILE SUPPORT
 export async function PUT(req) {
   try {
     const existing = await prisma.schoolInfo.findFirst();
@@ -1011,154 +1052,164 @@ export async function PUT(req) {
       );
     }
 
-    // FIXED: Handle additional results files from form data
-    let additionalResultsFiles = [];
+  
+  
+  
+    
+// 🔴 FIXED: Handle additional results files from form data - SUPPORTING MULTIPLE NEW FILES
+let additionalResultsFiles = [];
+try {
+  let existingAdditionalFiles = parseExistingAdditionalFiles(existing.additionalResultsFiles);
 
+  const removedAdditionalFilesJson = formData.get('removedAdditionalFiles');
+  let removedFiles = [];
+  
+  if (removedAdditionalFilesJson && removedAdditionalFilesJson.trim() !== '') {
     try {
-      // Step 1: Get existing additional files from database
-      let existingAdditionalFiles = parseExistingAdditionalFiles(existing.additionalResultsFiles);
-
-      // Step 2: Parse cancelled files from form data
-      const cancelledAdditionalFilesJson = formData.get('cancelledAdditionalFiles');
-      let cancelledFilePaths = [];
-      
-      if (cancelledAdditionalFilesJson && cancelledAdditionalFilesJson.trim() !== '') {
-        try {
-          cancelledFilePaths = JSON.parse(cancelledAdditionalFilesJson);
-          if (!Array.isArray(cancelledFilePaths)) {
-            cancelledFilePaths = [];
-          }
-        } catch (e) {
-          console.warn('Failed to parse cancelledAdditionalFiles:', e.message);
-          cancelledFilePaths = [];
-        }
+      removedFiles = JSON.parse(removedAdditionalFilesJson);
+      if (!Array.isArray(removedFiles)) {
+        removedFiles = [];
       }
-
-      // Step 3: Remove cancelled files from existing files
-      const filteredExistingFiles = existingAdditionalFiles.filter(file => {
-        const fileIdentifier = file.filepath || file.filename || file.path || '';
-        // Check if this file should be removed
-        return !cancelledFilePaths.includes(fileIdentifier);
-      });
-
-      // Step 4: Process metadata updates for existing files
-      const updatedExistingFiles = [...filteredExistingFiles];
-      
-      // Find all existingAdditionalFilepath_X fields
-      const existingUpdateEntries = [];
-      for (const [key, value] of formData.entries()) {
-        if (key.startsWith('existingAdditionalFilepath_')) {
-          const index = key.replace('existingAdditionalFilepath_', '');
-          existingUpdateEntries.push({
-            index,
-            filepath: value,
-            year: formData.get(`existingAdditionalYear_${index}`) || '',
-            description: formData.get(`existingAdditionalDesc_${index}`) || ''
-          });
-        }
-      }
-
-      // Apply updates to existing files
-      for (const update of existingUpdateEntries) {
-        if (update.filepath) {
-          const existingFileIndex = updatedExistingFiles.findIndex(file => 
-            (file.filepath === update.filepath || file.filename === update.filepath || file.path === update.filepath)
-          );
-          
-          if (existingFileIndex !== -1) {
-            // Update metadata
-            if (update.year !== null && update.year !== undefined && update.year.trim() !== '') {
-              updatedExistingFiles[existingFileIndex].year = update.year.trim();
-            }
-            if (update.description !== null && update.description !== undefined && update.description.trim() !== '') {
-              updatedExistingFiles[existingFileIndex].description = update.description.trim();
-            }
-          }
-        }
-      }
-
-      // Step 5: Process new additional files
-      // Find all additionalResultsFile_X fields
-      const newFileEntries = [];
-      for (const [key, value] of formData.entries()) {
-        if (key.startsWith('additionalResultsFile_')) {
-          const index = key.replace('additionalResultsFile_', '');
-          newFileEntries.push({
-            index,
-            file: value,
-            year: formData.get(`additionalResultsYear_${index}`) || '',
-            description: formData.get(`additionalResultsDesc_${index}`) || ''
-          });
-        }
-      }
-
-      // Upload new files
-      for (const entry of newFileEntries) {
-        if (entry.file && entry.file.size > 0) {
-          try {
-            const uploadResult = await handleAdditionalFileUpload(entry.file, null);
-            if (uploadResult.path) {
-              updatedExistingFiles.push({
-                filename: uploadResult.name,
-                filepath: uploadResult.path,
-                filetype: uploadResult.type,
-                year: entry.year.trim() || null,
-                description: entry.description.trim() || null,
-                filesize: uploadResult.size
-              });
-            }
-          } catch (uploadError) {
-            console.warn(`Failed to upload new additional file ${entry.index}:`, uploadError.message);
-            // Continue with other files
-          }
-        }
-      }
-
-      // Step 6: Also check for files from ModernSchoolModal (different naming pattern)
-      // Some files might come from the main modal with different field names
-      const additionalFilesFromModal = formData.getAll('additionalFiles');
-      if (additionalFilesFromModal && additionalFilesFromModal.length > 0) {
-        for (let i = 0; i < additionalFilesFromModal.length; i++) {
-          const file = additionalFilesFromModal[i];
-          if (file && file.size > 0) {
-            try {
-              const uploadResult = await handleAdditionalFileUpload(file, null);
-              if (uploadResult.path) {
-                updatedExistingFiles.push({
-                  filename: uploadResult.name,
-                  filepath: uploadResult.path,
-                  filetype: uploadResult.type,
-                  year: null,
-                  description: null,
-                  filesize: uploadResult.size
-                });
-              }
-            } catch (uploadError) {
-              console.warn(`Failed to upload additional file from modal ${i}:`, uploadError.message);
-            }
-          }
-        }
-      }
-
-      // Step 7: Set the final array (remove any duplicates by filepath)
-      const uniqueFiles = [];
-      const seenFilepaths = new Set();
-      
-      for (const file of updatedExistingFiles) {
-        const filepath = file.filepath || file.path;
-        if (filepath && !seenFilepaths.has(filepath)) {
-          seenFilepaths.add(filepath);
-          uniqueFiles.push(file);
-        }
-      }
-      
-      additionalResultsFiles = uniqueFiles;
-
-    } catch (additionalError) {
-      console.error('Additional files processing error:', additionalError);
-      // In case of error, keep existing files from database
-      additionalResultsFiles = parseExistingAdditionalFiles(existing.additionalResultsFiles);
+    } catch (e) {
+      console.warn('Failed to parse removedAdditionalFiles:', e.message);
+      removedFiles = [];
     }
+  }
+
+  // Step 3: Parse replaced files from form data
+  const cancelledAdditionalFilesJson = formData.get('cancelledAdditionalFiles');
+  let replacedFiles = [];
+  
+  if (cancelledAdditionalFilesJson && cancelledAdditionalFilesJson.trim() !== '') {
+    try {
+      replacedFiles = JSON.parse(cancelledAdditionalFilesJson);
+      if (!Array.isArray(replacedFiles)) {
+        replacedFiles = [];
+      }
+    } catch (e) {
+      console.warn('Failed to parse cancelledAdditionalFiles:', e.message);
+      replacedFiles = [];
+    }
+  }
+
+  // Step 4: Start with existing files, remove marked ones
+  let finalFiles = existingAdditionalFiles.filter(file => {
+    const filepath = file.filepath || file.filename || '';
+    const shouldRemove = removedFiles.some(removedFile => 
+      (removedFile.filepath || removedFile.filename) === filepath
+    );
+    const shouldReplace = replacedFiles.some(replacedFile => 
+      (replacedFile.filepath || replacedFile.filename) === filepath
+    );
+    return !shouldRemove && !shouldReplace; // Keep if not removed or replaced
+  });
+
+  // Step 5: Process metadata updates for existing files
+  const existingUpdateEntries = [];
+  for (const [key, value] of formData.entries()) {
+    if (key.startsWith('existingAdditionalFilepath_')) {
+      const index = key.replace('existingAdditionalFilepath_', '');
+      existingUpdateEntries.push({
+        index,
+        filepath: value,
+        year: formData.get(`existingAdditionalYear_${index}`) || '',
+        description: formData.get(`existingAdditionalDesc_${index}`) || ''
+      });
+    }
+  }
+
+  // Apply updates to existing files
+  for (const update of existingUpdateEntries) {
+    if (update.filepath) {
+      const existingFileIndex = finalFiles.findIndex(file => 
+        (file.filepath === update.filepath || file.filename === update.filepath)
+      );
+      
+      if (existingFileIndex !== -1) {
+        // Update metadata
+        if (update.year !== null && update.year !== undefined && update.year.trim() !== '') {
+          finalFiles[existingFileIndex].year = update.year.trim();
+        }
+        if (update.description !== null && update.description !== undefined && update.description.trim() !== '') {
+          finalFiles[existingFileIndex].description = update.description.trim();
+        }
+      }
+    }
+  }
+
+  // Step 6: Process NEW additional files (including replacements)
+  // Find all files with pattern additionalResultsFile_{index}
+  const newFileEntries = [];
+  
+  // Collect all indexed file entries
+  for (let i = 0; i < 100; i++) { // Assume max 100 files
+    const fileField = `additionalResultsFile_${i}`;
+    const file = formData.get(fileField);
+    
+    if (!file) break;
+    
+    newFileEntries.push({
+      index: i,
+      file: file,
+      year: formData.get(`additionalResultsYear_${i}`) || '',
+      description: formData.get(`additionalResultsDesc_${i}`) || '',
+      // Check if this replaces an existing file
+      replacesFilepath: formData.get(`replacesAdditionalFilepath_${i}`) || null
+    });
+  }
+
+  // Process each new file entry
+  for (const entry of newFileEntries) {
+    if (entry.file && entry.file.size > 0) {
+      try {
+        // Check if this is a replacement
+        let oldFilePath = null;
+        if (entry.replacesFilepath) {
+          oldFilePath = entry.replacesFilepath;
+          // Remove the old file from finalFiles if it exists
+          finalFiles = finalFiles.filter(f => 
+            (f.filepath || f.filename) !== oldFilePath
+          );
+        }
+
+        const uploadResult = await handleAdditionalFileUpload(entry.file, oldFilePath);
+        
+        if (uploadResult && uploadResult.path) {
+          finalFiles.push({
+            filename: uploadResult.name,
+            filepath: uploadResult.path,
+            filetype: uploadResult.type,
+            year: entry.year ? entry.year.trim() : null,
+            description: entry.description ? entry.description.trim() : null,
+            filesize: uploadResult.size
+          });
+        }
+      } catch (uploadError) {
+        console.warn(`Failed to upload additional file ${entry.index}:`, uploadError.message);
+        // Continue with other files
+      }
+    }
+  }
+
+  // Step 7: Remove duplicates
+  const uniqueFiles = [];
+  const seenFilepaths = new Set();
+  
+  for (const file of finalFiles) {
+    const filepath = file.filepath;
+    if (filepath && !seenFilepaths.has(filepath)) {
+      seenFilepaths.add(filepath);
+      uniqueFiles.push(file);
+    }
+  }
+  
+  additionalResultsFiles = uniqueFiles;
+
+} catch (additionalError) {
+  console.error('❌ Additional files processing error:', additionalError);
+  // In case of error, keep existing files from database
+  additionalResultsFiles = parseExistingAdditionalFiles(existing.additionalResultsFiles);
+}
 
     // Parse JSON fields
     let subjects = existing.subjects;
@@ -1316,8 +1367,11 @@ export async function PUT(req) {
         kcsePdfSize: pdfUploads.kcse?.pdfData.size || existing.kcsePdfSize,
         kcseYear: pdfUploads.kcse?.year !== undefined ? pdfUploads.kcse?.year : existing.kcseYear,
         
-        // Additional Results
+        // Additional Results - FIXED: Properly stringify the array
         additionalResultsFiles: additionalResultsFiles.length > 0 ? JSON.stringify(additionalResultsFiles) : '[]',
+        
+        // Update timestamp
+        updatedAt: new Date(),
       },
     });
 
