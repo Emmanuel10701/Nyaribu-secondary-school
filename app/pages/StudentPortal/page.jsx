@@ -11,7 +11,8 @@ import {
   FiRefreshCw, FiPlayCircle, FiTrendingUp, FiShield, FiActivity, FiFilePlus,
   FiPlay, FiMic, FiCamera, FiPackage, FiFlag, FiZap, FiAlertTriangle,
   FiClipboard, FiArchive, FiThumbsUp, FiSend, FiBell, FiGlobe, FiHelpCircle,
-  FiLogOut, FiLock, FiLogIn, FiDollarSign, FiCreditCard, FiPercent, FiTrendingDown
+  FiLogOut, FiLock, FiLogIn, FiDollarSign, FiCreditCard, FiPercent, FiTrendingDown,
+  FiChevronDown, FiChevronUp, FiLayers, FiDatabase, FiSliders
 } from 'react-icons/fi';
 import StudentLoginModal from '../../components/studentloginmodel/page';
 
@@ -21,18 +22,18 @@ const RESOURCES_API = `${API_BASE_URL}/api/resources`;
 
 // Configuration
 const RESOURCE_TYPES = [
-  { id: 'all', label: 'All Types', color: 'slate', icon: <FiFilePlus className="text-gray-600" /> },
+  { id: 'all', label: 'All Types', color: 'gray', icon: <FiLayers className="text-gray-600" /> },
   { id: 'document', label: 'Documents', color: 'blue', icon: <FiFileText className="text-blue-500" /> },
-  { id: 'pdf', label: 'PDF Files', color: 'red', icon: <FiFileText className="text-red-500" /> },
-  { id: 'video', label: 'Videos', color: 'purple', icon: <FiPlay className="text-purple-500" /> },
+  { id: 'pdf', label: 'PDFs', color: 'red', icon: <FiFileText className="text-red-500" /> },
+  { id: 'video', label: 'Videos', color: 'purple', icon: <FiVideo className="text-purple-500" /> },
   { id: 'presentation', label: 'Presentations', color: 'orange', icon: <FiBarChart2 className="text-orange-500" /> },
   { id: 'worksheet', label: 'Worksheets', color: 'emerald', icon: <FiFilePlus className="text-emerald-500" /> },
-  { id: 'audio', label: 'Audio Files', color: 'indigo', icon: <FiMic className="text-indigo-500" /> },
-  { id: 'image', label: 'Images', color: 'pink', icon: <FiCamera className="text-pink-500" /> }
+  { id: 'audio', label: 'Audio', color: 'indigo', icon: <FiMic className="text-indigo-500" /> },
+  { id: 'image', label: 'Images', color: 'pink', icon: <FiImage className="text-pink-500" /> }
 ];
 
 const ASSIGNMENT_STATUS = [
-  { id: 'all', label: 'All Status', color: 'slate', icon: <FiClipboard className="text-gray-600" /> },
+  { id: 'all', label: 'All Status', color: 'gray', icon: <FiClipboard className="text-gray-600" /> },
   { id: 'assigned', label: 'Assigned', color: 'blue', icon: <FiFlag className="text-blue-500" /> },
   { id: 'reviewed', label: 'Reviewed', color: 'green', icon: <FiCheckCircle className="text-green-500" /> },
   { id: 'completed', label: 'Completed', color: 'purple', icon: <FiAward className="text-purple-500" /> },
@@ -47,20 +48,19 @@ const ITEMS_PER_PAGE = {
 // Helper functions
 const getBadgeColorStyles = (colorName) => {
   const map = {
-    blue: 'bg-blue-50 text-blue-700 border-blue-200',
-    emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    orange: 'bg-orange-50 text-orange-700 border-orange-200',
-    violet: 'bg-violet-50 text-violet-700 border-violet-200',
-    amber: 'bg-amber-50 text-amber-700 border-amber-200',
-    pink: 'bg-pink-50 text-pink-700 border-pink-200',
-    teal: 'bg-teal-50 text-teal-700 border-teal-200',
-    cyan: 'bg-cyan-50 text-cyan-700 border-cyan-200',
-    slate: 'bg-slate-50 text-slate-700 border-slate-200',
-    red: 'bg-red-50 text-red-700 border-red-200',
-    green: 'bg-green-50 text-green-700 border-green-200',
-    purple: 'bg-purple-50 text-purple-700 border-purple-200',
-    indigo: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    yellow: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    blue: 'bg-blue-100 text-blue-800 border border-blue-200',
+    emerald: 'bg-emerald-100 text-emerald-800 border border-emerald-200',
+    orange: 'bg-orange-100 text-orange-800 border border-orange-200',
+    violet: 'bg-violet-100 text-violet-800 border border-violet-200',
+    pink: 'bg-pink-100 text-pink-800 border border-pink-200',
+    teal: 'bg-teal-100 text-teal-800 border border-teal-200',
+    slate: 'bg-slate-100 text-slate-800 border border-slate-200',
+    red: 'bg-red-100 text-red-800 border border-red-200',
+    green: 'bg-green-100 text-green-800 border border-green-200',
+    purple: 'bg-purple-100 text-purple-800 border border-purple-200',
+    indigo: 'bg-indigo-100 text-indigo-800 border border-indigo-200',
+    yellow: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+    gray: 'bg-gray-100 text-gray-800 border border-gray-200',
   };
   return map[colorName] || map.slate;
 };
@@ -80,16 +80,16 @@ const getFileIcon = (fileName) => {
       return <FiBarChart2 className="text-orange-500" />;
     case 'xls':
     case 'xlsx':
-      return <FiBarChart2 className="text-green-500" />;
+      return <FiDatabase className="text-green-500" />;
     case 'mp4':
     case 'mov':
     case 'avi':
-      return <FiPlay className="text-purple-500" />;
+      return <FiVideo className="text-purple-500" />;
     case 'jpg':
     case 'jpeg':
     case 'png':
     case 'gif':
-      return <FiCamera className="text-pink-500" />;
+      return <FiImage className="text-pink-500" />;
     case 'mp3':
     case 'wav':
       return <FiMic className="text-indigo-500" />;
@@ -101,7 +101,7 @@ const getFileIcon = (fileName) => {
 const getResourceTypeIcon = (type) => {
   switch (type?.toLowerCase()) {
     case 'video':
-      return <FiPlay className="text-purple-500" />;
+      return <FiVideo className="text-purple-500" />;
     case 'document':
       return <FiFileText className="text-blue-500" />;
     case 'presentation':
@@ -111,9 +111,11 @@ const getResourceTypeIcon = (type) => {
     case 'audio':
       return <FiMic className="text-indigo-500" />;
     case 'image':
-      return <FiCamera className="text-pink-500" />;
+      return <FiImage className="text-pink-500" />;
     case 'pdf':
       return <FiFileText className="text-red-500" />;
+    case 'spreadsheet':
+      return <FiDatabase className="text-emerald-500" />;
     default:
       return <FiFile className="text-gray-600" />;
   }
@@ -121,10 +123,10 @@ const getResourceTypeIcon = (type) => {
 
 const getStatusColor = (status) => {
   switch (status?.toLowerCase()) {
-    case 'reviewed': return 'bg-gradient-to-r from-green-500 to-emerald-600';
-    case 'assigned': return 'bg-gradient-to-r from-blue-500 to-cyan-600';
-    case 'extended': return 'bg-gradient-to-r from-orange-500 to-amber-600';
-    case 'completed': return 'bg-gradient-to-r from-purple-500 to-pink-600';
+    case 'reviewed': return 'bg-gradient-to-r from-emerald-500 to-emerald-600';
+    case 'assigned': return 'bg-gradient-to-r from-blue-500 to-blue-600';
+    case 'extended': return 'bg-gradient-to-r from-amber-500 to-amber-600';
+    case 'completed': return 'bg-gradient-to-r from-purple-500 to-purple-600';
     default: return 'bg-gradient-to-r from-gray-500 to-gray-600';
   }
 };
@@ -141,9 +143,9 @@ const getStatusIcon = (status) => {
 
 // Fee status helper
 const getFeeStatusColor = (balance, totalAmount) => {
-  if (balance <= 0) return 'bg-gradient-to-r from-emerald-500 to-green-600';
-  if (balance < totalAmount * 0.5) return 'bg-gradient-to-r from-amber-500 to-yellow-600';
-  return 'bg-gradient-to-r from-red-500 to-rose-600';
+  if (balance <= 0) return 'bg-gradient-to-r from-emerald-500 to-emerald-600';
+  if (balance < totalAmount * 0.5) return 'bg-gradient-to-r from-amber-500 to-amber-600';
+  return 'bg-gradient-to-r from-rose-500 to-rose-600';
 };
 
 const getFeeStatusText = (balance) => {
@@ -157,6 +159,7 @@ export default function StudentPortalPage() {
   // State
   const [selectedClass, setSelectedClass] = useState('all');
   const [selectedSubject, setSelectedSubject] = useState('all');
+  const [selectedTeacher, setSelectedTeacher] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedResourceType, setSelectedResourceType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -183,13 +186,50 @@ export default function StudentPortalPage() {
   const [loginError, setLoginError] = useState(null);
   const [requiresContact, setRequiresContact] = useState(false);
 
-  // Fee Balance State
-  const [feeBalance, setFeeBalance] = useState(null);
+  // Student Results State
+  const [studentResults, setStudentResults] = useState([]);
+  const [resultsLoading, setResultsLoading] = useState(false);
+  const [resultsError, setResultsError] = useState(null);
+
+  // Fee Balance State - ADDED THIS
   const [feeLoading, setFeeLoading] = useState(false);
   const [feeError, setFeeError] = useState(null);
+  const [feeBalance, setFeeBalance] = useState(null);
   const [showFeeDetails, setShowFeeDetails] = useState(false);
+  
+  // Advanced filter states
+  const [expandedFilters, setExpandedFilters] = useState({
+    class: false,
+    subject: false,
+    teacher: false,
+    status: false,
+    resourceType: false
+  });
 
-  // Check authentication on mount
+  const fetchStudentResults = useCallback(async () => {
+    if (!student?.admissionNumber) return;
+    setResultsLoading(true);
+    setResultsError(null);
+    try {
+      const resp = await fetch(`/api/results?action=student-results&admissionNumber=${encodeURIComponent(student.admissionNumber)}&includeStudent=true`);
+      const data = await resp.json();
+      if (!resp.ok || !data.success) {
+        setStudentResults([]);
+        setResultsError(data.error || 'Not uploaded yet');
+      } else {
+        const results = Array.isArray(data.results) ? data.results : [];
+        setStudentResults(results);
+        if (results.length === 0) setResultsError('Not uploaded yet');
+      }
+    } catch (err) {
+      console.error('Failed fetching student results:', err);
+      setStudentResults([]);
+      setResultsError('Not uploaded yet');
+    } finally {
+      setResultsLoading(false);
+    }
+  }, [student]);
+  
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -210,11 +250,19 @@ export default function StudentPortalPage() {
           setToken(savedToken);
           setShowLoginModal(false);
           
+          // Set student's class as default filter
+          if (data.student) {
+            const studentClass = data.student.stream 
+              ? `Form ${data.student.form} ${data.student.stream}`
+              : `Form ${data.student.form}`;
+            setSelectedClass(studentClass);
+          }
+          
           // Set auto-logout timer (2 hours)
           const logoutTimer = setTimeout(() => {
             toast.info('Your 2-hour session has expired. Please log in again.');
             handleLogout();
-          }, 2 * 60 * 60 * 1000); // 2 hours
+          }, 2 * 60 * 60 * 1000);
 
           return () => clearTimeout(logoutTimer);
         } else {
@@ -303,6 +351,14 @@ export default function StudentPortalPage() {
         setToken(data.token);
         setShowLoginModal(false);
         
+        // Set student's class as default filter
+        if (data.student) {
+          const studentClass = data.student.stream 
+            ? `Form ${data.student.form} ${data.student.stream}`
+            : `Form ${data.student.form}`;
+          setSelectedClass(studentClass);
+        }
+        
         toast.success('Login successful!', {
           description: `Welcome ${data.student.fullName}`
         });
@@ -311,6 +367,7 @@ export default function StudentPortalPage() {
         fetchAllAssignments();
         fetchAllResources();
         fetchFeeBalance();
+        fetchStudentResults();
       } else {
         setLoginError(data.error);
         setRequiresContact(data.requiresContact || false);
@@ -346,6 +403,7 @@ export default function StudentPortalPage() {
       setAllAssignments([]);
       setAllResources([]);
       setFeeBalance(null);
+      setSelectedClass('all'); // Reset to all classes
       
       toast.info('You have been logged out');
     }
@@ -434,12 +492,59 @@ export default function StudentPortalPage() {
     }
   }, [student, token, fetchAllAssignments, fetchAllResources]);
 
-  // Filtering Logic
+  // Extract unique values for filters with priority sorting
+  const extractFilterValues = (items, key, studentClass = null) => {
+    const values = [...new Set(items.map(item => item[key]).filter(Boolean))];
+    
+    // If student class exists, prioritize it
+    if (studentClass && values.includes(studentClass)) {
+      const filtered = values.filter(v => v !== studentClass);
+      return [studentClass, ...filtered];
+    }
+    
+    return values.sort();
+  };
+
+  // Get classes with student's class first
+  const classes = useMemo(() => {
+    if (!student) return ['all', ...extractFilterValues(allAssignments, 'className')];
+    
+    const studentClass = student.stream 
+      ? `Form ${student.form} ${student.stream}`
+      : `Form ${student.form}`;
+    
+    const otherClasses = extractFilterValues(allAssignments, 'className', studentClass);
+    return ['all', studentClass, ...otherClasses.filter(c => c !== studentClass && c !== 'all')];
+  }, [allAssignments, student]);
+
+  // Get subjects
+  const subjects = useMemo(() => [
+    'all',
+    ...extractFilterValues(allAssignments, 'subject')
+  ], [allAssignments]);
+
+  // Get teachers
+  const teachers = useMemo(() => [
+    'all',
+    ...extractFilterValues(allAssignments, 'teacher')
+  ], [allAssignments]);
+
+  // Filtering Logic with priority for student's class
   const filteredAssignments = useMemo(() => {
-    return allAssignments.filter(assignment => {
+    const studentClass = student ? (student.stream 
+      ? `Form ${student.form} ${student.stream}`
+      : `Form ${student.form}`) : null;
+    
+    const assignmentsWithPriority = [...allAssignments].map(assignment => ({
+      ...assignment,
+      priority: assignment.className === studentClass ? 1 : 0
+    })).sort((a, b) => b.priority - a.priority);
+    
+    return assignmentsWithPriority.filter(assignment => {
       const matchesClass = selectedClass === 'all' || assignment.className === selectedClass;
       const matchesSubject = selectedSubject === 'all' || assignment.subject === selectedSubject;
       const matchesStatus = selectedStatus === 'all' || assignment.status === selectedStatus;
+      const matchesTeacher = selectedTeacher === 'all' || assignment.teacher === selectedTeacher;
       
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = searchTerm === '' ||
@@ -448,22 +553,34 @@ export default function StudentPortalPage() {
         assignment.description?.toLowerCase().includes(searchLower) ||
         assignment.subject?.toLowerCase().includes(searchLower);
 
-      return matchesClass && matchesSubject && matchesStatus && matchesSearch;
+      return matchesClass && matchesSubject && matchesStatus && matchesTeacher && matchesSearch;
     });
-  }, [allAssignments, selectedClass, selectedSubject, selectedStatus, searchTerm]);
+  }, [allAssignments, selectedClass, selectedSubject, selectedStatus, selectedTeacher, searchTerm, student]);
 
   const filteredResources = useMemo(() => {
-    return allResources.filter(resource => {
+    const studentClass = student ? (student.stream 
+      ? `Form ${student.form} ${student.stream}`
+      : `Form ${student.form}`) : null;
+    
+    const resourcesWithPriority = [...allResources].map(resource => ({
+      ...resource,
+      priority: resource.className === studentClass ? 1 : 0
+    })).sort((a, b) => b.priority - a.priority);
+    
+    return resourcesWithPriority.filter(resource => {
       const matchesType = selectedResourceType === 'all' || resource.type === selectedResourceType;
+      const matchesClass = selectedClass === 'all' || resource.className === selectedClass;
+      
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = searchTerm === '' ||
         resource.title?.toLowerCase().includes(searchLower) ||
         resource.subject?.toLowerCase().includes(searchLower) ||
-        resource.description?.toLowerCase().includes(searchLower);
+        resource.description?.toLowerCase().includes(searchLower) ||
+        resource.uploadedBy?.toLowerCase().includes(searchLower);
 
-      return matchesType && matchesSearch;
+      return matchesType && matchesClass && matchesSearch;
     });
-  }, [allResources, selectedResourceType, searchTerm]);
+  }, [allResources, selectedResourceType, selectedClass, searchTerm, student]);
 
   // Pagination
   const totalAssignmentPages = Math.ceil(filteredAssignments.length / ITEMS_PER_PAGE.assignments);
@@ -580,6 +697,7 @@ export default function StudentPortalPage() {
   const clearFilters = () => {
     setSelectedClass('all');
     setSelectedSubject('all');
+    setSelectedTeacher('all');
     setSelectedStatus('all');
     setSelectedResourceType('all');
     setSearchTerm('');
@@ -602,6 +720,13 @@ export default function StudentPortalPage() {
     if (student?.admissionNumber) {
       fetchFeeBalance();
     }
+  };
+
+  const toggleFilter = (filterName) => {
+    setExpandedFilters(prev => ({
+      ...prev,
+      [filterName]: !prev[filterName]
+    }));
   };
 
   // Show login modal if not authenticated
@@ -681,10 +806,6 @@ export default function StudentPortalPage() {
       </div>
     );
   }
-
-  // Extract unique values for filters
-  const classes = ['all', ...new Set(allAssignments.map(a => a.className).filter(Boolean))];
-  const subjects = ['all', ...new Set(allAssignments.map(a => a.subject).filter(Boolean))];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 font-sans">
@@ -816,7 +937,7 @@ export default function StudentPortalPage() {
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
           
-          {/* Filter Sidebar - Compact */}
+          {/* Filter Sidebar - Modern Design */}
           <aside className={`
             fixed lg:static inset-y-0 left-0 w-72 sm:w-80 bg-white lg:bg-transparent z-50 transform transition-transform duration-300 ease-in-out shadow-xl lg:shadow-none overflow-y-auto lg:overflow-visible border-r lg:border-r-0 border-gray-200/50
             ${isFilterSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -841,12 +962,14 @@ export default function StudentPortalPage() {
                 />
               </div>
 
-              {/* Fee Balance Card - Compact */}
-              <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl sm:rounded-lg border-2 border-blue-200 shadow-sm overflow-hidden">
-                <div className="p-3 sm:p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                      <FiDollarSign className="text-blue-600" />
+              {/* Fee Balance Card - Modern */}
+              <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <FiDollarSign className="text-white" />
+                      </div>
                       Fee Balance
                     </h3>
                     {feeLoading ? (
@@ -865,38 +988,36 @@ export default function StudentPortalPage() {
                     <p className="text-red-600 text-xs">Failed to load fee balance</p>
                   ) : feeBalance ? (
                     <>
-                      <div className="flex items-end gap-2 mb-1">
-                        <span className="text-lg sm:text-xl font-bold text-gray-900">
+                      <div className="flex items-end gap-2 mb-3">
+                        <span className="text-2xl font-bold text-gray-900">
                           KES {feeBalance.summary.totalBalance.toLocaleString()}
                         </span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${getFeeStatusColor(feeBalance.summary.totalBalance, feeBalance.summary.totalAmount)} text-white`}>
+                        <span className={`text-xs px-2 py-1 rounded-full ${getFeeStatusColor(feeBalance.summary.totalBalance, feeBalance.summary.totalAmount)} text-white`}>
                           {getFeeStatusText(feeBalance.summary.totalBalance)}
                         </span>
                       </div>
                       
-                      <div className="space-y-1 text-xs text-gray-600">
-                        <div className="flex justify-between">
-                          <span>Total Fees:</span>
+                      <div className="space-y-2 mb-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-gray-600">Total Fees</span>
                           <span className="font-medium">KES {feeBalance.summary.totalAmount.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Total Paid:</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-gray-600">Total Paid</span>
                           <span className="font-medium text-emerald-600">KES {feeBalance.summary.totalPaid.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Outstanding:</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-gray-600">Outstanding</span>
                           <span className="font-medium text-red-600">KES {feeBalance.summary.totalBalance.toLocaleString()}</span>
                         </div>
                       </div>
                       
-                      {feeBalance.summary.recordCount > 0 && (
-                        <button
-                          onClick={() => setShowFeeDetails(true)}
-                          className="w-full mt-3 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 rounded-lg text-xs font-medium hover:from-blue-100 hover:to-blue-200 transition-all border border-blue-200"
-                        >
-                          View Details
-                        </button>
-                      )}
+                      <button
+                        onClick={() => setShowFeeDetails(true)}
+                        className="w-full py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-medium hover:shadow-md transition-all"
+                      >
+                        View Details
+                      </button>
                     </>
                   ) : (
                     <p className="text-gray-500 text-xs">No fee information available</p>
@@ -904,119 +1025,255 @@ export default function StudentPortalPage() {
                 </div>
               </div>
 
-              {/* Clear Filters Button */}
-              {(selectedClass !== 'all' || selectedSubject !== 'all' || selectedStatus !== 'all' || selectedResourceType !== 'all' || searchTerm) && (
-                <button
-                  onClick={clearFilters}
-                  className="w-full py-2 rounded-lg border border-dashed border-red-200 text-red-600 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm hover:bg-red-50 transition-colors"
-                >
-                  <FiX size={12} /> Clear All Filters
-                </button>
-              )}
-
-              {viewMode === 'assignments' ? (
-                <>
-                  {/* Class Filter - Compact */}
-                  <div className="bg-white rounded-lg border border-gray-200/50 shadow-sm overflow-hidden">
-                    <div className="p-2.5 bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-200/50">
-                      <h3 className="font-bold text-gray-900 flex items-center gap-1.5 text-xs">
-                        <FiUser className="text-blue-600" /> Class
-                      </h3>
-                    </div>
-                    <div className="p-2.5 space-y-1">
-                      {classes.map(cls => (
-                        <label key={cls} className="flex items-center gap-2 p-1.5 hover:bg-gray-50 rounded cursor-pointer">
-                          <input
-                            type="radio"
-                            name="class"
-                            checked={selectedClass === cls}
-                            onChange={() => setSelectedClass(cls)}
-                            className="text-blue-600 focus:ring-blue-500 text-xs"
-                            size={12}
-                          />
-                          <span className="text-xs font-medium text-gray-700">
-                            {cls === 'all' ? 'All Classes' : cls}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Subject Filter - Compact */}
-                  <div className="bg-white rounded-lg border border-gray-200/50 shadow-sm overflow-hidden">
-                    <div className="p-2.5 bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-200/50">
-                      <h3 className="font-bold text-gray-900 flex items-center gap-1.5 text-xs">
-                        <FiBook className="text-blue-600" /> Subject
-                      </h3>
-                    </div>
-                    <div className="p-2.5 space-y-1">
-                      {subjects.map(subject => (
-                        <label key={subject} className="flex items-center gap-2 p-1.5 hover:bg-gray-50 rounded cursor-pointer">
-                          <input
-                            type="radio"
-                            name="subject"
-                            checked={selectedSubject === subject}
-                            onChange={() => setSelectedSubject(subject)}
-                            className="text-blue-600 focus:ring-blue-500 text-xs"
-                          />
-                          <span className="text-xs font-medium text-gray-700">
-                            {subject === 'all' ? 'All Subjects' : subject}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Status Filter - Compact */}
-                  <div className="bg-white rounded-lg border border-gray-200/50 shadow-sm overflow-hidden">
-                    <div className="p-2.5 bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-200/50">
-                      <h3 className="font-bold text-gray-900 flex items-center gap-1.5 text-xs">
-                        <FiCheckCircle className="text-blue-600" /> Status
-                      </h3>
-                    </div>
-                    <div className="p-2.5 space-y-1">
-                      {ASSIGNMENT_STATUS.map(status => (
-                        <label key={status.id} className="flex items-center gap-2 p-1.5 hover:bg-gray-50 rounded cursor-pointer">
-                          <input
-                            type="radio"
-                            name="status"
-                            checked={selectedStatus === status.id}
-                            onChange={() => setSelectedStatus(status.id)}
-                            className="text-blue-600 focus:ring-blue-500 text-xs"
-                          />
-                          <div className="flex items-center gap-1.5 text-gray-700">
-                            {status.icon}
-                            <span className="text-xs font-medium">{status.label}</span>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                /* Resource Type Filter - Compact */
-                <div className="bg-white rounded-lg border border-gray-200/50 shadow-sm overflow-hidden">
-                  <div className="p-2.5 bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-200/50">
-                    <h3 className="font-bold text-gray-900 flex items-center gap-1.5 text-xs">
-                      <FiFilePlus className="text-blue-600" /> Resource Type
+              {/* Filter Controls */}
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                      <FiSliders className="text-blue-600" />
+                      Filters
                     </h3>
+                    {(selectedClass !== 'all' || selectedSubject !== 'all' || selectedTeacher !== 'all' || selectedStatus !== 'all' || selectedResourceType !== 'all' || searchTerm) && (
+                      <button
+                        onClick={clearFilters}
+                        className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1"
+                      >
+                        <FiX size={12} /> Clear
+                      </button>
+                    )}
                   </div>
-                  <div className="p-2.5 space-y-1">
-                    {RESOURCE_TYPES.map(type => (
-                      <label key={type.id} className="flex items-center gap-2 p-1.5 hover:bg-gray-50 rounded cursor-pointer">
-                        <input
-                          type="radio"
-                          name="resourceType"
-                          checked={selectedResourceType === type.id}
-                          onChange={() => setSelectedResourceType(type.id)}
-                          className="text-blue-600 focus:ring-blue-500 text-xs"
-                        />
-                        <div className="flex items-center gap-1.5 text-gray-700">
-                          {type.icon}
-                          <span className="text-xs font-medium">{type.label}</span>
+                </div>
+
+                <div className="divide-y divide-gray-200">
+                  {/* Class Filter - Modern */}
+                  <div className="p-3">
+                    <button
+                      onClick={() => toggleFilter('class')}
+                      className="flex items-center justify-between w-full text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <FiUsers className="text-blue-600 text-sm" />
+                        <span className="text-sm font-medium text-gray-900">Class</span>
+                      </div>
+                      {expandedFilters.class ? <FiChevronUp className="text-gray-400" /> : <FiChevronDown className="text-gray-400" />}
+                    </button>
+                    
+                    {expandedFilters.class && (
+                      <div className="mt-3 space-y-2">
+                        {classes.map(cls => (
+                          <label key={cls} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
+                            <input
+                              type="radio"
+                              name="class"
+                              checked={selectedClass === cls}
+                              onChange={() => setSelectedClass(cls)}
+                              className="text-blue-600 focus:ring-blue-500"
+                            />
+                            <div className="flex items-center justify-between flex-1">
+                              <span className="text-sm text-gray-700">
+                                {cls === 'all' ? 'All Classes' : cls}
+                              </span>
+                              {student && cls !== 'all' && cls === (student.stream ? `Form ${student.form} ${student.stream}` : `Form ${student.form}`) && (
+                                <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Your Class</span>
+                              )}
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {viewMode === 'assignments' ? (
+                    <>
+                      {/* Subject Filter */}
+                      <div className="p-3">
+                        <button
+                          onClick={() => toggleFilter('subject')}
+                          className="flex items-center justify-between w-full text-left"
+                        >
+                          <div className="flex items-center gap-2">
+                            <FiBook className="text-blue-600 text-sm" />
+                            <span className="text-sm font-medium text-gray-900">Subject</span>
+                          </div>
+                          {expandedFilters.subject ? <FiChevronUp className="text-gray-400" /> : <FiChevronDown className="text-gray-400" />}
+                        </button>
+                        
+                        {expandedFilters.subject && (
+                          <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
+                            {subjects.map(subject => (
+                              <label key={subject} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
+                                <input
+                                  type="radio"
+                                  name="subject"
+                                  checked={selectedSubject === subject}
+                                  onChange={() => setSelectedSubject(subject)}
+                                  className="text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="text-sm text-gray-700">
+                                  {subject === 'all' ? 'All Subjects' : subject}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Teacher Filter */}
+                      <div className="p-3">
+                        <button
+                          onClick={() => toggleFilter('teacher')}
+                          className="flex items-center justify-between w-full text-left"
+                        >
+                          <div className="flex items-center gap-2">
+                            <FiUser className="text-blue-600 text-sm" />
+                            <span className="text-sm font-medium text-gray-900">Teacher</span>
+                          </div>
+                          {expandedFilters.teacher ? <FiChevronUp className="text-gray-400" /> : <FiChevronDown className="text-gray-400" />}
+                        </button>
+                        
+                        {expandedFilters.teacher && (
+                          <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
+                            {teachers.map(teacher => (
+                              <label key={teacher} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
+                                <input
+                                  type="radio"
+                                  name="teacher"
+                                  checked={selectedTeacher === teacher}
+                                  onChange={() => setSelectedTeacher(teacher)}
+                                  className="text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="text-sm text-gray-700">
+                                  {teacher === 'all' ? 'All Teachers' : teacher}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Status Filter */}
+                      <div className="p-3">
+                        <button
+                          onClick={() => toggleFilter('status')}
+                          className="flex items-center justify-between w-full text-left"
+                        >
+                          <div className="flex items-center gap-2">
+                            <FiCheckCircle className="text-blue-600 text-sm" />
+                            <span className="text-sm font-medium text-gray-900">Status</span>
+                          </div>
+                          {expandedFilters.status ? <FiChevronUp className="text-gray-400" /> : <FiChevronDown className="text-gray-400" />}
+                        </button>
+                        
+                        {expandedFilters.status && (
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            {ASSIGNMENT_STATUS.map(status => (
+                              <label key={status.id} className="relative">
+                                <input
+                                  type="radio"
+                                  name="status"
+                                  checked={selectedStatus === status.id}
+                                  onChange={() => setSelectedStatus(status.id)}
+                                  className="sr-only peer"
+                                />
+                                <div className="p-2 border border-gray-200 rounded-lg text-center cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all hover:bg-gray-50">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <div className="text-gray-600">{status.icon}</div>
+                                    <span className="text-xs font-medium text-gray-700">{status.label}</span>
+                                  </div>
+                                </div>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    /* Resource Type Filter */
+                    <div className="p-3">
+                      <button
+                        onClick={() => toggleFilter('resourceType')}
+                        className="flex items-center justify-between w-full text-left"
+                      >
+                        <div className="flex items-center gap-2">
+                          <FiFilePlus className="text-blue-600 text-sm" />
+                          <span className="text-sm font-medium text-gray-900">Resource Type</span>
                         </div>
-                      </label>
-                    ))}
+                        {expandedFilters.resourceType ? <FiChevronUp className="text-gray-400" /> : <FiChevronDown className="text-gray-400" />}
+                      </button>
+                      
+                      {expandedFilters.resourceType && (
+                        <div className="mt-3 grid grid-cols-2 gap-2">
+                          {RESOURCE_TYPES.map(type => (
+                            <label key={type.id} className="relative">
+                              <input
+                                type="radio"
+                                name="resourceType"
+                                checked={selectedResourceType === type.id}
+                                onChange={() => setSelectedResourceType(type.id)}
+                                className="sr-only peer"
+                              />
+                              <div className="p-2 border border-gray-200 rounded-lg text-center cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all hover:bg-gray-50">
+                                <div className="flex flex-col items-center gap-1">
+                                  <div className={`${type.color === 'gray' ? 'text-gray-600' : `text-${type.color}-500`}`}>
+                                    {type.icon}
+                                  </div>
+                                  <span className="text-xs font-medium text-gray-700">{type.label}</span>
+                                </div>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Active Filters */}
+              {(selectedClass !== 'all' || selectedSubject !== 'all' || selectedTeacher !== 'all' || selectedStatus !== 'all' || selectedResourceType !== 'all') && (
+                <div className="bg-gray-50 rounded-xl border border-gray-200 p-3">
+                  <h4 className="text-xs font-bold text-gray-900 mb-2">Active Filters</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedClass !== 'all' && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                        Class: {selectedClass}
+                        <button onClick={() => setSelectedClass('all')} className="hover:text-blue-900">
+                          <FiX size={10} />
+                        </button>
+                      </span>
+                    )}
+                    {selectedSubject !== 'all' && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                        Subject: {selectedSubject}
+                        <button onClick={() => setSelectedSubject('all')} className="hover:text-green-900">
+                          <FiX size={10} />
+                        </button>
+                      </span>
+                    )}
+                    {selectedTeacher !== 'all' && viewMode === 'assignments' && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                        Teacher: {selectedTeacher}
+                        <button onClick={() => setSelectedTeacher('all')} className="hover:text-purple-900">
+                          <FiX size={10} />
+                        </button>
+                      </span>
+                    )}
+                    {selectedStatus !== 'all' && viewMode === 'assignments' && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
+                        Status: {selectedStatus}
+                        <button onClick={() => setSelectedStatus('all')} className="hover:text-orange-900">
+                          <FiX size={10} />
+                        </button>
+                      </span>
+                    )}
+                    {selectedResourceType !== 'all' && viewMode === 'resources' && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+                        Type: {selectedResourceType}
+                        <button onClick={() => setSelectedResourceType('all')} className="hover:text-indigo-900">
+                          <FiX size={10} />
+                        </button>
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
@@ -1034,8 +1291,8 @@ export default function StudentPortalPage() {
                 </h1>
                 <p className="text-gray-600 text-xs sm:text-sm">
                   {viewMode === 'assignments' 
-                    ? `Showing ${filteredAssignments.length} assignments`
-                    : `Showing ${filteredResources.length} resources`}
+                    ? `Showing ${filteredAssignments.length} assignments (${filteredAssignments.filter(a => a.priority === 1).length} from your class)`
+                    : `Showing ${filteredResources.length} resources (${filteredResources.filter(r => r.priority === 1).length} from your class)`}
                 </p>
               </div>
               
@@ -1060,38 +1317,42 @@ export default function StudentPortalPage() {
 
             {/* Stats - Compact */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 sm:mb-6">
-              <div className="bg-white rounded-xl sm:rounded-lg p-3 sm:p-4 border-2 border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
                 <div className="flex items-center justify-between mb-2">
                   <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700">
                     <FiClipboard className="text-white text-sm" />
                   </div>
+                  <span className="text-xs font-medium text-gray-500">Total</span>
                 </div>
                 <h4 className="text-xl font-bold text-gray-900 mb-1">{allAssignments.length}</h4>
-                <p className="text-gray-600 text-xs font-semibold">Total Assignments</p>
+                <p className="text-gray-600 text-xs font-semibold">Assignments</p>
               </div>
-              <div className="bg-white rounded-xl sm:rounded-lg p-3 sm:p-4 border-2 border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
                 <div className="flex items-center justify-between mb-2">
                   <div className="p-2 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-700">
                     <FiFlag className="text-white text-sm" />
                   </div>
+                  <span className="text-xs font-medium text-gray-500">Active</span>
                 </div>
                 <h4 className="text-xl font-bold text-gray-900 mb-1">{allAssignments.filter(a => a.status === 'assigned').length}</h4>
-                <p className="text-gray-600 text-xs font-semibold">Active</p>
+                <p className="text-gray-600 text-xs font-semibold">Pending</p>
               </div>
-              <div className="bg-white rounded-xl sm:rounded-lg p-3 sm:p-4 border-2 border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
                 <div className="flex items-center justify-between mb-2">
                   <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-purple-700">
                     <FiCheckCircle className="text-white text-sm" />
                   </div>
+                  <span className="text-xs font-medium text-gray-500">Done</span>
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-1">{allAssignments.filter(a => a.status === 'reviewed').length}</h4>
-                <p className="text-gray-600 text-xs font-semibold">Reviewed</p>
+                <h4 className="text-xl font-bold text-gray-900 mb-1">{allAssignments.filter(a => a.status === 'reviewed' || a.status === 'completed').length}</h4>
+                <p className="text-gray-600 text-xs font-semibold">Reviewed/Completed</p>
               </div>
-              <div className="bg-white rounded-xl sm:rounded-lg p-3 sm:p-4 border-2 border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
                 <div className="flex items-center justify-between mb-2">
                   <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-700">
                     <FiFilePlus className="text-white text-sm" />
                   </div>
+                  <span className="text-xs font-medium text-gray-500">Available</span>
                 </div>
                 <h4 className="text-xl font-bold text-gray-900 mb-1">{allResources.length}</h4>
                 <p className="text-gray-600 text-xs font-semibold">Resources</p>
@@ -1143,26 +1404,23 @@ export default function StudentPortalPage() {
                 ) : assignmentsView === 'grid' ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {paginatedAssignments.map((assignment) => (
-                      <div key={assignment.id} className="bg-white rounded-xl border-2 border-gray-300 p-4 shadow-md hover:shadow-lg transition-all duration-300">
+                      <div key={assignment.id} className={`bg-white rounded-xl border-2 ${assignment.priority === 1 ? 'border-blue-500 border-l-4 border-l-blue-500' : 'border-gray-300'} p-4 shadow-sm hover:shadow-md transition-all duration-300 relative`}>
+                        {assignment.priority === 1 && (
+                          <div className="absolute -top-2 -left-2">
+                            <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">Your Class</span>
+                          </div>
+                        )}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 flex items-center justify-center shadow-lg ring-2 ring-blue-100">
-                              <FiUser className="text-white text-base" />
+                            <div className={`w-12 h-12 rounded-xl ${getStatusColor(assignment.status)} flex items-center justify-center shadow-lg`}>
+                              {getStatusIcon(assignment.status)}
                             </div>
                             <div>
                               <h4 className="font-bold text-gray-900 text-sm line-clamp-1">
                                 {assignment.title}
                               </h4>
-                              <p className="text-gray-600 font-semibold text-xs mt-0.5">Subject: {assignment.subject}</p>
+                              <p className="text-gray-600 font-semibold text-xs mt-0.5">{assignment.subject}</p>
                             </div>
-                          </div>
-                          <div className={`px-2 py-1 rounded text-[10px] font-bold ${
-                            assignment.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
-                            assignment.status === 'reviewed' ? 'bg-green-100 text-green-800' :
-                            assignment.status === 'completed' ? 'bg-purple-100 text-purple-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {assignment.status}
                           </div>
                         </div>
 
@@ -1170,6 +1428,11 @@ export default function StudentPortalPage() {
                           <div className="flex items-center justify-between">
                             <span className="text-gray-600 font-semibold text-xs">Teacher</span>
                             <span className="font-bold text-gray-900 text-xs">{assignment.teacher}</span>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600 font-semibold text-xs">Class</span>
+                            <span className="font-bold text-gray-900 text-xs">{assignment.className}</span>
                           </div>
 
                           <div className="flex items-center justify-between">
@@ -1187,13 +1450,13 @@ export default function StudentPortalPage() {
                         <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200">
                           <button
                             onClick={() => setSelectedAssignment(assignment)}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition-all duration-300"
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs font-bold shadow-sm hover:shadow-md transition-all duration-300"
                           >
                             <FiEye className="text-xs" /> View
                           </button>
                           <button
                             onClick={() => downloadAllAssignmentFiles(assignment)}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-gradient-to-r from-emerald-600 to-emerald-800 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition-all duration-300"
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm hover:shadow-md transition-all duration-300"
                           >
                             <FiDownload className="text-xs" /> Download
                           </button>
@@ -1206,27 +1469,32 @@ export default function StudentPortalPage() {
                     {paginatedAssignments.map((assignment) => (
                       <div
                         key={assignment.id}
-                        className="bg-white rounded-xl border border-gray-200/50 p-4 shadow-sm hover:shadow-md transition-all"
+                        className={`bg-white rounded-xl border ${assignment.priority === 1 ? 'border-l-4 border-l-blue-500' : 'border-gray-200/50'} p-4 shadow-sm hover:shadow-md transition-all`}
                       >
                         <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                           <div className="flex-1">
                             <div className="flex flex-wrap items-center gap-2 mb-2">
-                              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white ${getStatusColor(assignment.status)}`}>
+                              {assignment.priority === 1 && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">
+                                  Your Class
+                                </span>
+                              )}
+                              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold text-white ${getStatusColor(assignment.status)}`}>
                                 {getStatusIcon(assignment.status)}
                                 <span className="capitalize">{assignment.status}</span>
                               </div>
-                              <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-[10px] font-bold">
+                              <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-bold">
                                 {assignment.className}
                               </span>
-                              <span className="px-2 py-1 bg-purple-50 text-purple-700 rounded text-[10px] font-bold">
+                              <span className="px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-bold">
                                 {assignment.subject}
                               </span>
                             </div>
                             
                             <h3 className="text-sm font-bold text-gray-900 mb-1">{assignment.title}</h3>
-                            <p className="text-gray-600 text-xs mb-3">{assignment.description || 'No description provided'}</p>
+                            <p className="text-gray-600 text-xs mb-3 line-clamp-2">{assignment.description || 'No description provided'}</p>
                             
-                            <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+                            <div className="flex flex-wrap gap-4 text-xs text-gray-500">
                               <div className="flex items-center gap-1">
                                 <FiUser className="text-gray-400 text-xs" />
                                 <span>{assignment.teacher}</span>
@@ -1330,10 +1598,15 @@ export default function StudentPortalPage() {
                 ) : resourcesView === 'grid' ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {paginatedResources.map((resource) => (
-                      <div key={resource.id} className="bg-white rounded-xl border-2 border-gray-300 p-4 shadow-md hover:shadow-lg transition-all duration-300">
+                      <div key={resource.id} className={`bg-white rounded-xl border-2 ${resource.priority === 1 ? 'border-blue-500 border-l-4 border-l-blue-500' : 'border-gray-300'} p-4 shadow-sm hover:shadow-md transition-all duration-300 relative`}>
+                        {resource.priority === 1 && (
+                          <div className="absolute -top-2 -left-2">
+                            <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">Your Class</span>
+                          </div>
+                        )}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 flex items-center justify-center shadow-lg ring-2 ring-blue-100">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
                               {getResourceTypeIcon(resource.type)}
                             </div>
                             <div>
@@ -1357,6 +1630,11 @@ export default function StudentPortalPage() {
                             </div>
                           )}
 
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600 font-semibold text-xs">Class</span>
+                            <span className="font-bold text-gray-900 text-xs">{resource.className}</span>
+                          </div>
+
                           {resource.fileSize && (
                             <div className="flex items-center justify-between">
                               <span className="text-gray-600 font-semibold text-xs">Size</span>
@@ -1368,13 +1646,13 @@ export default function StudentPortalPage() {
                         <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200">
                           <button
                             onClick={() => setSelectedResource(resource)}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition-all duration-300"
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs font-bold shadow-sm hover:shadow-md transition-all duration-300"
                           >
                             <FiEye className="text-xs" /> View
                           </button>
                           <button
                             onClick={() => downloadResource(resource)}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-gradient-to-r from-emerald-600 to-emerald-800 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition-all duration-300"
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm hover:shadow-md transition-all duration-300"
                           >
                             <FiDownload className="text-xs" /> Download
                           </button>
@@ -1387,7 +1665,7 @@ export default function StudentPortalPage() {
                     {paginatedResources.map((resource) => (
                       <div
                         key={resource.id}
-                        className="bg-white rounded-xl border border-gray-200/50 p-4 shadow-sm hover:shadow-md transition-all"
+                        className={`bg-white rounded-xl border ${resource.priority === 1 ? 'border-l-4 border-l-blue-500' : 'border-gray-200/50'} p-4 shadow-sm hover:shadow-md transition-all`}
                       >
                         <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                           <div className="flex items-center gap-3">
@@ -1395,17 +1673,30 @@ export default function StudentPortalPage() {
                               {getResourceTypeIcon(resource.type)}
                             </div>
                             <div className="flex-1">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
+                                {resource.priority === 1 && (
+                                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">
+                                    Your Class
+                                  </span>
+                                )}
+                                <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-bold">
+                                  {resource.type}
+                                </span>
+                                <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-bold">
+                                  {resource.className}
+                                </span>
+                              </div>
                               <h3 className="font-bold text-gray-900 text-sm mb-0.5">{resource.title}</h3>
-                              <p className="text-gray-600 text-xs mb-2">{resource.description}</p>
+                              <p className="text-gray-600 text-xs mb-2 line-clamp-1">{resource.description}</p>
                               <div className="flex flex-wrap gap-3 text-xs text-gray-500">
                                 {resource.subject && (
                                   <span className="flex items-center gap-1">
                                     <FiBook className="text-gray-400 text-xs" /> {resource.subject}
                                   </span>
                                 )}
-                                {resource.type && (
+                                {resource.uploadedBy && (
                                   <span className="flex items-center gap-1">
-                                    <FiFilePlus className="text-gray-400 text-xs" /> {resource.type}
+                                    <FiUser className="text-gray-400 text-xs" /> {resource.uploadedBy}
                                   </span>
                                 )}
                               </div>
@@ -1478,6 +1769,49 @@ export default function StudentPortalPage() {
               </>
             )}
 
+            {/* My Results */}
+            <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-bold text-gray-900">My Results</h3>
+                <span className="text-xs text-gray-500">Admission: {student.admissionNumber}</span>
+              </div>
+ 
+              {resultsLoading ? (
+                <div className="text-xs text-gray-500">Loading results...</div>
+              ) : resultsError ? (
+                <div className="text-xs text-gray-600">Not uploaded yet</div>
+              ) : studentResults.length === 0 ? (
+                <div className="text-xs text-gray-600">Not uploaded yet</div>
+              ) : (
+                <div className="space-y-3 text-xs text-gray-700">
+                  {studentResults.map((res) => {
+                    const subjects = Array.isArray(res.subjects) ? res.subjects : (typeof res.subjects === 'string' ? JSON.parse(res.subjects) : []);
+                    const total = subjects.reduce((s, it) => s + (it.score || 0), 0);
+                    const avg = subjects.length ? (total / subjects.length).toFixed(2) : '0.00';
+                    return (
+                      <div key={`${res.admissionNumber}-${res.academicYear}-${res.term}`} className="p-2 bg-gray-50 rounded-lg border border-gray-100">
+                        <div className="flex items-center justify-between">
+                          <div className="font-semibold">{res.academicYear} • {res.term}</div>
+                          <div className="text-right text-gray-600">
+                            <div>Avg: {avg}</div>
+                            <div>Points: {res.totalPoints ?? res.totalPoints}</div>
+                          </div>
+                        </div>
+                        <div className="mt-2 grid grid-cols-2 gap-2 text-[12px]">
+                          {subjects.map((sub, i) => (
+                            <div key={i} className="flex justify-between">
+                              <span className="truncate pr-2">{sub.subject || sub.name}</span>
+                              <span className="font-semibold">{sub.score ?? '-'}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+  
             {/* Footer - Compact */}
             <div className="mt-8 pt-6 border-t border-gray-200/50 text-center">
               <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-emerald-50 px-4 py-2 rounded-full border border-blue-200 mb-3">
@@ -1557,7 +1891,7 @@ export default function StudentPortalPage() {
                           <div className="text-gray-600">{fee.academicYear}</div>
                           <div className="text-gray-900">KES {fee.amount?.toLocaleString() || '0'}</div>
                           <div className="text-emerald-600">KES {fee.amountPaid?.toLocaleString() || '0'}</div>
-                                                                            <div className={`font-bold ${fee.balance > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                          <div className={`font-bold ${fee.balance > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
                             KES {fee.balance?.toLocaleString() || '0'}
                           </div>
                         </div>

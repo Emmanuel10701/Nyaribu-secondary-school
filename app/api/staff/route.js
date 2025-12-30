@@ -35,21 +35,18 @@ export async function POST(req) {
     const email = formData.get("email");
     const phone = formData.get("phone");
     const bio = formData.get("bio");
+    const quote = formData.get("quote");
 
-    const responsibilities = JSON.parse(formData.get("responsibilities") || "[]");
-    const expertise = JSON.parse(formData.get("expertise") || "[]");
-    const achievements = JSON.parse(formData.get("achievements") || "[]");
-
-    // Handle optional file upload
-    let imagePath = null;
-    const file = formData.get("image");
-    if (file && file.size > 0) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const fileName = `${randomUUID()}-${file.name}`;
-      const filePath = path.join(uploadDir, fileName);
-      fs.writeFileSync(filePath, buffer);
-      imagePath = `/staff/${fileName}`;
-    }
+    // ✅ Parse JSON fields safely
+    const responsibilities = JSON.parse(
+      formData.get("responsibilities") || "[]"
+    );
+    const expertise = JSON.parse(
+      formData.get("expertise") || "[]"
+    );
+    const achievements = JSON.parse(
+      formData.get("achievements") || "[]"
+    );
 
     const newStaff = await prisma.staff.create({
       data: {
@@ -60,16 +57,25 @@ export async function POST(req) {
         email,
         phone,
         bio,
+        quote,
         responsibilities,
         expertise,
         achievements,
-        image: imagePath,
+        image: null, // placeholder until image upload is added
       },
     });
 
     return NextResponse.json({ success: true, staff: newStaff });
   } catch (error) {
     console.error("❌ POST Staff Error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message,
+      },
+      { status: 500 }
+    );
   }
 }
+

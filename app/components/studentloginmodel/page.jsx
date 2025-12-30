@@ -8,6 +8,9 @@ import {
 } from 'react-icons/fi';
 import { IoSchool } from 'react-icons/io5';
 
+import CircularProgress from "@mui/material/CircularProgress";
+
+
 export default function StudentLoginModal({ 
   isOpen, 
   onClose, 
@@ -321,34 +324,65 @@ export default function StudentLoginModal({
                 </div>
               </div>
 
-              {/* Action Buttons - Compact */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  disabled={isLoading}
-                  className="flex-1 py-2 sm:py-2.5 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-lg font-bold text-xs sm:text-sm shadow hover:shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 order-2 sm:order-1"
-                >
-                  <span>Clear All</span>
-                </button>
-                <button
-                  type="submit"
-                  disabled={isLoading || !formData.fullName.trim() || !formData.admissionNumber.trim()}
-                  className="flex-1 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white rounded-lg font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 order-1 sm:order-2"
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Verifying...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FiLogIn className="text-sm" />
-                      <span>Login to Portal</span>
-                    </>
-                  )}
-                </button>
-              </div>
+<div className="flex gap-2 pt-1 flex-nowrap">
+  <button
+    type="button"
+    onClick={handleClear}
+    disabled={isLoading}
+    className="
+      flex-1
+      py-2.5
+      px-4
+      bg-gray-200
+      text-gray-700
+      rounded-lg
+      font-bold
+      text-sm
+      disabled:opacity-50
+      disabled:cursor-not-allowed
+      flex items-center justify-center gap-2
+      order-2 sm:order-1
+    "
+  >
+    Clear All
+  </button>
+
+  <button
+    type="submit"
+    disabled={
+      isLoading ||
+      !formData.fullName.trim() ||
+      !formData.admissionNumber.trim()
+    }
+    className="
+      flex-1
+      py-2.5
+      px-4
+      bg-blue-700
+      text-white
+      rounded-lg
+      font-bold
+      text-sm
+      disabled:opacity-70
+      disabled:cursor-not-allowed
+      flex items-center justify-center gap-2
+      order-1 sm:order-2
+    "
+  >
+    {isLoading ? (
+      <span className="flex items-center gap-2">
+        <CircularProgress size={16} thickness={4} sx={{ color: "white" }} />
+        Verifying...
+      </span>
+    ) : (
+      <span className="flex items-center gap-2">
+        <FiLogIn className="text-sm" />
+        Login to Portal
+      </span>
+    )}
+  </button>
+</div>
+
             </form>
 
             {/* Features - Compact */}

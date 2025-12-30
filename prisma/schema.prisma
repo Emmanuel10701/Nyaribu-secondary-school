@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-
 }
 
 datasource db {
@@ -157,13 +156,14 @@ model Staff {
   name             String
   role             String
   position         String?
-  department       String
+  department       String?
   email            String?
   phone            String?
-  bio              String
-  responsibilities Json
-  expertise        Json
-  achievements     Json
+  bio              String?  @db.Text
+  quote            String?  @db.Text
+  responsibilities Json?
+  expertise        Json?
+  achievements     Json?
   image            String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -485,6 +485,8 @@ model databaseStudent {
   createdAt       DateTime     @default(now())
   feeBalances     FeeBalance[] @relation("StudentFeeBalances")
 
+  results StudentResult[]
+
   updatedAt   DateTime           @updatedAt
   uploadBatch StudentBulkUpload? @relation(fields: [uploadBatchId], references: [id], onDelete: Cascade)
 
@@ -646,4 +648,42 @@ model FeeBalance {
 
   @@unique([admissionNumber, term, academicYear])
   @@map("fee_balances")
+}
+
+model ResultUpload {
+  id            String          @id @default(cuid())
+  fileName      String
+  fileType      String
+  status        String          @default("pending")
+  uploadedBy    String
+  uploadDate    DateTime        @default(now())
+  processedDate DateTime?
+  totalRows     Int             @default(0)
+  validRows     Int             @default(0)
+  skippedRows   Int             @default(0)
+  errorRows     Int             @default(0)
+  errorLog      Json?
+  term          String?
+  academicYear  String?
+  results       StudentResult[] @relation("UploadToResults")
+
+  @@map("results_uploads")
+}
+
+model StudentResult {
+  id              String           @id @default(cuid())
+  admissionNumber String
+  student         databaseStudent? @relation(fields: [admissionNumber], references: [admissionNumber], onDelete: Cascade)
+  form            String
+  term            String?
+  academicYear    String?
+  subjects        Json // e.g. [{ subject: "Math", score: 83 }, ...] — for Form1/Form2 include full subject set; Form3/4 can be combos
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  uploadBatchId String?
+  uploadBatch   ResultUpload? @relation("UploadToResults", fields: [uploadBatchId], references: [id], onDelete: Cascade)
+
+  @@index([admissionNumber])
+  @@map("student_results")
 }

@@ -36,6 +36,7 @@ import {
   FiUpload
 } from 'react-icons/fi';
 
+
 import { 
   IoSparkles, 
   IoStatsChart,
@@ -76,6 +77,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
     recentResources: 0,
     totalStudent: 0,
     totalFees:0,
+    totalResults:0,
     activeResources: 0,
     totalCareers: 0,
     resourcesByType: {
@@ -193,6 +195,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
         admissionsRes,
         resourcesRes,
         careersRes,
+        resultsRes,
         studentRes
       ] = await Promise.allSettled([
         fetch('/api/student'),
@@ -208,7 +211,8 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
         fetch('/api/resources?accessLevel=admin&limit=100'),
         fetch('/api/career'),
         fetch('/api/student'),
-        fetch('/api/feebalances')
+        fetch('/api/feebalances'),
+        fetch('/api/results')
       ]);
 
       // Process responses and get actual counts
@@ -227,6 +231,8 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
 
       const student = studentRes.status === 'fulfilled' ? await studentRes.value.json() : { students: [] };
       const fees = studentRes.status === 'fulfilled' ? await studentRes.value.json() : { feebalances: [] };
+      const results = resultsRes.status === 'fulfilled' ? await resultsRes.value.json() : { results: [] };
+
 
       const activeStudents = students.students?.filter(s => s.status === 'Active').length || 0;
       const activeCouncil = council.councilMembers?.filter(c => c.status === 'Active').length || 0;
@@ -425,6 +431,12 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
       label: 'Student Management', 
       icon: FiUsers,
       badge: 'blue'
+    },
+    {
+      id: 'results',
+      label: 'Exam Results',
+      icon: FiClipboard,
+      badge: 'teal'
     },
     { 
       id: 'student-council', 

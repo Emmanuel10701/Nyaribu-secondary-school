@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { 
   FiPlus, 
   FiSearch, 
@@ -42,6 +40,10 @@ import {
   FiChevronDown,
   FiChevronUp
 } from 'react-icons/fi';
+
+// Material-UI Components
+import CircularProgress from '@mui/material/CircularProgress';
+import { Modal, Box, TextField, TextareaAutosize, Chip, Tooltip, Button } from '@mui/material';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -176,12 +178,12 @@ const Badge = ({ children, color = 'slate', className = '', icon }) => (
 );
 
 const StatsPill = ({ icon, value, label, color = 'blue' }) => (
-  <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-300 group">
-    <div className="p-2 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg group-hover:scale-110 transition-transform">
+  <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-gray-200/50">
+    <div className="p-2 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
       {icon}
     </div>
     <div className="text-center">
-      <div className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{value}</div>
+      <div className="text-lg font-bold text-gray-900">{value}</div>
       <div className="text-xs text-gray-500">{label}</div>
     </div>
   </div>
@@ -191,7 +193,7 @@ const FilterDropdown = ({ label, value, options, onChange, icon, isOpen, setIsOp
   <div className="relative">
     <button
       onClick={() => setIsOpen(!isOpen)}
-      className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-xl hover:border-gray-400 transition-colors text-sm font-medium text-gray-700"
+      className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-medium text-gray-700"
     >
       {icon}
       {label}: {options.find(opt => opt.id === value)?.label || 'All'}
@@ -208,7 +210,7 @@ const FilterDropdown = ({ label, value, options, onChange, icon, isOpen, setIsOp
                 onChange(option.id);
                 setIsOpen(false);
               }}
-              className={`flex items-center gap-3 w-full px-4 py-2.5 hover:bg-gray-50 text-left ${
+              className={`flex items-center gap-3 w-full px-4 py-2.5 text-left ${
                 value === option.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
               }`}
             >
@@ -227,11 +229,11 @@ const ResourceCard = ({ resource, onEdit, onView, onDelete, onDownload }) => {
   const resourceType = RESOURCE_TYPES.find(t => t.id === resource.type) || RESOURCE_TYPES[0];
   
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/50 overflow-hidden flex flex-col h-full hover:shadow-xl transition-all duration-300 group">
+    <div className="bg-white rounded-2xl border border-gray-200/50 overflow-hidden flex flex-col h-full">
       {/* Card Header */}
       <div className="p-6 border-b border-gray-200/50">
         <div className="flex items-start justify-between mb-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center">
             {resourceType.icon}
           </div>
           <Badge color={resourceType.color} icon={resourceType.icon}>
@@ -239,7 +241,7 @@ const ResourceCard = ({ resource, onEdit, onView, onDelete, onDownload }) => {
           </Badge>
         </div>
 
-        <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
+        <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2">
           {resource.title}
         </h3>
         <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
@@ -285,25 +287,25 @@ const ResourceCard = ({ resource, onEdit, onView, onDelete, onDownload }) => {
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => onView(resource)}
-            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 text-sm font-semibold hover:shadow-md transition-all"
+            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 text-sm font-semibold"
           >
             <FiEye /> View
           </button>
           <button
             onClick={() => onDownload(resource)}
-            className="flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
+            className="flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-300 text-gray-700 text-sm font-semibold"
           >
             <FiDownload /> Download
           </button>
           <button
             onClick={() => onEdit(resource)}
-            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 text-sm font-semibold hover:shadow-md transition-all"
+            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 text-sm font-semibold"
           >
             <FiEdit /> Edit
           </button>
           <button
             onClick={() => onDelete(resource)}
-            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-red-50 to-red-100 text-red-700 text-sm font-semibold hover:shadow-md transition-all"
+            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-red-50 to-red-100 text-red-700 text-sm font-semibold"
           >
             <FiTrash2 /> Delete
           </button>
@@ -404,16 +406,11 @@ export default function ResourcesManager() {
         
         setResources(allResources);
         setFilteredResources(filtered);
-        
-        if (showRefresh) {
-          toast.success('Resources refreshed successfully');
-        }
       } else {
         throw new Error(data.error || 'Failed to fetch resources');
       }
     } catch (error) {
       console.error('Error fetching resources:', error);
-      toast.error(error.message);
       setResources([]);
       setFilteredResources([]);
     } finally {
@@ -434,7 +431,6 @@ export default function ResourcesManager() {
       }
     } catch (error) {
       console.error('Error fetching resource:', error);
-      toast.error(error.message);
       return null;
     }
   };
@@ -552,7 +548,7 @@ export default function ResourcesManager() {
         setShowModal(true);
       }
     } catch (error) {
-      toast.error('Failed to load resource details');
+      console.error('Failed to load resource details:', error);
     }
   };
 
@@ -564,7 +560,7 @@ export default function ResourcesManager() {
         setShowViewModal(true);
       }
     } catch (error) {
-      toast.error('Failed to load resource details');
+      console.error('Failed to load resource details:', error);
     }
   };
 
@@ -585,13 +581,11 @@ export default function ResourcesManager() {
       
       if (data.success) {
         await fetchResources();
-        toast.success('Resource deleted successfully');
       } else {
         throw new Error(data.error || 'Failed to delete resource');
       }
     } catch (error) {
       console.error('Error deleting resource:', error);
-      toast.error(error.message);
     } finally {
       setShowDeleteConfirm(false);
       setResourceToDelete(null);
@@ -602,7 +596,6 @@ export default function ResourcesManager() {
     const file = e.target.files[0];
     if (file) {
       setSelectedFile(file);
-      toast.info(`File selected: ${file.name}`);
     }
   };
 
@@ -611,12 +604,12 @@ export default function ResourcesManager() {
     
     // Validate required fields
     if (!formData.title.trim() || !formData.subject || !formData.className) {
-      toast.error('Title, subject, and class are required');
+      console.error('Title, subject, and class are required');
       return;
     }
     
     if (!selectedFile && !editingResource) {
-      toast.error('Please select a file to upload');
+      console.error('Please select a file to upload');
       return;
     }
 
@@ -659,15 +652,11 @@ export default function ResourcesManager() {
         await fetchResources();
         setShowModal(false);
         setSelectedFile(null);
-        toast.success(
-          `Resource ${editingResource ? 'updated' : 'created'} successfully`
-        );
       } else {
         throw new Error(data.error || data.details);
       }
     } catch (error) {
       console.error('Error saving resource:', error);
-      toast.error(error.message);
     } finally {
       setSaving(false);
       setUploading(false);
@@ -676,7 +665,6 @@ export default function ResourcesManager() {
 
   const downloadResource = async (resource) => {
     try {
-      toast.loading('Downloading file...');
       const response = await fetch(resource.fileUrl);
       if (!response.ok) throw new Error('Download failed');
       
@@ -689,10 +677,8 @@ export default function ResourcesManager() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
-      
-      toast.success('Download started');
     } catch (err) {
-      toast.error('Download failed');
+      console.error('Download failed:', err);
     }
   };
 
@@ -708,7 +694,7 @@ export default function ResourcesManager() {
           <button
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+            className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
           >
             <FiChevronLeft className="text-lg" />
           </button>
@@ -726,10 +712,10 @@ export default function ResourcesManager() {
                 )}
                 <button
                   onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-2 rounded-lg font-semibold transition-all ${
+                  className={`px-3 py-2 rounded-lg font-semibold ${
                     currentPage === page
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg' 
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white' 
+                      : 'text-gray-700'
                   }`}
                 >
                   {page}
@@ -741,7 +727,7 @@ export default function ResourcesManager() {
           <button
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+            className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
           >
             <FiChevronRight className="text-lg" />
           </button>
@@ -764,26 +750,13 @@ export default function ResourcesManager() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 font-sans">
-      <ToastContainer 
-        position="top-right" 
-        autoClose={4000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-
       {/* Header */}
-      <header className="bg-white border-b border-gray-200/50 sticky top-0 z-30 shadow-sm">
+      <header className="bg-white border-b border-gray-200/50 sticky top-0 z-30">
         <div className="container mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl sm:rounded-2xl flex items-center justify-center text-white font-bold shadow-lg">
+              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl sm:rounded-2xl flex items-center justify-center text-white font-bold">
                 NSS
               </div>
               <div className="hidden sm:block">
@@ -799,7 +772,7 @@ export default function ResourcesManager() {
             <button
               onClick={() => fetchResources(true)}
               disabled={refreshing}
-              className="p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+              className="p-2 sm:p-3 text-gray-600 rounded-xl"
               title="Refresh"
             >
               <FiRotateCw className={`${refreshing ? 'animate-spin' : ''}`} />
@@ -807,7 +780,7 @@ export default function ResourcesManager() {
             
             <button
               onClick={handleCreate}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold"
             >
               <FiPlus /> New Resource
             </button>
@@ -831,12 +804,12 @@ export default function ResourcesManager() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search resources by title, description..."
-                  className="block w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 border border-gray-200 rounded-xl sm:rounded-2xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm sm:text-base transition-all"
+                  className="block w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 border border-gray-200 rounded-xl sm:rounded-2xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm sm:text-base"
                 />
                 {searchTerm && (
                   <button 
                     onClick={() => setSearchTerm('')}
-                    className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center text-gray-400"
                   >
                     <FiX />
                   </button>
@@ -846,7 +819,7 @@ export default function ResourcesManager() {
             
             <button
               onClick={handleCreate}
-              className="sm:hidden w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+              className="sm:hidden w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold flex items-center justify-center gap-2"
             >
               <FiPlus /> New Resource
             </button>
@@ -936,7 +909,7 @@ export default function ResourcesManager() {
             {(selectedType !== 'all' || selectedCategory !== 'all' || selectedSubject !== 'all' || selectedClass !== 'all' || selectedAccessLevel !== 'all' || searchTerm) && (
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-2 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-colors text-sm font-semibold"
+                className="flex items-center gap-2 px-4 py-2.5 text-red-600 rounded-xl text-sm font-semibold"
               >
                 <FiX /> Clear Filters
               </button>
@@ -992,7 +965,7 @@ export default function ResourcesManager() {
               <p className="text-gray-600 mb-6">Try adjusting your filters or search terms</p>
               <button
                 onClick={clearFilters}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-semibold"
               >
                 Clear All Filters
               </button>
@@ -1036,12 +1009,19 @@ export default function ResourcesManager() {
 
       {/* Create/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <Modal open={true} onClose={() => setShowModal(false)}>
+          <Box sx={{
+            position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+            width: '90%',
+            maxWidth: '800px',
+            maxHeight: '95vh', bgcolor: 'background.paper',
+            borderRadius: 3, boxShadow: 24, overflow: 'hidden',
+            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+          }}>
             <div className="p-6 border-b border-gray-200/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl">
+                  <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl">
                     <FiFileText className="text-white text-xl" />
                   </div>
                   <h2 className="text-xl font-bold text-gray-900">
@@ -1050,20 +1030,20 @@ export default function ResourcesManager() {
                 </div>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-xl"
+                  className="p-2 text-gray-600"
                 >
-                  <FiX className="text-xl text-gray-600" />
+                  <FiX className="text-xl" />
                 </button>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[calc(95vh-150px)] overflow-y-auto">
               {/* File Upload */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-3">
                   {editingResource ? 'Replace File (Optional)' : 'Upload File *'}
                 </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-blue-400 transition-colors">
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6">
                   <input
                     type="file"
                     onChange={handleFileChange}
@@ -1197,18 +1177,18 @@ export default function ResourcesManager() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors"
+                  className="flex-1 bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving || uploading}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {(saving || uploading) ? (
                     <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <CircularProgress size={20} sx={{ color: 'white' }} />
                       {editingResource ? 'Updating...' : 'Uploading...'}
                     </>
                   ) : (
@@ -1220,32 +1200,39 @@ export default function ResourcesManager() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+          </Box>
+        </Modal>
       )}
 
       {/* View Resource Modal */}
       {showViewModal && viewResource && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <Modal open={true} onClose={() => setShowViewModal(false)}>
+          <Box sx={{
+            position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+            width: '90%',
+            maxWidth: '800px',
+            maxHeight: '95vh', bgcolor: 'background.paper',
+            borderRadius: 3, boxShadow: 24, overflow: 'hidden',
+            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+          }}>
             <div className="p-6 border-b border-gray-200/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl">
+                  <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl">
                     {getFileIcon(viewResource.fileName)}
                   </div>
                   <h2 className="text-xl font-bold text-gray-900">Resource Details</h2>
                 </div>
                 <button
                   onClick={() => setShowViewModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-xl"
+                  className="p-2 text-gray-600"
                 >
-                  <FiX className="text-xl text-gray-600" />
+                  <FiX className="text-xl" />
                 </button>
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-6 max-h-[calc(95vh-150px)] overflow-y-auto">
               {/* Resource Info */}
               <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-blue-50 to-emerald-50 rounded-2xl border border-blue-200">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center">
@@ -1322,52 +1309,63 @@ export default function ResourcesManager() {
                     downloadResource(viewResource);
                     setShowViewModal(false);
                   }}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3.5 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3.5 rounded-xl font-semibold flex items-center justify-center gap-3"
                 >
                   <FiDownload className="text-lg" /> Download Resource
                 </button>
                 <button
                   onClick={() => setShowViewModal(false)}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3.5 rounded-xl font-semibold transition-colors"
+                  className="flex-1 bg-gray-100 text-gray-700 px-6 py-3.5 rounded-xl font-semibold"
                 >
                   Close
                 </button>
               </div>
             </div>
-          </div>
-        </div>
+          </Box>
+        </Modal>
       )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-md p-8 shadow-2xl">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <FiAlertCircle className="text-2xl text-red-600" />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-red-500 to-orange-500 p-6 text-white">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white bg-opacity-20 rounded-2xl">
+                  <FiAlertCircle className="text-xl text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Confirm Deletion</h2>
+                  <p className="text-red-100 opacity-90 mt-1 text-sm">This action cannot be undone</p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                Confirm Deletion
-              </h3>
-              <p className="text-gray-600">
-                Are you sure you want to delete the resource "{resourceToDelete?.title}"? This action cannot be undone.
-              </p>
             </div>
-            <div className="flex gap-4">
-              <button
+
+            <div className="p-6 space-y-4">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-3 border border-red-200">
+                  <FiTrash2 className="text-red-600 text-lg" />
+                </div>
+                <h3 className="text-base font-bold text-gray-900 mb-2">Delete "{resourceToDelete?.title}"?</h3>
+                <p className="text-gray-600 text-sm">This will permanently delete the resource and all associated data.</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 p-4 border-t border-gray-200 bg-gray-50">
+              <button 
                 onClick={() => {
                   setShowDeleteConfirm(false);
                   setResourceToDelete(null);
                 }}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold text-sm"
               >
-                Cancel
+                <FiX /> Cancel
               </button>
-              <button
+              <button 
                 onClick={confirmDelete}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-orange-600 text-white px-4 py-3 rounded-xl font-bold text-sm"
               >
-                Delete Resource
+                <FiTrash2 /> Delete Forever
               </button>
             </div>
           </div>

@@ -13,53 +13,60 @@ if (!fs.existsSync(uploadDir)) {
 // 🔹 GET single staff by ID
 export async function GET(req, { params }) {
   try {
-    const staff = await prisma.staff.findUnique({ where: { id: Number(params.id) } });
-    if (!staff) return NextResponse.json({ success: false, error: "Staff not found" }, { status: 404 });
+    const staff = await prisma.staff.findUnique({
+      where: { id: Number(params.id) },
+    });
+
+    if (!staff) {
+      return NextResponse.json(
+        { success: false, error: "Staff not found" },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({ success: true, staff });
   } catch (error) {
     console.error("❌ GET Staff Error:", error);
-    return NextResponse.json({ success: false, error: "Failed to fetch staff" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch staff" },
+      { status: 500 }
+    );
   }
 }
 
+// 🔹 UPDATE staff by ID
 export async function PUT(req, { params }) {
   try {
     const formData = await req.formData();
-
     const data = {};
 
-    // Only add fields if they exist in the form data
-    const name = formData.get("name");
-    if (name) data.name = name;
+    // Basic fields
+    if (formData.get("name")) data.name = formData.get("name");
+    if (formData.get("role")) data.role = formData.get("role");
+    if (formData.get("position")) data.position = formData.get("position");
+    if (formData.get("department")) data.department = formData.get("department");
+    if (formData.get("email")) data.email = formData.get("email");
+    if (formData.get("phone")) data.phone = formData.get("phone");
+    if (formData.get("bio")) data.bio = formData.get("bio");
+    if (formData.get("quote")) data.quote = formData.get("quote");
 
-    const role = formData.get("role");
-    if (role) data.role = role;
-
-    const position = formData.get("position");
-    if (position) data.position = position;
-
-    const department = formData.get("department");
-    if (department) data.department = department;
-
-    const email = formData.get("email");
-    if (email) data.email = email;
-
-    const phone = formData.get("phone");
-    if (phone) data.phone = phone;
-
-    const bio = formData.get("bio");
-    if (bio) data.bio = bio;
-
+    // JSON fields (safe parsing)
     const responsibilities = formData.get("responsibilities");
-    if (responsibilities) data.responsibilities = JSON.parse(responsibilities);
+    if (responsibilities) {
+      data.responsibilities = JSON.parse(responsibilities);
+    }
 
     const expertise = formData.get("expertise");
-    if (expertise) data.expertise = JSON.parse(expertise);
+    if (expertise) {
+      data.expertise = JSON.parse(expertise);
+    }
 
     const achievements = formData.get("achievements");
-    if (achievements) data.achievements = JSON.parse(achievements);
+    if (achievements) {
+      data.achievements = JSON.parse(achievements);
+    }
 
-    // Optional file upload
+    // Optional image upload
     const file = formData.get("image");
     if (file && file.size > 0) {
       const buffer = Buffer.from(await file.arrayBuffer());
@@ -77,17 +84,29 @@ export async function PUT(req, { params }) {
     return NextResponse.json({ success: true, staff: updatedStaff });
   } catch (error) {
     console.error("❌ PUT Staff Error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
   }
 }
 
 // 🔹 DELETE staff by ID
 export async function DELETE(req, { params }) {
   try {
-    await prisma.staff.delete({ where: { id: Number(params.id) } });
-    return NextResponse.json({ success: true, message: "Staff deleted successfully" });
+    await prisma.staff.delete({
+      where: { id: Number(params.id) },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Staff deleted successfully",
+    });
   } catch (error) {
     console.error("❌ DELETE Staff Error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
   }
 }

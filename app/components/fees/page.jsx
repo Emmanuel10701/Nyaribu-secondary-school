@@ -57,13 +57,11 @@ function ModernLoadingSpinner({ message = "Loading fee data...", size = "medium"
               <div className="bg-gradient-to-r from-indigo-500 to-violet-600 rounded-full" style={{ width: inner, height: inner }}></div>
             </div>
           </div>
-          <div className="absolute -inset-6 bg-gradient-to-r from-indigo-100 to-violet-100 rounded-full blur-xl opacity-30"></div>
+          <div className="absolute -inset-6 bg-gradient-to-r from-indigo-100 to-violet-100 rounded-full blur-xl opacity-30" />
         </div>
         
         <div className="mt-8 space-y-3">
-          <span className="block text-lg font-semibold text-gray-800">
-            {message}
-          </span>
+          <span className="block text-lg font-semibold text-gray-800">{message}</span>
           <div className="flex justify-center space-x-1.5">
             {[0, 1, 2].map(i => (
               <div key={i} className="w-2 h-2 bg-indigo-500 rounded-full"></div>
@@ -197,7 +195,7 @@ function ModernFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag }) 
 
   return (
     <div
-      className={`border-3 border-dashed rounded-2xl p-10 text-center cursor-pointer ${
+      className={`border-3 border-dashed rounded-2xl p-8 sm:p-10 text-center cursor-pointer ${
         dragActive 
           ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 ring-4 ring-blue-100' 
           : 'border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100'
@@ -213,15 +211,11 @@ function ModernFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag }) 
       }}
       onClick={() => fileInputRef.current?.click()}
     >
-      <FiUpload className={`mx-auto text-3xl mb-4 ${
-        dragActive ? 'text-blue-600' : 'text-gray-400'
-      }`} />
+      <FiUpload className={`mx-auto text-3xl mb-4 ${dragActive ? 'text-blue-600' : 'text-gray-400'}`} />
       <p className="text-gray-800 mb-2 font-bold text-lg">
         {dragActive ? '📁 Drop file here!' : file ? 'Click to replace file' : 'Drag & drop or click to upload'}
       </p>
-      <p className="text-sm text-gray-600">
-        CSV, Excel (.xlsx, .xls) • Max 10MB
-      </p>
+      <p className="text-sm text-gray-600">CSV, Excel (.xlsx, .xls) • Max 10MB</p>
       <input 
         ref={fileInputRef}
         type="file" 
@@ -307,7 +301,7 @@ function ModernFeeDetailModal({ fee, student, onClose, onEdit, onDelete }) {
             {/* Header Info */}
             <div className="mb-8">
               <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-6">
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 flex items-center justify-center shadow-2xl ring-4 ring-blue-100 mx-auto md:mx-0">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 flex items-center justify-center shadow-2xl ring-4 ring-blue-100 mx-auto md:mx-0">
                   <FiDollarSign className="text-white text-3xl" />
                 </div>
                 <div className="flex-1 text-center md:text-left">
@@ -344,7 +338,7 @@ function ModernFeeDetailModal({ fee, student, onClose, onEdit, onDelete }) {
                   style={{ width: `${calculateProgress()}%` }}
                 />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-white rounded-xl border border-blue-200">
                   <div className="text-sm font-semibold text-blue-700">Total Fees</div>
                   <div className="text-xl font-bold text-gray-900">{formatCurrency(fee.amount)}</div>
@@ -478,16 +472,10 @@ function ModernFeeDetailModal({ fee, student, onClose, onEdit, onDelete }) {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t-2 border-gray-200">
-              <button
-                onClick={onEdit}
-                className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl font-bold text-base shadow-xl"
-              >
+              <button onClick={onEdit} className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl font-bold text-base shadow-xl">
                 <FiEdit className="text-lg" /> Edit Fee
               </button>
-              <button
-                onClick={() => setShowDeleteModal(true)}
-                className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-2xl font-bold text-base shadow-xl"
-              >
+              <button onClick={() => setShowDeleteModal(true)} className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-2xl font-bold text-base shadow-xl">
                 <FiTrash2 className="text-lg" /> Delete Fee
               </button>
             </div>
@@ -875,9 +863,7 @@ function ModernFeeChart({
                   <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
                 ))}
               </Pie>
-              <RechartsTooltip 
-                formatter={(value) => [value, 'Count']}
-              />
+              <RechartsTooltip formatter={(value) => [value, 'Count']} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -890,9 +876,7 @@ function ModernFeeChart({
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
               <XAxis dataKey="name" stroke="#6B7280" />
               <YAxis stroke="#6B7280" />
-              <RechartsTooltip 
-                formatter={(value) => [`KES ${value.toLocaleString()}`, 'Amount']}
-              />
+              <RechartsTooltip formatter={(value) => [`KES ${value.toLocaleString()}`, 'Amount']} />
               <Legend />
               <Bar dataKey="value" name="Amount (KES)" radius={[8, 8, 0, 0]}>
                 {data.map((entry, index) => (
@@ -910,14 +894,12 @@ function ModernFeeChart({
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
               <XAxis dataKey="name" stroke="#6B7280" />
               <YAxis stroke="#6B7280" />
-              <RechartsTooltip 
-                formatter={(value, name) => {
-                  if (name === 'amount') return [`KES ${value.toLocaleString()}`, 'Total Amount'];
-                  if (name === 'paid') return [`KES ${value.toLocaleString()}`, 'Amount Paid'];
-                  if (name === 'balance') return [`KES ${value.toLocaleString()}`, 'Balance'];
-                  return [value, name];
-                }}
-              />
+              <RechartsTooltip formatter={(value, name) => {
+                if (name === 'amount') return [`KES ${value.toLocaleString()}`, 'Total Amount'];
+                if (name === 'paid') return [`KES ${value.toLocaleString()}`, 'Amount Paid'];
+                if (name === 'balance') return [`KES ${value.toLocaleString()}`, 'Balance'];
+                return [value, name];
+              }} />
               <Legend />
               <Bar dataKey="balance" name="Balance" fill="#EF4444" radius={[4, 4, 0, 0]} />
               <Bar dataKey="paid" name="Amount Paid" fill="#10B981" radius={[4, 4, 0, 0]} />
@@ -929,28 +911,14 @@ function ModernFeeChart({
       case 'radial':
         return (
           <ResponsiveContainer width="100%" height={height}>
-            <RadialBarChart 
-              innerRadius="20%" 
-              outerRadius="90%" 
-              data={data} 
-              startAngle={180} 
-              endAngle={0}
-            >
-              <RadialBar 
-                minAngle={15} 
-                label={{ fill: '#fff', position: 'insideStart' }} 
-                background 
-                clockWise 
-                dataKey="value"
-              >
+            <RadialBarChart innerRadius="20%" outerRadius="90%" data={data} startAngle={180} endAngle={0}>
+              <RadialBar minAngle={15} label={{ fill: '#fff', position: 'insideStart' }} background clockWise dataKey="value">
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
                 ))}
               </RadialBar>
               <Legend iconSize={10} layout="vertical" verticalAlign="middle" align="right" />
-              <RechartsTooltip 
-                formatter={(value) => [value, 'Count']}
-              />
+              <RechartsTooltip formatter={(value) => [value, 'Count']} />
             </RadialBarChart>
           </ResponsiveContainer>
         );
@@ -977,12 +945,12 @@ function ModernFeeChart({
 
   return (
     <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-2xl relative overflow-hidden">
-      <div className="absolute -top-10 -right-10 w-60 h-60 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-full blur-3xl opacity-60" />
+      <div className="absolute -top-8 -right-8 w-40 h-40 md:w-60 md:h-60 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-full blur-3xl opacity-60" />
       
       <div className="relative z-10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 flex items-center justify-center shadow-2xl ring-4 ring-blue-100">
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 flex items-center justify-center shadow-2xl ring-4 ring-blue-100">
               {type === 'pie' && <FiPieChart className="text-white text-xl" />}
               {type === 'bar' && <FiBarChart2 className="text-white text-xl" />}
               {type === 'composed' && <IoStatsChart className="text-white text-xl" />}
@@ -995,7 +963,7 @@ function ModernFeeChart({
           </div>
         </div>
 
-        <div className="h-96">
+        <div className="h-72 md:h-96">
           {data && data.length > 0 ? (
             renderChart()
           ) : (
@@ -1054,47 +1022,23 @@ function EnhancedFilterPanel({
           Advanced Filters
         </h3>
         <div className="flex items-center gap-3">
-          <button
-            onClick={onToggleAdvanced}
-            className="px-4 py-2 text-sm font-bold text-gray-700"
-          >
-            {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
-          </button>
-          <button
-            onClick={clearAllFilters}
-            className="px-4 py-2 text-sm font-bold text-red-600"
-          >
-            Clear All
-          </button>
+          <button onClick={onToggleAdvanced} className="px-4 py-2 text-sm font-bold text-gray-700">{showAdvanced ? 'Hide Advanced' : 'Show Advanced'}</button>
+          <button onClick={clearAllFilters} className="px-4 py-2 text-sm font-bold text-red-600">Clear All</button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2">
-            Search
-          </label>
+          <label className="block text-sm font-bold text-gray-700 mb-2">Search</label>
           <div className="relative">
             <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg" />
-            <input
-              type="text"
-              value={localFilters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-              placeholder="Admission number, student name..."
-              className="w-full pl-12 pr-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-            />
+            <input type="text" value={localFilters.search} onChange={(e) => handleFilterChange('search', e.target.value)} placeholder="Admission number, student name..." className="w-full pl-12 pr-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base" />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2">
-            Term
-          </label>
-          <select
-            value={localFilters.term}
-            onChange={(e) => handleFilterChange('term', e.target.value)}
-            className="w-full px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-          >
+          <label className="block text-sm font-bold text-gray-700 mb-2">Term</label>
+          <select value={localFilters.term} onChange={(e) => handleFilterChange('term', e.target.value)} className="w-full px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base">
             <option value="">All Terms</option>
             <option value="Term 1">Term 1</option>
             <option value="Term 2">Term 2</option>
@@ -1103,14 +1047,8 @@ function EnhancedFilterPanel({
         </div>
 
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2">
-            Academic Year
-          </label>
-          <select
-            value={localFilters.academicYear}
-            onChange={(e) => handleFilterChange('academicYear', e.target.value)}
-            className="w-full px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-          >
+          <label className="block text-sm font-bold text-gray-700 mb-2">Academic Year</label>
+          <select value={localFilters.academicYear} onChange={(e) => handleFilterChange('academicYear', e.target.value)} className="w-full px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base">
             <option value="">All Years</option>
             <option value="2024/2025">2024/2025</option>
             <option value="2023/2024">2023/2024</option>
@@ -1119,14 +1057,8 @@ function EnhancedFilterPanel({
         </div>
 
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2">
-            Payment Status
-          </label>
-          <select
-            value={localFilters.paymentStatus}
-            onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
-            className="w-full px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-          >
+          <label className="block text-sm font-bold text-gray-700 mb-2">Payment Status</label>
+          <select value={localFilters.paymentStatus} onChange={(e) => handleFilterChange('paymentStatus', e.target.value)} className="w-full px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base">
             <option value="">All Status</option>
             <option value="paid">Paid</option>
             <option value="partial">Partial</option>
@@ -1714,7 +1646,7 @@ export default function ModernFeeManagement() {
             <button
               onClick={exportFeesToCSV}
               disabled={feeBalances.length === 0 || loading}
-              className="text-white/80 px-6 py-3 rounded-xl font-bold text-base border border-white/20 flex items-center gap-2 disabled:opacity-50"
+              className="text-white/80 px-6 py-3 rounded-xl font-bold text-base border borderwhite/20 flex items-center gap-2 disabled:opacity-50"
             >
               <FiDownload className="text-base" />
               Export Data
@@ -1789,66 +1721,23 @@ export default function ModernFeeManagement() {
           <div className="space-y-8">
             {/* Statistics Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatisticsCard
-                title="Total Fees Amount"
-                value={stats.totalAmount}
-                icon={IoCash}
-                color="from-blue-500 to-blue-700"
-                trend={5.2}
-                prefix="KES "
-              />
-              <StatisticsCard
-                title="Total Amount Paid"
-                value={stats.totalPaid}
-                icon={FiCheckCircle}
-                color="from-emerald-500 to-emerald-700"
-                trend={8.7}
-                prefix="KES "
-              />
-              <StatisticsCard
-                title="Total Balance"
-                value={stats.totalBalance}
-                icon={FiAlertCircle}
-                color="from-red-500 to-red-700"
-                trend={-3.1}
-                prefix="KES "
-              />
-              <StatisticsCard
-                title="Total Records"
-                value={stats.totalRecords}
-                icon={FiUsers}
-                color="from-purple-500 to-purple-700"
-                trend={12.5}
-              />
+              <StatisticsCard title="Total Fees Amount" value={stats.totalAmount} icon={IoCash} color="from-blue-500 to-blue-700" trend={5.2} prefix="KES " />
+              <StatisticsCard title="Total Amount Paid" value={stats.totalPaid} icon={FiCheckCircle} color="from-emerald-500 to-emerald-700" trend={8.7} prefix="KES " />
+              <StatisticsCard title="Total Balance" value={stats.totalBalance} icon={FiAlertCircle} color="from-red-500 to-red-700" trend={-3.1} prefix="KES " />
+              <StatisticsCard title="Total Records" value={stats.totalRecords} icon={FiUsers} color="from-purple-500 to-purple-700" trend={12.5} />
             </div>
 
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <ModernFeeChart
-                data={chartData.statusDistribution}
-                type="pie"
-                title="Payment Status Distribution"
-                colors={['#10B981', '#F59E0B', '#EF4444']}
-                height={400}
-              />
-              <ModernFeeChart
-                data={chartData.termDistribution}
-                type="bar"
-                title="Term Distribution"
-                height={400}
-              />
+              <ModernFeeChart data={chartData.statusDistribution} type="pie" title="Payment Status Distribution" colors={['#10B981', '#F59E0B', '#EF4444']} height={400} />
+              <ModernFeeChart data={chartData.termDistribution} type="bar" title="Term Distribution" height={400} />
             </div>
 
             {/* Recent Fee Balances */}
             <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold text-gray-900">Recent Fee Balances</h3>
-                <button
-                  onClick={() => setView('balances')}
-                  className="px-4 py-2 text-blue-600 font-bold text-base flex items-center gap-2"
-                >
-                  View All <FiChevronRight />
-                </button>
+                <button onClick={() => setView('balances')} className="px-4 py-2 text-blue-600 font-bold text-base flex items-center gap-2">View All <FiChevronRight /></button>
               </div>
               
               <div className="overflow-x-auto">
@@ -1868,37 +1757,13 @@ export default function ModernFeeManagement() {
                       <tr key={fee.id}>
                         <td className="px-6 py-4">
                           <div className="font-bold text-gray-900">#{fee.admissionNumber}</div>
-                          {fee.student && (
-                            <div className="text-gray-600 text-sm">
-                              {fee.student.firstName} {fee.student.lastName}
-                            </div>
-                          )}
+                          {fee.student && <div className="text-gray-600 text-sm">{fee.student.firstName} {fee.student.lastName}</div>}
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="text-gray-700">{fee.term} {fee.academicYear}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="font-bold text-gray-900">{formatCurrency(fee.amount)}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="font-bold text-emerald-700">{formatCurrency(fee.amountPaid)}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className={`font-bold ${fee.balance > 0 ? 'text-red-700' : 'text-green-700'}`}>
-                            {formatCurrency(fee.balance)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-lg text-xs font-bold ${
-                            fee.paymentStatus === 'paid' 
-                              ? 'bg-green-100 text-green-800'
-                              : fee.paymentStatus === 'partial'
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {fee.paymentStatus.toUpperCase()}
-                          </span>
-                        </td>
+                        <td className="px-6 py-4"><div className="text-gray-700">{fee.term} {fee.academicYear}</div></td>
+                        <td className="px-6 py-4"><div className="font-bold text-gray-900">{formatCurrency(fee.amount)}</div></td>
+                        <td className="px-6 py-4"><div className="font-bold text-emerald-700">{formatCurrency(fee.amountPaid)}</div></td>
+                        <td className="px-6 py-4"><div className={`font-bold ${fee.balance > 0 ? 'text-red-700' : 'text-green-700'}`}>{formatCurrency(fee.balance)}</div></td>
+                        <td className="px-6 py-4"><span className={`px-3 py-1 rounded-lg text-xs font-bold ${fee.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : fee.paymentStatus === 'partial' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>{fee.paymentStatus.toUpperCase()}</span></td>
                       </tr>
                     ))}
                   </tbody>
@@ -1915,95 +1780,50 @@ export default function ModernFeeManagement() {
               <div className="lg:col-span-2 space-y-8">
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-6 border-2 border-blue-300">
                   <h3 className="text-xl font-bold text-blue-900 mb-6 flex items-center gap-3">
-                    <FiInfo className="text-blue-700 text-2xl" />
-                    Upload Configuration
+                    <FiInfo className="text-blue-700 text-2xl" /> Upload Configuration
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-3">
-                        Term *
-                      </label>
-                      <select
-                        value={formData.term}
-                        onChange={(e) => setFormData({...formData, term: e.target.value})}
-                        className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-base"
-                      >
+                      <label className="block text-sm font-bold text-gray-700 mb-3">Term *</label>
+                      <select value={formData.term} onChange={(e) => setFormData({...formData, term: e.target.value})} className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-base">
                         <option value="Term 1">Term 1</option>
                         <option value="Term 2">Term 2</option>
                         <option value="Term 3">Term 3</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-3">
-                        Academic Year *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.academicYear}
-                        onChange={(e) => setFormData({...formData, academicYear: e.target.value})}
-                        placeholder="e.g., 2024/2025"
-                        className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-base"
-                      />
+                      <label className="block text-sm font-bold text-gray-700 mb-3">Academic Year *</label>
+                      <input type="text" required value={formData.academicYear} onChange={(e) => setFormData({...formData, academicYear: e.target.value})} placeholder="e.g., 2024/2025" className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-base" />
                     </div>
                   </div>
                 </div>
 
-                <ModernFileUpload
-                  onFileSelect={handleFileSelect}
-                  file={file}
-                  onRemove={() => setFile(null)}
-                  dragActive={dragActive}
-                  onDrag={handleDrag}
-                />
+                <ModernFileUpload onFileSelect={handleFileSelect} file={file} onRemove={() => setFile(null)} dragActive={dragActive} onDrag={handleDrag} />
 
                 {file && (
                   <div className="bg-white rounded-2xl p-6 border-2 border-gray-300 shadow-2xl">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                       <div className="flex items-center gap-6">
                         <div className="p-4 bg-gradient-to-r from-blue-100 to-blue-200 rounded-2xl">
-                          {file.name.endsWith('.csv') ? (
-                            <FiFile className="text-blue-700 text-3xl" />
-                          ) : (
-                            <IoDocumentText className="text-green-700 text-3xl" />
-                          )}
+                          {file.name.endsWith('.csv') ? <FiFile className="text-blue-700 text-3xl" /> : <IoDocumentText className="text-green-700 text-3xl" />}
                         </div>
                         <div>
                           <p className="font-bold text-gray-900 text-lg truncate max-w-[200px] md:max-w-none">{file.name}</p>
                           <div className="flex flex-col md:flex-row md:items-center gap-6 mt-2">
-                            <span className="text-gray-600 font-semibold text-base">
-                              {(file.size / 1024 / 1024).toFixed(2)} MB
-                            </span>
-                            <span className="px-3 py-1.5 bg-gray-100 rounded-lg font-bold text-gray-700 text-sm">
-                              {file.name.split('.').pop().toUpperCase()}
-                            </span>
+                            <span className="text-gray-600 font-semibold text-base">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                            <span className="px-3 py-1.5 bg-gray-100 rounded-lg font-bold text-gray-700 text-sm">{file.name.split('.').pop().toUpperCase()}</span>
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <button
-                          onClick={() => setFile(null)}
-                          className="p-3 rounded-xl text-gray-600"
-                        >
-                          <FiX className="text-xl" />
-                        </button>
+                        <button onClick={() => setFile(null)} className="p-3 rounded-xl text-gray-600"><FiX className="text-xl" /></button>
                         <button
                           onClick={handleUpload}
                           disabled={uploading || !formData.term || !formData.academicYear}
                           className="px-6 py-4 bg-gradient-to-r from-emerald-600 to-emerald-800 text-white rounded-xl font-bold flex items-center gap-3 text-base shadow-xl disabled:opacity-50"
                         >
-                          {uploading ? (
-                            <>
-                              <CircularProgress size={18} className="text-white" />
-                              <span>Processing...</span>
-                            </>
-                          ) : (
-                            <>
-                              <FiUpload className="text-base" />
-                              <span>Upload Now</span>
-                            </>
-                          )}
+                          {uploading ? (<><CircularProgress size={18} className="text-white" /><span>Processing...</span></>) : (<><FiUpload className="text-base" /><span>Upload Now</span></>)}
                         </button>
                       </div>
                     </div>
@@ -2015,17 +1835,11 @@ export default function ModernFeeManagement() {
                 <div className="bg-white rounded-2xl border-2 border-gray-300 p-6 shadow-xl">
                   <h3 className="text-xl font-bold text-gray-900 mb-6">Download Templates</h3>
                   <div className="space-y-4">
-                    <button
-                      onClick={downloadCSVTemplate}
-                      className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl"
-                    >
+                    <button onClick={downloadCSVTemplate} className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl">
                       <FiFile className="text-blue-600 text-2xl" />
                       <span className="font-bold text-gray-900 text-base">CSV Template</span>
                     </button>
-                    <button
-                      onClick={downloadExcelTemplate}
-                      className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl"
-                    >
+                    <button onClick={downloadExcelTemplate} className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl">
                       <IoDocumentText className="text-green-600 text-2xl" />
                       <span className="font-bold text-gray-900 text-base">Excel Template</span>
                     </button>
@@ -2171,18 +1985,12 @@ export default function ModernFeeManagement() {
                               <tr key={fee.id}>
                                 <td className="px-8 py-5">
                                   <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 flex items-center justify-center flex-shrink-0">
+                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 flex items-center justify-center flex-shrink-0">
                                       <FiUser className="text-white text-base" />
                                     </div>
                                     <div>
-                                      <div className="font-bold text-gray-900 text-base">
-                                        #{fee.admissionNumber}
-                                      </div>
-                                      {fee.student && (
-                                        <div className="text-gray-600 text-sm">
-                                          {fee.student.firstName} {fee.student.lastName}
-                                        </div>
-                                      )}
+                                      <div className="font-bold text-gray-900 text-base">#{fee.admissionNumber}</div>
+                                      {fee.student && <div className="text-gray-600 text-sm">{fee.student.firstName} {fee.student.lastName}</div>}
                                     </div>
                                   </div>
                                 </td>
@@ -2204,22 +2012,12 @@ export default function ModernFeeManagement() {
                                     </div>
                                     <div className="flex items-center justify-between">
                                       <span className="text-gray-600 text-sm">Balance:</span>
-                                      <span className={`font-bold ${fee.balance > 0 ? 'text-red-700' : 'text-green-700'}`}>
-                                        {formatCurrency(fee.balance)}
-                                      </span>
+                                      <span className={`font-bold ${fee.balance > 0 ? 'text-red-700' : 'text-green-700'}`}>{formatCurrency(fee.balance)}</span>
                                     </div>
                                   </div>
                                 </td>
                                 <td className="px-8 py-5">
-                                  <span className={`px-4 py-2 rounded-xl text-sm font-bold ${
-                                    fee.paymentStatus === 'paid' 
-                                      ? 'bg-green-100 text-green-800'
-                                      : fee.paymentStatus === 'partial'
-                                      ? 'bg-amber-100 text-amber-800'
-                                      : 'bg-red-100 text-red-800'
-                                  }`}>
-                                    {fee.paymentStatus.toUpperCase()}
-                                  </span>
+                                  <span className={`px-4 py-2 rounded-xl text-sm font-bold ${fee.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : fee.paymentStatus === 'partial' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>{fee.paymentStatus.toUpperCase()}</span>
                                   {fee.dueDate && (
                                     <div className="text-gray-600 text-xs mt-2">
                                       Due: {new Date(fee.dueDate).toLocaleDateString()}
@@ -2363,18 +2161,10 @@ export default function ModernFeeManagement() {
                   <table className="w-full min-w-[768px]">
                     <thead className="bg-gradient-to-r from-gray-100 to-white">
                       <tr>
-                        <th className="px-8 py-6 text-left text-base font-bold text-gray-700 uppercase tracking-wider">
-                          Upload Details
-                        </th>
-                        <th className="px-8 py-6 text-left text-base font-bold text-gray-700 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-8 py-6 text-left text-base font-bold text-gray-700 uppercase tracking-wider">
-                          Statistics
-                        </th>
-                        <th className="px-8 py-6 text-left text-base font-bold text-gray-700 uppercase tracking-wider">
-                          Actions
-                        </th>
+                        <th className="px-8 py-6 text-left text-base font-bold text-gray-700 uppercase tracking-wider">Upload Details</th>
+                        <th className="px-8 py-6 text-left text-base font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                        <th className="px-8 py-6 text-left text-base font-bold text-gray-700 uppercase tracking-wider">Statistics</th>
+                        <th className="px-8 py-6 text-left text-base font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y-2 divide-gray-200">

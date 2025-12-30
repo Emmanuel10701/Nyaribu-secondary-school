@@ -85,6 +85,8 @@ import {
   Plus,
   Eye
 } from 'lucide-react';
+import CircularProgress from "@mui/material/CircularProgress";
+
 
 // Modern Scrollbar Styles
 const modernScrollbarStyles = `
@@ -393,6 +395,7 @@ const ConfirmationModal = ({
 };
 
 // Modern Modal Component
+// Modern Modal Component (reduced width)
 const ModernModal = ({ children, open, onClose, maxWidth = '800px' }) => {
   if (!open) return null;
 
@@ -403,7 +406,7 @@ const ModernModal = ({ children, open, onClose, maxWidth = '800px' }) => {
         className="bg-white rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden"
         style={{ 
           width: '85%',
-          maxWidth: maxWidth,
+          maxWidth: '850px', // Reduced from 1100px to 650px
           maxHeight: '85vh',
           background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
         }}
@@ -414,7 +417,7 @@ const ModernModal = ({ children, open, onClose, maxWidth = '800px' }) => {
   );
 };
 
-// Update the CampaignCard component:
+
 const CampaignCard = ({ 
   campaign, 
   isSelected, 
@@ -669,49 +672,6 @@ const CampaignCard = ({
   );
 };
 
-// Create a reusable component instead
-const CampaignAttachmentsDisplay = ({ campaign }) => {
-  if (!campaign) return null;
-  
-  // Use the helper function to parse attachments
-  const attachments = parseCampaignAttachments(campaign.attachments);
-  if (attachments.length === 0) return null;
-  
-  return (
-    <div>
-      <h3 className="font-bold text-gray-900 mb-2">
-        Attachments ({attachments.length})
-      </h3>
-      <div className="bg-gray-50/80 backdrop-blur-sm rounded-lg p-4 border border-gray-200/60">
-        <div className="space-y-2">
-          {attachments.map((attachment, index) => (
-            <div key={index} className="flex items-center gap-3 p-3 bg-white/50 rounded-lg border border-gray-200/60">
-              <span className="text-2xl">
-                {getFileIcon(attachment.fileType)}
-              </span>
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">{attachment.originalName || attachment.filename}</p>
-                <p className="text-sm text-gray-600">
-                  {attachment.fileType?.toUpperCase()} • {formatFileSize(attachment.fileSize)}
-                </p>
-              </div>
-              <a
-                href={`/emailattachments/${attachment.filename}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 text-blue-600 hover:text-blue-800"
-                title="Download"
-              >
-                <Download className="w-4 h-4" />
-              </a>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // Modern Email Skeleton Component
 const ModernEmailSkeleton = () => {
   return (
@@ -913,204 +873,245 @@ export default function ModernEmailCampaignsManager() {
     return campaign.recipients.split(',').length;
   }, []);
   
-  const getRecipientEmails = useCallback((recipientType) => {
-    const getEmailList = (list) => 
-      list
-        .filter(email => email && typeof email === 'string' && email.trim() !== '')
-        .map(email => email.trim());
-    
-    switch (recipientType) {
-      case 'parents':
-        return getEmailList(students.map(s => s.parentEmail));
-      case 'teachers':
-        const teachers = staff.filter(s => 
-          s.role === 'Teacher' || 
-          ['Sciences', 'Mathematics', 'Languages', 'Humanities', 'Sports'].includes(s.department)
-        );
-        return getEmailList(teachers.map(s => s.email));
-      case 'administration':
-        const admins = staff.filter(s => 
-          s.role === 'Principal' || 
-          s.role === 'Deputy Principal' ||
-          s.department === 'Administration'
-        );
-        return getEmailList(admins.map(s => s.email));
-      case 'bom':
-        const bom = staff.filter(s => 
-          s.role === 'BOM Member' || 
-          (s.position && s.position.toLowerCase().includes('board'))
-        );
-        return getEmailList(bom.map(s => s.email));
-      case 'support':
-        const support = staff.filter(s => 
-          s.role === 'Support Staff' || 
-          s.role === 'Librarian' || 
-          s.role === 'Counselor'
-        );
-        return getEmailList(support.map(s => s.email));
-      case 'staff':
-        return getEmailList(staff.map(s => s.email));
-      case 'all':
-      default:
-        return [
-          ...getEmailList(students.map(s => s.parentEmail)),
-          ...getEmailList(staff.map(s => s.email))
-        ];
-    }
-  }, [students, staff]);
-  
-  const recipientGroups = useMemo(() => {
-    const getParentEmails = () => 
-      students.filter(s => s.parentEmail && typeof s.parentEmail === 'string' && s.parentEmail.trim() !== '').length;
+const getRecipientEmails = useCallback((recipientType) => {
+  const getEmailList = (list) => 
+    list
+      .filter(item => item && typeof item === 'object' && item.email && typeof item.email === 'string' && item.email.trim() !== '')
+      .map(item => item.email.trim());
 
-    const getTeachingStaffCount = () => 
-      staff.filter(s => 
+  const safeStudents = Array.isArray(students) ? students : [];
+  const safeStaff = Array.isArray(staff) ? staff : [];
+
+  // Get emails from students - using the mapped structure
+  const parentEmails = getEmailList(safeStudents);
+
+  // Get emails from staff
+  const staffEmails = getEmailList(safeStaff);
+
+  switch (recipientType) {
+    case 'parents':
+      return parentEmails;
+    case 'teachers':
+      const teachers = safeStaff.filter(s => 
         s.role === 'Teacher' || 
         ['Sciences', 'Mathematics', 'Languages', 'Humanities', 'Sports'].includes(s.department)
-      ).length;
-
-    const getAdminStaffCount = () => 
-      staff.filter(s => 
+      );
+      return getEmailList(teachers);
+    case 'administration':
+      const admins = safeStaff.filter(s => 
         s.role === 'Principal' || 
         s.role === 'Deputy Principal' ||
         s.department === 'Administration'
-      ).length;
-
-    const getBOMCount = () => 
-      staff.filter(s => 
+      );
+      return getEmailList(admins);
+    case 'bom':
+      const bom = safeStaff.filter(s => 
         s.role === 'BOM Member' || 
         (s.position && s.position.toLowerCase().includes('board'))
-      ).length;
-
-    const getSupportStaffCount = () => 
-      staff.filter(s => 
+      );
+      return getEmailList(bom);
+    case 'support':
+      const support = safeStaff.filter(s => 
         s.role === 'Support Staff' || 
         s.role === 'Librarian' || 
         s.role === 'Counselor'
-      ).length;
+      );
+      return getEmailList(support);
+    case 'staff':
+      return staffEmails;
+    case 'all':
+    default:
+      // Remove duplicates by using Set
+      return [...new Set([...parentEmails, ...staffEmails])];
+  }
+}, [students, staff]);
 
-    const getAllStaffCount = () => 
-      staff.filter(s => s.email && typeof s.email === 'string' && s.email.trim() !== '').length;
+const recipientGroups = useMemo(() => {
+  const safeStudents = Array.isArray(students) ? students : [];
+  const safeStaff = Array.isArray(staff) ? staff : [];
 
-    const calculateTotalRecipients = () => 
-      getParentEmails() + getAllStaffCount();
+  // Count valid emails from students
+  const getParentEmailsCount = () => 
+    safeStudents.filter(s => s.email && typeof s.email === 'string' && s.email.trim() !== '').length;
 
-    return [
-      { 
-        value: 'all', 
-        label: 'All Recipients',
-        shortLabel: 'All',
-        count: calculateTotalRecipients(),
-        color: 'from-blue-500 to-cyan-500',
-        icon: Users,
-        gradient: 'bg-gradient-to-r from-blue-500 to-cyan-500'
-      },
-      { 
-        value: 'parents', 
-        label: 'Parents & Guardians',
-        shortLabel: 'Parents',
-        count: getParentEmails(),
-        color: 'from-green-500 to-emerald-500',
-        icon: Users,
-        gradient: 'bg-gradient-to-r from-green-500 to-emerald-500'
-      },
-      { 
-        value: 'teachers', 
-        label: 'Teaching Staff',
-        shortLabel: 'Teachers',
-        count: getTeachingStaffCount(),
-        color: 'from-purple-500 to-pink-500',
-        icon: GraduationCap,
-        gradient: 'bg-gradient-to-r from-purple-500 to-pink-500'
-      },
-      { 
-        value: 'administration', 
-        label: 'Administration',
-        shortLabel: 'Admin',
-        count: getAdminStaffCount(),
-        color: 'from-orange-500 to-amber-500',
-        icon: Award,
-        gradient: 'bg-gradient-to-r from-orange-500 to-amber-500'
-      },
-      { 
-        value: 'bom', 
-        label: 'Board of Management',
-        shortLabel: 'BOM',
-        count: getBOMCount(),
-        color: 'from-red-500 to-rose-500',
-        icon: ShieldCheck,
-        gradient: 'bg-gradient-to-r from-red-500 to-rose-500'
-      },
-      { 
-        value: 'support', 
-        label: 'Support Staff',
-        shortLabel: 'Support',
-        count: getSupportStaffCount(),
-        color: 'from-indigo-500 to-violet-500',
-        icon: Users,
-        gradient: 'bg-gradient-to-r from-indigo-500 to-violet-500'
-      },
-      { 
-        value: 'staff', 
-        label: 'All School Staff',
-        shortLabel: 'Staff',
-        count: getAllStaffCount(),
-        color: 'from-cyan-500 to-blue-500',
-        icon: Users,
-        gradient: 'bg-gradient-to-r from-cyan-500 to-blue-500'
-      }
-    ];
-  }, [students, staff]);
-  
+  const getTeachingStaffCount = () => 
+    safeStaff.filter(s => 
+      s.role === 'Teacher' || 
+      ['Sciences', 'Mathematics', 'Languages', 'Humanities', 'Sports'].includes(s.department)
+    ).length;
+
+  const getAdminStaffCount = () => 
+    safeStaff.filter(s => 
+      s.role === 'Principal' || 
+      s.role === 'Deputy Principal' ||
+      s.department === 'Administration'
+    ).length;
+
+  const getBOMCount = () => 
+    safeStaff.filter(s => 
+      s.role === 'BOM Member' || 
+      (s.position && s.position.toLowerCase().includes('board'))
+    ).length;
+
+  const getSupportStaffCount = () => 
+    safeStaff.filter(s => 
+      s.role === 'Support Staff' || 
+      s.role === 'Librarian' || 
+      s.role === 'Counselor'
+    ).length;
+
+  const getAllStaffCount = () => 
+    safeStaff.filter(s => s.email && typeof s.email === 'string' && s.email.trim() !== '').length;
+
+  const calculateTotalRecipients = () => 
+    getParentEmailsCount() + getAllStaffCount();
+
+  return [
+    { 
+      value: 'all', 
+      label: 'All Recipients',
+      shortLabel: 'All',
+      count: calculateTotalRecipients(),
+      color: 'from-blue-500 to-cyan-500',
+      icon: Users,
+      gradient: 'bg-gradient-to-r from-blue-500 to-cyan-500'
+    },
+    { 
+      value: 'parents', 
+      label: 'Parents & Guardians',
+      shortLabel: 'Parents',
+      count: getParentEmailsCount(),
+      color: 'from-green-500 to-emerald-500',
+      icon: Users,
+      gradient: 'bg-gradient-to-r from-green-500 to-emerald-500'
+    },
+    { 
+      value: 'teachers', 
+      label: 'Teaching Staff',
+      shortLabel: 'Teachers',
+      count: getTeachingStaffCount(),
+      color: 'from-purple-500 to-pink-500',
+      icon: GraduationCap,
+      gradient: 'bg-gradient-to-r from-purple-500 to-pink-500'
+    },
+    { 
+      value: 'administration', 
+      label: 'Administration',
+      shortLabel: 'Admin',
+      count: getAdminStaffCount(),
+      color: 'from-orange-500 to-amber-500',
+      icon: Award,
+      gradient: 'bg-gradient-to-r from-orange-500 to-amber-500'
+    },
+    { 
+      value: 'bom', 
+      label: 'Board of Management',
+      shortLabel: 'BOM',
+      count: getBOMCount(),
+      color: 'from-red-500 to-rose-500',
+      icon: ShieldCheck,
+      gradient: 'bg-gradient-to-r from-red-500 to-rose-500'
+    },
+    { 
+      value: 'support', 
+      label: 'Support Staff',
+      shortLabel: 'Support',
+      count: getSupportStaffCount(),
+      color: 'from-indigo-500 to-violet-500',
+      icon: Users,
+      gradient: 'bg-gradient-to-r from-indigo-500 to-violet-500'
+    },
+    { 
+      value: 'staff', 
+      label: 'All School Staff',
+      shortLabel: 'Staff',
+      count: getAllStaffCount(),
+      color: 'from-cyan-500 to-blue-500',
+      icon: Users,
+      gradient: 'bg-gradient-to-r from-cyan-500 to-blue-500'
+    }
+  ];
+}, [students, staff]);
+
+
   const statusOptions = [
     { value: 'all', label: 'All Status' },
-    { value: 'draft', label: 'Draft', color: 'bg-yellow-100/80 backdrop-blur-sm text-yellow-800 border-yellow-200/50', icon: Clock },
+    { value: 'draft', label: 'Draft', color: 'bg-yellow-100/80 backdrop-blur-sm text-yellow-800', icon: Clock },
     { value: 'published', label: 'Sent', color: 'bg-emerald-100/80 backdrop-blur-sm text-emerald-800 border-emerald-200/50', icon: CheckCircle2 }
   ];
   
-  // ==================== DATA FETCHING ====================
-  
-  const fetchData = useCallback(async () => {
-    try {
-      setLoadingStates(prev => ({ ...prev, fetching: true }));
-      setRefreshing(true);
-      
-      const [campaignsRes, studentRes, staffRes] = await Promise.all([
-        fetch('/api/emails'),
-        fetch('/api/student'),
-        fetch('/api/staff')
-      ]);
-      
-      const campaignsData = await campaignsRes.json();
-      const studentData = await studentRes.json();
-      const staffData = await staffRes.json();
-      
-      if (campaignsData.success) {
-        const campaignsList = campaignsData.campaigns || [];
-        setCampaigns(campaignsList);
-        updateStats(campaignsList);
-        if (refreshing) {
-          showNotification('success', `Refreshed ${campaignsList.length} campaigns`);
-        }
+
+const fetchData = useCallback(async () => {
+  try {
+    setLoadingStates(prev => ({ ...prev, fetching: true }));
+    setRefreshing(true);
+    
+    // Use /api/s endpoint for student emails
+    const [campaignsRes, studentRes, staffRes] = await Promise.all([
+      fetch('/api/emails'),
+      fetch('/api/s'),  // Changed from /api/studentupload to /api/s
+      fetch('/api/staff')
+    ]);
+    
+    const campaignsData = await campaignsRes.json();
+    const studentData = await studentRes.json();
+    const staffData = await staffRes.json();
+    
+    if (campaignsData.success) {
+      const campaignsList = campaignsData.campaigns || [];
+      setCampaigns(campaignsList);
+      updateStats(campaignsList);
+      if (refreshing) {
+        showNotification('success', `Refreshed ${campaignsList.length} campaigns`);
       }
-      
-      if (studentData.success) {
-        setStudents(studentData.students || studentData.data || []);
-      }
-      
-      if (staffData.success) {
-        setStaff(staffData.staff || staffData.data || []);
-      }
-      
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      showNotification('error', 'Network error. Please check connection.');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-      setLoadingStates(prev => ({ ...prev, fetching: false }));
     }
-  }, [refreshing]);
+    
+    // Handle student data from /api/s endpoint
+    let studentsArray = [];
+    if (studentData.success && Array.isArray(studentData.data)) {
+      // Map the data structure from /api/s endpoint
+      studentsArray = studentData.data.map(student => ({
+        id: student.admissionNumber || student.id,
+        firstName: student.firstName || '',
+        lastName: student.lastName || '',
+        email: student.email || '',  // Parent's email
+        admissionNumber: student.admissionNumber || '',
+        form: student.form || '',
+        stream: student.stream || ''
+      }));
+    } else if (Array.isArray(studentData)) {
+      // Fallback for array response
+      studentsArray = studentData;
+    } else if (Array.isArray(studentData?.data)) {
+      studentsArray = studentData.data;
+    } else if (Array.isArray(studentData?.students)) {
+      studentsArray = studentData.students;
+    }
+    
+    setStudents(studentsArray);
+    console.log(`Loaded ${studentsArray.length} students/parents from API /api/s`);
+    
+    // Normalize staff data to always be an array
+    let staffArray = [];
+    if (Array.isArray(staffData)) {
+      staffArray = staffData;
+    } else if (Array.isArray(staffData?.staff)) {
+      staffArray = staffData.staff;
+    } else if (Array.isArray(staffData?.data)) {
+      staffArray = staffData.data;
+    }
+    setStaff(staffArray);
+    console.log(`Loaded ${staffArray.length} staff members from API`);
+    
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    showNotification('error', 'Network error. Please check connection.');
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+    setLoadingStates(prev => ({ ...prev, fetching: false }));
+  }
+}, [refreshing]);
   
   useEffect(() => {
     fetchData();
@@ -1825,8 +1826,7 @@ const handleCreateOrUpdateCampaign = async () => {
                 bg-gradient-to-r from-blue-500 to-cyan-500
                 text-white px-4 py-2.5 rounded-xl
                 transition-all duration-300 font-medium
-                shadow-lg hover:shadow-xl
-                hover:scale-105
+                hover:scale-101
                 hover:from-blue-600 hover:to-cyan-600
                 hover:shadow-blue-500/25
               "
@@ -1891,7 +1891,6 @@ const handleCreateOrUpdateCampaign = async () => {
                     disabled={selectedCampaigns.size === 0}
                     className="
                       inline-flex items-center gap-2
-                      px-3 py-1.5
                       bg-white/40 backdrop-blur-md
                       border border-gray-200/50
                       rounded-lg transition-all duration-300
@@ -2093,24 +2092,26 @@ const handleCreateOrUpdateCampaign = async () => {
             {/* Footer */}
             <div className="p-4 border-t border-gray-100/50">
               <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setShowDetailModal(false);
-                    openEditModal(selectedCampaign);
-                  }}
-                  className="
-                    flex-1
-                    bg-gradient-to-r from-blue-500 to-cyan-500
-                    text-white py-2.5 rounded-lg
-                    transition-all duration-300
-                    font-medium shadow-lg
-                    hover:shadow-xl hover:scale-101
-                    hover:from-blue-600 hover:to-cyan-600
-                    hover:shadow-blue-500/25
-                  "
-                >
-                  Edit Campaign
-                </button>
+                {selectedCampaign?.status === 'draft' && (
+                  <button
+                    onClick={() => {
+                      setShowDetailModal(false);
+                      openEditModal(selectedCampaign);
+                    }}
+                    className="
+                      flex-1
+                      bg-gradient-to-r from-blue-500 to-cyan-500
+                      text-white py-2.5 rounded-lg
+                      transition-all duration-300
+                      font-medium shadow-lg
+                      hover:shadow-xl hover:scale-101
+                      hover:from-blue-600 hover:to-cyan-600
+                      hover:shadow-blue-500/25
+                    "
+                  >
+                    Edit Campaign
+                  </button>
+                )}
                 <button
                   onClick={() => setShowDetailModal(false)}
                   className="
@@ -2132,228 +2133,444 @@ const handleCreateOrUpdateCampaign = async () => {
         )}
       </ModernModal>
 
-      {/* Create/Edit Campaign Modal */}
-      <ModernModal open={showCreateModal} onClose={() => setShowCreateModal(false)} maxWidth="700px">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-700 p-4 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
-                {selectedCampaign ? <Edit className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-              </div>
-              <div>
-                <h2 className="text-xl font-bold">
-                  {selectedCampaign ? 'Edit Campaign' : 'Create New Campaign'}
-                </h2>
-                <p className="text-emerald-100 opacity-90 text-sm">
-                  {selectedCampaign ? 'Update your campaign details' : 'Create a new email campaign'}
-                </p>
-              </div>
-            </div>
-            <button 
-              onClick={() => setShowCreateModal(false)} 
-              className="p-1 rounded-lg cursor-pointer hover:bg-white/10"
-            >
-              <X className="w-5 h-5" />
-            </button>
+
+
+<ModernModal open={showCreateModal} onClose={() => setShowCreateModal(false)} maxWidth="550px">
+  {/* Modern Header with gradient */}
+  <div className="bg-gradient-to-r from-emerald-500 via-green-500 to-teal-600 p-4 text-white">
+    <div className="flex items-start justify-between">
+      <div className="flex items-start gap-3">
+        <div className="p-2 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20">
+          {selectedCampaign ? 
+            <Edit className="w-5 h-5 text-white" /> : 
+            <Plus className="w-5 h-5 text-white" />
+          }
+        </div>
+        <div className="pt-0.5">
+          <h2 className="text-lg font-bold">
+            {selectedCampaign ? 'Edit Campaign' : 'Create New Campaign'}
+          </h2>
+          <p className="text-white/80 text-xs mt-0.5">
+            {selectedCampaign ? 'Update your campaign details' : 'Create a new email campaign'}
+          </p>
+        </div>
+      </div>
+      <button 
+        onClick={() => setShowCreateModal(false)} 
+        className="p-1.5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors"
+      >
+        <X className="w-5 h-5" />
+      </button>
+    </div>
+  </div>
+
+  {/* Content - reduced for 550px width */}
+  <div className="max-h-[calc(70vh-140px)] overflow-y-auto p-4 modern-scrollbar">
+    <div className="space-y-4">
+      {/* Title Field */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-1.5">Campaign Title *</label>
+        <input
+          type="text"
+          value={campaignForm.title}
+          onChange={(e) => setCampaignForm({...campaignForm, title: e.target.value})}
+          placeholder="Enter campaign title"
+          className="
+            w-full px-3 py-2.5
+            bg-white
+            border border-gray-200
+            rounded-lg focus:outline-none
+            focus:ring-2 focus:ring-emerald-500/30
+            focus:border-emerald-400 text-sm
+            shadow-sm
+            transition-all duration-200
+            placeholder:text-gray-400
+          "
+        />
+      </div>
+      
+      {/* Subject Field */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-1.5">Email Subject *</label>
+        <input
+          type="text"
+          value={campaignForm.subject}
+          onChange={(e) => setCampaignForm({...campaignForm, subject: e.target.value})}
+          placeholder="Enter email subject"
+          className="
+            w-full px-3 py-2.5
+            bg-white
+            border border-gray-200
+            rounded-lg focus:outline-none
+            focus:ring-2 focus:ring-emerald-500/30
+            focus:border-emerald-400 text-sm
+            shadow-sm
+            transition-all duration-200
+            placeholder:text-gray-400
+          "
+        />
+      </div>
+      
+      {/* Recipient Group */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-1.5">Recipient Group *</label>
+        <div className="relative">
+          <select 
+            value={campaignForm.recipientType}
+            onChange={(e) => setCampaignForm({...campaignForm, recipientType: e.target.value})}
+            className="
+              w-full px-3 py-2.5
+              bg-white
+              border border-gray-200
+              rounded-lg focus:outline-none
+              focus:ring-2 focus:ring-emerald-500/30
+              focus:border-emerald-400 text-sm
+              shadow-sm
+              appearance-none
+              cursor-pointer
+              transition-all duration-200
+              hover:border-gray-300
+            "
+          >
+            {recipientGroups.map(group => (
+              <option key={group.value} value={group.value}>
+                {group.label} ({group.count} recipients)
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <ChevronDown className="w-4 h-4 text-gray-400" />
           </div>
         </div>
-
-        {/* Content */}
-        <div className="max-h-[calc(85vh-150px)] overflow-y-auto p-6 modern-scrollbar">
-          <div className="space-y-4">
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-bold text-gray-800 mb-1">Campaign Title *</label>
-              <input
-                type="text"
-                value={campaignForm.title}
-                onChange={(e) => setCampaignForm({...campaignForm, title: e.target.value})}
-                placeholder="Enter campaign title"
-                className="
-                  w-full px-3 py-2.5
-                  bg-gray-50/80 backdrop-blur-sm
-                  border border-gray-200/60
-                  rounded-lg focus:outline-none
-                  focus:ring-2 focus:ring-emerald-500/50
-                  focus:border-transparent text-sm
-                  modern-scrollbar
-                "
-              />
+      </div>
+      
+      {/* Content Textarea */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-1.5">Email Content *</label>
+        <textarea
+          value={campaignForm.content}
+          onChange={(e) => setCampaignForm({...campaignForm, content: e.target.value})}
+          placeholder="Write your email content here..."
+          className="
+            w-full px-3 py-2.5
+            bg-white
+            border border-gray-200
+            rounded-lg focus:outline-none
+            focus:ring-2 focus:ring-emerald-500/30
+            focus:border-emerald-400 text-sm
+            shadow-sm
+            resize-y
+            transition-all duration-200
+            placeholder:text-gray-400
+            font-normal
+            min-h-[120px]
+            max-h-[180px]
+          "
+          rows={6}
+        />
+        <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+          <span>{campaignForm.content.length} characters</span>
+          <span>Max 2000</span>
+        </div>
+      </div>
+      
+      {/* Attachments Section */}
+      <div className="pt-3 border-t border-gray-100">
+        <div className="flex items-center justify-between">
+          <div>
+            <label className="block text-sm font-semibold text-gray-800 mb-1">Attachments</label>
+            <p className="text-xs text-gray-500">
+              Add files (max 10MB each)
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAttachmentModal(true)}
+            className="
+              inline-flex items-center gap-2 
+              px-3 py-2 
+              text-sm
+              text-emerald-700 
+              bg-emerald-50 
+              border border-emerald-100 
+              rounded-lg 
+              hover:bg-emerald-100 
+              transition-colors
+              shadow-sm
+            "
+          >
+            <FileUp className="w-4 h-4" />
+            {campaignAttachments.length > 0 || newAttachmentFiles.length > 0 ? (
+              <span className="font-medium">
+                {campaignAttachments.length + newAttachmentFiles.length}
+              </span>
+            ) : (
+              <span>Add</span>
+            )}
+          </button>
+        </div>
+        
+        {/* File summary */}
+        {(campaignAttachments.length > 0 || newAttachmentFiles.length > 0) && (
+          <div className="mt-2 text-xs text-gray-600 bg-gray-50 rounded-lg p-2">
+            <div className="flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5 text-emerald-500" />
+              <span>
+                {campaignAttachments.length} existing, {newAttachmentFiles.length} new
+              </span>
             </div>
-            
-            {/* Subject */}
-            <div>
-              <label className="block text-sm font-bold text-gray-800 mb-1">Email Subject *</label>
-              <input
-                type="text"
-                value={campaignForm.subject}
-                onChange={(e) => setCampaignForm({...campaignForm, subject: e.target.value})}
-                placeholder="Enter email subject"
-                className="
-                  w-full px-3 py-2.5
-                  bg-gray-50/80 backdrop-blur-sm
-                  border border-gray-200/60
-                  rounded-lg focus:outline-none
-                  focus:ring-2 focus:ring-emerald-500/50
-                  focus:border-transparent text-sm
-                  modern-scrollbar
-                "
-              />
-            </div>
-            
-            {/* Recipient Group */}
-            <div>
-              <label className="block text-sm font-bold text-gray-800 mb-1">Recipient Group *</label>
-              <select 
-                value={campaignForm.recipientType}
-                onChange={(e) => setCampaignForm({...campaignForm, recipientType: e.target.value})}
-                className="
-                  w-full px-3 py-2.5
-                  bg-gray-50/80 backdrop-blur-sm
-                  border border-gray-200/60
-                  rounded-lg focus:outline-none
-                  focus:ring-2 focus:ring-emerald-500/50
-                  focus:border-transparent text-sm
-                  modern-scrollbar
-                "
-              >
-                {recipientGroups.map(group => (
-                  <option key={group.value} value={group.value}>
-                    {group.label} ({group.count} recipients)
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            {/* Content */}
-            <div>
-              <label className="block text-sm font-bold text-gray-800 mb-1">Email Content *</label>
-              <textarea
-                value={campaignForm.content}
-                onChange={(e) => setCampaignForm({...campaignForm, content: e.target.value})}
-                placeholder="Write your email content here..."
-                className="
-                  w-full px-3 py-3
-                  bg-gray-50/80 backdrop-blur-sm
-                  border border-gray-200/60
-                  rounded-lg focus:outline-none
-                  focus:ring-2 focus:ring-emerald-500/50
-                  focus:border-transparent text-sm
-                  resize-y
-                  modern-scrollbar
-                  min-h-[200px]
-                "
-                rows={20}
-              />
-              <div className="text-right text-xs text-gray-500 mt-1">
-                {campaignForm.content.length} characters
-              </div>
-            </div>
-            
-            {/* Attachments Section - REFINED */}
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="block text-sm font-bold text-gray-800 mb-1">Attachments</label>
-                <p className="text-xs text-gray-600">
-                  Add files to include with your email (max 10MB each)
-                </p>
-                {(campaignAttachments.length > 0 || newAttachmentFiles.length > 0) && (
-                  <div className="mt-2 text-xs text-gray-600">
-                    {campaignAttachments.length} existing file(s)
-                    {newAttachmentFiles.length > 0 && `, ${newAttachmentFiles.length} new file(s)`}
-                  </div>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowAttachmentModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                <FileUp className="w-4 h-4" />
-                {campaignAttachments.length > 0 || newAttachmentFiles.length > 0 ? (
-                  <span>
-                    {campaignAttachments.length + newAttachmentFiles.length} file(s)
-                  </span>
-                ) : (
-                  <span>Add Files</span>
-                )}
-              </button>
-            </div>
-            
-            {/* Status */}
-            <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 cursor-pointer">
+          </div>
+        )}
+      </div>
+      
+      {/* Status Toggle */}
+      <div className="pt-3 border-t border-gray-100">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <div className="relative">
                 <input
                   type="checkbox"
                   checked={campaignForm.status === 'draft'}
                   onChange={(e) => setCampaignForm({...campaignForm, status: e.target.checked ? 'draft' : 'published'})}
-                  className="w-4 h-4 text-emerald-600 border-gray-300/60 rounded focus:ring-emerald-500/50"
+                  className="sr-only peer"
                 />
-                <span className="text-sm font-medium text-gray-700">
-                  Save as Draft
-                </span>
-              </label>
-              <div className="text-xs text-gray-500">
-                {campaignForm.status === 'draft' 
-                  ? 'Campaign will be saved as draft' 
-                  : 'Campaign will be sent immediately'}
+                <div className="
+                  w-10 h-5
+                  bg-gray-200
+                  peer-checked:bg-emerald-500
+                  rounded-full
+                  transition-colors
+                  duration-200
+                  after:absolute
+                  after:top-0.5
+                  after:left-0.5
+                  after:w-4
+                  after:h-4
+                  after:bg-white
+                  after:rounded-full
+                  after:transition-all
+                  after:duration-200
+                  peer-checked:after:translate-x-5
+                "></div>
+              </div>
+              <span className="text-sm font-medium text-gray-700">
+                Save as Draft
+              </span>
+            </label>
+          </div>
+          <div className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+            {campaignForm.status === 'draft' ? 'Draft Mode' : 'Publish Mode'}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Footer */}
+  <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+    <div className="flex items-center gap-2 justify-end">
+      <button
+        onClick={() => setShowCreateModal(false)}
+        className="
+          px-4
+          py-2
+          rounded-lg
+          text-sm
+          font-medium
+          border border-gray-300
+          text-gray-700
+          bg-white
+          hover:bg-gray-50
+          transition-colors
+          min-w-[80px]
+        "
+      >
+        Cancel
+      </button>
+
+      <button
+        onClick={handleCreateOrUpdateCampaign}
+        disabled={loadingStates.create}
+        className="
+          px-4
+          py-2
+          rounded-lg
+          font-medium
+          text-sm
+          text-white
+          bg-gradient-to-r from-emerald-500 to-emerald-600
+          hover:from-emerald-600 hover:to-emerald-700
+          disabled:opacity-60
+          disabled:cursor-not-allowed
+          shadow-sm
+          transition-all
+          min-w-[80px]
+        "
+      >
+        {loadingStates.create ? (
+          <span className="flex items-center justify-center gap-1.5">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <span>Processing</span>
+          </span>
+        ) : (
+          <span>
+            {selectedCampaign
+              ? "Update"
+              : campaignForm.status === "draft"
+              ? "Save Draft"
+              : "Send"}
+          </span>
+        )}
+      </button>
+    </div>
+  </div>
+</ModernModal>
+
+<ModernModal open={showDetailModal} onClose={() => setShowDetailModal(false)} maxWidth="700px">
+  {selectedCampaign && (
+    <>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 p-4 text-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
+              <Mail className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold">Campaign Details</h2>
+              <p className="text-blue-100 opacity-90 text-xs">
+                {selectedCampaign.title}
+              </p>
+            </div>
+          </div>
+          <button onClick={() => setShowDetailModal(false)} className="p-1 rounded-lg cursor-pointer hover:bg-white/10">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-h-[calc(85vh-130px)] overflow-y-auto p-4 modern-scrollbar">
+        <div className="space-y-4">
+          {/* Campaign Info - single column for narrower width */}
+          <div className="space-y-3">
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-3 border border-blue-200/50">
+              <h3 className="font-bold text-gray-900 mb-2">Campaign Information</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                    selectedCampaign.status === 'published' 
+                      ? 'bg-emerald-100/80 backdrop-blur-sm text-emerald-800 border-emerald-200/50'
+                      : 'bg-yellow-100/80 backdrop-blur-sm text-yellow-800 border-yellow-200/50'
+                  }`}>
+                    {selectedCampaign.status === 'published' ? 'Sent' : 'Draft'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Recipient Group:</span>
+                  <span className="font-bold text-blue-700">
+                    {selectedCampaign.recipientType || 'All'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Recipients:</span>
+                  <span className="font-bold text-emerald-700">
+                    {getRecipientCount(selectedCampaign)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Created:</span>
+                  <span className="font-bold text-purple-700">
+                    {new Date(selectedCampaign.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </span>
+                </div>
+                {selectedCampaign.sentAt && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Sent:</span>
+                    <span className="font-bold text-violet-700">
+                      {new Date(selectedCampaign.sentAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Subject */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">Subject</h3>
+              <div className="bg-gray-50/80 backdrop-blur-sm rounded-lg p-3 border border-gray-200/60">
+                <p className="text-gray-700">
+                  {selectedCampaign.subject}
+                </p>
+              </div>
+            </div>
+            
+            {/* Content */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">Content</h3>
+              <div className="bg-gray-50/80 backdrop-blur-sm rounded-lg p-3 border border-gray-200/60 max-h-48 overflow-y-auto modern-scrollbar">
+                <pre className="text-gray-700 whitespace-pre-wrap font-sans text-sm">
+                  {selectedCampaign.content}
+                </pre>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-100/50">
-          <div className="flex gap-2">
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-100/50">
+        <div className="flex gap-2">
+          {selectedCampaign?.status === 'draft' && (
             <button
-              onClick={handleCreateOrUpdateCampaign}
-              disabled={loadingStates.create}
+              onClick={() => {
+                setShowDetailModal(false);
+                openEditModal(selectedCampaign);
+              }}
               className="
                 flex-1
-                bg-gradient-to-r from-emerald-500 to-green-500
-                text-white py-2.5 rounded-lg
+                bg-gradient-to-r from-blue-500 to-cyan-500
+                text-white py-2 rounded-lg
                 transition-all duration-300
-                font-medium disabled:opacity-50
-                disabled:cursor-not-allowed
-                shadow-lg hover:shadow-xl
-                hover:scale-101
-                hover:from-emerald-600 hover:to-green-600
-                hover:shadow-emerald-500/25
-                disabled:hover:scale-100
-                disabled:hover:shadow-lg
+                font-medium shadow-lg
+                hover:shadow-xl hover:scale-101
+                hover:from-blue-600 hover:to-cyan-600
+                hover:shadow-blue-500/25
               "
             >
-              {loadingStates.create ? (
-                <span className="flex items-center justify-center gap-1">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Processing...</span>
-                </span>
-              ) : (
-                <span className="text-sm">
-                  {selectedCampaign ? 'Update Campaign' : campaignForm.status === 'draft' ? 'Save Draft' : 'Send Campaign'}
-                </span>
-              )}
+              Edit Campaign
             </button>
-            <button
-              onClick={() => setShowCreateModal(false)}
-              className="
-                flex-1
-                border border-gray-300/60
-                text-gray-700 py-2.5 rounded-lg
-                transition-all duration-300
-                font-medium
-                hover:bg-gray-50/80
-                hover:border-gray-400/60
-                hover:shadow-sm
-              "
-            >
-              <span className="text-sm">Cancel</span>
-            </button>
-          </div>
+          )}
+          <button
+            onClick={() => setShowDetailModal(false)}
+            className="
+              flex-1
+              border border-gray-300/60
+              text-gray-700 py-2 rounded-lg
+              transition-all duration-300
+              font-medium
+              hover:bg-gray-50/80
+              hover:border-gray-400/60
+              hover:shadow-sm
+            "
+          >
+            Close
+          </button>
         </div>
-      </ModernModal>
-
+      </div>
+    </>
+  )}
+</ModernModal>
       {/* Attachment Upload Modal - REFINED */}
       <UploadAttachments
         open={showAttachmentModal}
@@ -2364,3 +2581,5 @@ const handleCreateOrUpdateCampaign = async () => {
     </div>
   );
 }
+
+

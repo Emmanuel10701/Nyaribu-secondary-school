@@ -1,22 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Toaster, toast } from 'sonner';
-import {
-  FiUpload, FiFile, FiDownload, FiUsers, FiUser, FiFilter, FiSearch, 
-  FiEye, FiEdit, FiTrash2, FiRefreshCw, FiCheckCircle, FiXCircle, 
-  FiAlertCircle, FiBarChart2, FiPieChart, FiTrendingUp, FiCalendar, 
-  FiMail, FiPhone, FiMapPin, FiX, FiList, FiGrid, FiSettings, 
-  FiArrowLeft, FiArrowRight, FiSave, FiInfo, FiUserCheck, FiBook,
-  FiSort, FiSortAsc, FiSchool, FiChevronRight, FiChevronUp, FiChevronDown,
-  FiHome, FiUserPlus, FiClock, FiPercent, FiGlobe, FiBookOpen,
-  FiHeart, FiCpu, FiSparkles, FiPlay, FiTarget, FiAward,
-  FiMessageCircle, FiImage, FiTrendingDown, FiActivity
-} from 'react-icons/fi';
-import {
-  IoPeopleCircle, IoNewspaper, IoClose, IoStatsChart,
-  IoAnalytics, IoSchool, IoDocumentText, IoSparkles
-} from 'react-icons/io5';
+import { Toaster, toast as sooner } from 'sonner';
 import { CircularProgress, Modal, Box } from '@mui/material';
 import * as XLSX from 'xlsx';
 import {
@@ -26,6 +11,46 @@ import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   RadialBarChart, RadialBar
 } from 'recharts';
+
+import { IoSparkles } from 'react-icons/io5';
+
+import { 
+  FiAlertCircle,
+  FiTrash2,
+  FiXCircle,
+  FiUpload,
+  FiUser,
+  FiX,
+  FiBook,
+  FiMail,
+  FiPhone,
+  FiMapPin,
+  FiClock,
+  FiEdit,
+  FiPieChart,
+  FiBarChart2,
+  FiTrendingUp,
+  FiTarget,
+  FiSave,
+  FiFilter,
+  FiSearch,
+  FiRefreshCw,
+  FiGrid,
+  FiList,
+  FiChevronUp,
+  FiChevronDown,
+  FiSettings,
+  FiDownload,
+  FiEye,
+  FiArrowLeft,
+  FiArrowRight,
+  FiInfo,
+  FiFile,
+  FiUsers
+} from 'react-icons/fi';
+
+import { IoSchool } from 'react-icons/io5';
+import { IoDocumentText } from 'react-icons/io5';
 
 // Custom Toaster with increased size
 const CustomToaster = () => (
@@ -118,7 +143,7 @@ function ModernDeleteModal({
     if (confirmText === phrase) {
       onConfirm()
     } else {
-      toast.error(`Please type "${phrase}" exactly to confirm deletion`)
+      sooner.error(`Please type "${phrase}" exactly to confirm deletion`)
     }
   }
 
@@ -239,9 +264,9 @@ function ModernFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag }) 
       const ext = selectedFile.name.toLowerCase();
       if (validExtensions.some(valid => ext.endsWith(valid))) {
         onFileSelect(selectedFile);
-        toast.success('File selected successfully');
+        sooner.success('File selected successfully');
       } else {
-        toast.error('Please upload a CSV or Excel file');
+        sooner.error('Please upload a CSV or Excel file');
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     }
@@ -310,16 +335,6 @@ function ModernStudentDetailModal({ student, onClose, onEdit, onDelete }) {
       age--;
     }
     return age;
-  };
-
-  const getFormColor = (form) => {
-    switch (form) {
-      case 'Form 1': return 'from-blue-500 to-blue-700';
-      case 'Form 2': return 'from-emerald-500 to-emerald-700';
-      case 'Form 3': return 'from-amber-500 to-amber-700';
-      case 'Form 4': return 'from-purple-500 to-purple-700';
-      default: return 'from-gray-500 to-gray-700';
-    }
   };
 
   return (
@@ -408,8 +423,8 @@ function ModernStudentDetailModal({ student, onClose, onEdit, onDelete }) {
                     <span className="text-base font-semibold text-gray-700">Status</span>
                     <span className={`px-4 py-2 rounded-lg text-sm font-bold ${
                       student.status === 'active' 
-                        ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-900' 
-                        : 'bg-gradient-to-r from-red-100 to-red-200 text-red-900'
+                        ? 'bg-green-100 to-green-200 text-green-900' 
+                        : 'bg-red-100 to-red-200 text-red-900'
                     }`}>
                       {student.status.toUpperCase()}
                     </span>
@@ -1024,29 +1039,50 @@ function ModernChart({
   );
 }
 
-// Demographic Summary Card
-function DemographicSummaryCard({ title, value, icon: Icon, color, trend = 0 }) {
+// Modern Demographic Summary Card
+function DemographicSummaryCard({ title, value, icon: Icon, color }) {
   return (
-    <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-xl bg-gradient-to-r ${color}`}>
-          <Icon className="text-white text-2xl" />
-        </div>
-        <div className={`text-sm font-bold px-3 py-1 rounded-lg ${
-          trend > 0 
-            ? 'bg-green-100 text-green-800' 
-            : trend < 0 
-            ? 'bg-red-100 text-red-800' 
-            : 'bg-gray-100 text-gray-800'
-        }`}>
-          {trend > 0 ? '↑' : trend < 0 ? '↓' : '↔'}
+    <div
+      className="
+        flex-shrink-0
+        w-56 h-36
+        rounded-2xl
+        px-5 py-4
+        bg-white/70 backdrop-blur-md
+        border border-gray-200/60
+        shadow-sm
+        flex flex-col justify-between
+      "
+      style={{ minWidth: 220 }}
+    >
+      {/* Icon */}
+      <div className="flex items-center justify-between">
+        <div
+          className={`
+            flex items-center justify-center
+            w-11 h-11
+            rounded-xl
+            bg-gradient-to-br ${color}
+            shadow-sm
+          `}
+        >
+          <Icon className="text-white text-lg" />
         </div>
       </div>
-      <h4 className="text-3xl font-bold text-gray-900 mb-2">{value.toLocaleString()}</h4>
-      <p className="text-gray-600 text-sm font-semibold">{title}</p>
+
+      {/* Value + Title */}
+      <div>
+        <div className="text-[28px] font-extrabold text-gray-900 leading-none tracking-tight">
+          {Number(value || 0).toLocaleString()}
+        </div>
+        <div className="mt-1 text-sm font-medium text-gray-500">
+          {title}
+        </div>
+      </div>
     </div>
   );
 }
+
 
 // Statistics Summary Card Component
 function StatisticsSummaryCard({ stats, demographics, onRefresh }) {
@@ -1387,6 +1423,17 @@ function EnhancedFilterPanel({
   );
 }
 
+// Add a top-level helper so getFormColor is available across the file
+function getFormColor(form) {
+  switch (form) {
+    case 'Form 1': return 'from-blue-500 to-blue-700';
+    case 'Form 2': return 'from-emerald-500 to-emerald-700';
+    case 'Form 3': return 'from-amber-500 to-amber-700';
+    case 'Form 4': return 'from-purple-500 to-purple-700';
+    default: return 'from-gray-400 to-gray-600';
+  }
+}
+
 // Main Component
 export default function ModernStudentBulkUpload() {
   const [uploading, setUploading] = useState(false);
@@ -1603,18 +1650,19 @@ export default function ModernStudentBulkUpload() {
           });
           
         } else {
-          toast.error('Failed to load student data for demographics');
+          sooner.error('Failed to load student data for demographics');
         }
       } else {
-        toast.error('Failed to load statistics');
+        sooner.error('Failed to load statistics');
       }
     } catch (error) {
       console.error('Failed to load stats:', error);
-      toast.error('Failed to load statistics');
+      sooner.error('Failed to load statistics');
     } finally {
       setLoading(false);
     }
   };
+
 
   // Statistics refresh function
   const refreshStatistics = async () => {
@@ -1645,12 +1693,12 @@ export default function ModernStudentBulkUpload() {
             formDistribution: formChartData
           }));
           
-          toast.success('Statistics updated successfully!');
+          sooner.success('Statistics updated successfully!');
         }
       }
     } catch (error) {
       console.error('Failed to refresh statistics:', error);
-      toast.error('Failed to refresh statistics');
+      sooner.error('Failed to refresh statistics');
     }
   };
 
@@ -1681,11 +1729,11 @@ export default function ModernStudentBulkUpload() {
           pages: 1
         });
       } else {
-        toast.error(data.message || 'Failed to load students');
+        sooner.error(data.message || 'Failed to load students');
       }
     } catch (error) {
       console.error('Failed to load students:', error);
-      toast.error(error.message || 'Failed to load students');
+      sooner.error(error.message || 'Failed to load students');
     } finally {
       setLoading(false);
     }
@@ -1699,11 +1747,11 @@ export default function ModernStudentBulkUpload() {
       if (data.success) {
         setUploadHistory(data.uploads || []);
       } else {
-        toast.error('Failed to load upload history');
+        sooner.error('Failed to load upload history');
       }
     } catch (error) {
       console.error('Failed to load history:', error);
-      toast.error('Failed to load upload history');
+      sooner.error('Failed to load upload history');
     } finally {
       setHistoryLoading(false);
     }
@@ -1776,7 +1824,7 @@ export default function ModernStudentBulkUpload() {
 
   const handleUpload = async () => {
     if (!file) {
-      toast.error('Please select a file first');
+      sooner.error('Please select a file first');
       return;
     }
 
@@ -1800,14 +1848,14 @@ export default function ModernStudentBulkUpload() {
       setResult(data);
       
       if (data.success) {
-        toast.success(`✅ Upload successful! ${data.validRows || 0} students processed.`);
+        sooner.success(`✅ Upload successful! ${data.validRows || 0} students processed.`);
         
         if (data.errors && data.errors.length > 0) {
           data.errors.slice(0, 3).forEach(error => {
-            toast.error(error, { duration: 5000 });
+            sooner.error(error, { duration: 5000 });
           });
           if (data.errors.length > 3) {
-            toast.error(`... and ${data.errors.length - 3} more errors`, { duration: 5000 });
+            sooner.error(`... and ${data.errors.length - 3} more errors`, { duration: 5000 });
           }
         }
         
@@ -1817,11 +1865,11 @@ export default function ModernStudentBulkUpload() {
           fileInputRef.current.value = '';
         }
       } else {
-        toast.error(data.message || 'Upload failed');
+        sooner.error(data.message || 'Upload failed');
       }
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Upload failed. Please try again.');
+      sooner.error(error.message || 'Upload failed. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -1851,17 +1899,17 @@ export default function ModernStudentBulkUpload() {
       const data = await res.json();
       
       if (data.success) {
-        toast.success(data.message || 'Deleted successfully');
+        sooner.success(data.message || 'Deleted successfully');
         await Promise.all([loadStudents(pagination.page), loadUploadHistory(1), loadStats()]);
         if (deleteTarget.type === 'student') {
           setSelectedStudent(null);
         }
       } else {
-        toast.error(data.message || 'Failed to delete');
+        sooner.error(data.message || 'Failed to delete');
       }
     } catch (error) {
       console.error('Delete failed:', error);
-      toast.error('Failed to delete');
+      sooner.error('Failed to delete');
     } finally {
       setShowDeleteModal(false);
       setDeleteTarget({ type: '', id: '', name: '' });
@@ -1880,16 +1928,16 @@ export default function ModernStudentBulkUpload() {
       const data = await res.json();
       
       if (data.success) {
-        toast.success('Student updated successfully');
+        sooner.success('Student updated successfully');
         await loadStudents(pagination.page);
         setEditingStudent(null);
         setSelectedStudent(data.data?.student || data.student);
       } else {
-        toast.error(data.message || 'Failed to update student');
+        sooner.error(data.message || 'Failed to update student');
       }
     } catch (error) {
       console.error('Update failed:', error);
-      toast.error('Failed to update student');
+      sooner.error('Failed to update student');
     } finally {
       setLoading(false);
     }
@@ -1911,7 +1959,7 @@ export default function ModernStudentBulkUpload() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success('CSV template downloaded');
+    sooner.success('CSV template downloaded');
   };
 
   const downloadExcelTemplate = () => {
@@ -1926,16 +1974,16 @@ export default function ModernStudentBulkUpload() {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Students");
       XLSX.writeFile(wb, 'student_template.xlsx');
-      toast.success('Excel template downloaded');
+      sooner.success('Excel template downloaded');
     } catch (error) {
       console.error('Error downloading Excel template:', error);
-      toast.error('Failed to download template');
+      sooner.error('Failed to download template');
     }
   };
 
   const exportStudentsToCSV = () => {
     if (students.length === 0) {
-      toast.error('No students to export');
+      sooner.error('No students to export');
       return;
     }
 
@@ -1976,7 +2024,51 @@ export default function ModernStudentBulkUpload() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success(`Exported ${students.length} students to CSV`);
+    sooner.success(`Exported ${students.length} students to CSV`);
+  };
+
+  const exportStudentsToExcel = () => {
+    if (!students || students.length === 0) {
+      sooner.error('No students to export');
+      return;
+    }
+
+    // Build worksheet data
+    const worksheetData = [
+      ['Admission Number', 'First Name', 'Middle Name', 'Last Name', 'Form', 'Stream', 'Gender', 'Date of Birth', 'Age', 'Status', 'Email', 'Parent Phone', 'Address'],
+      ...students.map(student => {
+        const dob = student.dateOfBirth ? new Date(student.dateOfBirth) : null;
+        const age = dob ? new Date().getFullYear() - dob.getFullYear() : '';
+        
+        return [
+          student.admissionNumber,
+          student.firstName,
+          student.middleName || '',
+          student.lastName,
+          student.form,
+          student.stream || '',
+          student.gender || '',
+          dob ? dob.toLocaleDateString() : '',
+          age,
+          student.status,
+          student.email || '',
+          student.parentPhone || '',
+          student.address || ''
+        ];
+      })
+    ];
+
+    // Create and download Excel file
+    try {
+      const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Students');
+      XLSX.writeFile(wb, `students_export_${new Date().toISOString().split('T')[0]}.xlsx`);
+      sooner.success(`Exported ${students.length} students to Excel`);
+    } catch (err) {
+      console.error('Excel export failed', err);
+      sooner.error('Failed to export to Excel');
+    }
   };
 
   const handleSearch = (e) => {
@@ -2408,6 +2500,23 @@ export default function ModernStudentBulkUpload() {
                                   {student.firstName} {student.lastName}
                                 </h4>
                                 <p className="text-gray-600 font-semibold text-base mt-1">#{student.admissionNumber}</p>
+                                <div className="flex flex-wrap gap-2 mt-2 justify-center md:justify-start">
+                                  <div className={`px-5 py-2.5 bg-gradient-to-r ${getFormColor(student.form)} text-white rounded-xl font-bold text-sm`}>
+                                    {student.form}
+                                  </div>
+                                  {student.stream && (
+                                    <div className="px-5 py-2.5 bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-xl font-bold text-sm">
+                                      Stream: {student.stream}
+                                    </div>
+                                  )}
+                                  <div className={`px-5 py-2.5 rounded-xl font-bold text-sm ${
+                                    student.status === 'active' 
+                                      ? 'bg-gradient-to-r from-green-500 to-green-700 text-white'
+                                      : 'bg-gradient-to-r from-red-500 to-red-700 text-white'
+                                  }`}>
+                                    {student.status.toUpperCase()}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                             <div className="relative">
@@ -2419,41 +2528,27 @@ export default function ModernStudentBulkUpload() {
 
                           <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-600 font-semibold text-base">Form</span>
-                              <span className={`px-4 py-2 rounded-lg font-bold text-sm ${
-                                student.form === 'Form 1' ? 'bg-blue-100 text-blue-800' :
-                                student.form === 'Form 2' ? 'bg-emerald-100 text-emerald-800' :
-                                student.form === 'Form 3' ? 'bg-amber-100 text-amber-800' :
-                                'bg-purple-100 text-purple-800'
-                              }`}>
-                                {student.form}
-                              </span>
+                              <span className="text-gray-600 font-semibold text-base">Form Level</span>
+                              <span className="font-bold text-gray-900 text-lg">{student.form}</span>
                             </div>
-
-                            {student.stream && (
-                              <div className="flex items-center justify-between">
-                                <span className="text-gray-600 font-semibold text-base">Stream</span>
-                                <span className="font-bold text-gray-900 text-base">{student.stream}</span>
-                              </div>
-                            )}
-
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-600 font-semibold text-base">Stream</span>
+                              <span className="font-bold text-gray-900 text-lg">{student.stream || 'Not Assigned'}</span>
+                            </div>
                             <div className="flex items-center justify-between">
                               <span className="text-gray-600 font-semibold text-base">Status</span>
-                              <span className={`px-4 py-2 rounded-lg font-bold text-sm ${
-                                student.status === 'active'
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-red-100 text-red-800'
+                              <span className={`px-4 py-2 rounded-lg text-sm font-bold ${
+                                student.status === 'active' 
+                                  ? 'bg-green-100 to-green-200 text-green-900' 
+                                  : 'bg-red-100 to-red-200 text-red-900'
                               }`}>
                                 {student.status.toUpperCase()}
                               </span>
                             </div>
-
-                            {student.email && (
-                              <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
-                                <FiMail className="text-gray-400 text-base" />
-                                <span className="text-gray-700 truncate flex-1 font-semibold text-base">{student.email}</span>
-                              </div>
-                            )}
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-600 font-semibold text-base">Admission Date</span>
+                              <span className="font-bold text-gray-900 text-base">{formatDate(student.createdAt)}</span>
+                            </div>
                           </div>
 
                           <div className="flex gap-3 mt-8 pt-6 border-t border-gray-200">
@@ -2478,7 +2573,7 @@ export default function ModernStudentBulkUpload() {
 
                 {displayMode === 'list' && students.length > 0 && (
                   <div className="bg-white rounded-2xl border-2 border-gray-300 overflow-hidden shadow-2xl">
-                    <div className="px-8 py-6 border-b-2 border-gray-300 bg-gradient-to-r from-gray-50 to-white">
+                    <div className="px-8 py-6 border-b-2 border-gray-300 bg-gradient-to-r from-gray-100 to-white">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <h3 className="text-2xl font-bold text-gray-900">Student Records</h3>
                         <div className="flex items-center gap-4">
@@ -2488,7 +2583,7 @@ export default function ModernStudentBulkUpload() {
                           <button
                             onClick={() => loadStudents(pagination.page)}
                             disabled={loading}
-                            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl font-bold flex items-center gap-3 text-base shadow-xl hover:shadow-2xl transition-all duration-300"
+                            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl font-bold flex items-center gap-3 text-base shadow-xl disabled:opacity-50 hover:shadow-2xl transition-all duration-300"
                           >
                             {loading ? (
                               <CircularProgress size={18} className="text-white" />
@@ -2922,7 +3017,7 @@ export default function ModernStudentBulkUpload() {
             setDeleteTarget({ type: '', id: '', name: '' });
           }}
           onConfirm={confirmDelete}
-          loading={loading}
+          loading={loading} 
           type={deleteTarget.type}
           itemName={deleteTarget.name}
         />

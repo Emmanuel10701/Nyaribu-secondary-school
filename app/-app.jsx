@@ -8,15 +8,16 @@ import ModernNavbar from "./components/Navbar/page";
 export default function ClientLayoutWrapper({ children }) {
   const pathname = usePathname();
   const isMainDashboard = pathname === "/MainDashboard";
+  const isStudentportal = pathname === "/StudentPortal";
 
   return (
     <>
-      {!isMainDashboard && <ModernNavbar />}
+      {!isMainDashboard && !isStudentportal && <ModernNavbar />}
 
 
       <main className="min-h-screen">{children}</main>
 
-      {!isMainDashboard && <Footer />}
+      {!isMainDashboard && !isStudentportal && <Footer />}
     </>
   );
 }

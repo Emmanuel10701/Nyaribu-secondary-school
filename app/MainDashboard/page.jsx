@@ -45,6 +45,7 @@ import Resources from '../components/resources/page';
 import Careers from "../components/career/page";
 import Student from "../components/student/page";
 import Fees from "../components/fees/page";
+import Results from "../components/resultsUpload/page";
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -65,7 +66,8 @@ export default function AdminDashboard() {
     Resources: 0,
     Careers: 0,
     totalStudent: 0,
-    totalFees: 0
+    totalFees: 0,
+    totalResults: 0
   });
 
   // Modern Loading Screen with Enhanced Design
@@ -161,7 +163,8 @@ export default function AdminDashboard() {
         resourcesRes,
         careersRes,
         studentRes,
-        feesRes
+        feesRes,
+        resultsRes
       ] = await Promise.allSettled([
         fetch('/api/student'),
         fetch('/api/staff'),
@@ -176,7 +179,8 @@ export default function AdminDashboard() {
         fetch('/api/resources'),
         fetch('/api/career'),
         fetch('/api/student'),
-        fetch('/api/feebalances')
+        fetch('/api/feebalances'),
+        fetch('/api/results')
       ]);
 
       // Process responses and get actual counts
@@ -194,6 +198,7 @@ export default function AdminDashboard() {
       const careers = careersRes.status === 'fulfilled' ? await careersRes.value.json() : { careers: [] };
       const student = studentRes.status === 'fulfilled' ? await studentRes.value.json() : { students: [] };
       const fees = feesRes.status === 'fulfilled' ? await feesRes.value.json() : { feebalances: [] };
+      const results = resultsRes.status === 'fulfilled' ? await resultsRes.value.json() : { results: [] };
 
       // Calculate real counts
       const activeStudents = students.students?.filter(s => s.status === 'Active').length || 0;
@@ -221,7 +226,8 @@ export default function AdminDashboard() {
         Resources: resources.resources?.length || 0,
         Careers: careers.careers?.length || 0,
         totalStudent: student.students?.length || 0,
-        totalFees: fees.feebalances?.length || 0
+        totalFees: fees.feebalances?.length || 0,
+        totalResults: results.results?.length || 0
       });
 
     } catch (error) {
@@ -362,6 +368,8 @@ export default function AdminDashboard() {
         return <ApplicationsManager />;
       case 'resources':
         return <Resources />;
+      case 'results':
+        return <Results />;  
       case 'newsevents':
         return <NewsEventsManager />;
       case 'gallery':
@@ -442,7 +450,12 @@ export default function AdminDashboard() {
       icon: FiFileText,
       badge: 'cyan' 
     },
-
+    {
+      id: 'results',
+      label: 'Exam Results',
+      icon: FiClipboard,
+      badge: 'teal'
+    },
     {
       id: 'student',
       label: 'Student Records',

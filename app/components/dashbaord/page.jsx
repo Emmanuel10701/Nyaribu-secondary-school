@@ -145,7 +145,6 @@ const PercentageChart = ({ data, colors = ['#0088FE', '#00C49F', '#FFBB28', '#FF
           ))}
         </Pie>
         <Tooltip formatter={(value) => [`${value}%`, 'Percentage']} />
-        <Legend />
       </PieChart>
     </ResponsiveContainer>
   );
