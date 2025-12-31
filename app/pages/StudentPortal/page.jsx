@@ -98,6 +98,56 @@ const getFileIcon = (fileName) => {
   }
 };
 
+
+
+
+const getColorScheme = (name) => {
+    const char = name.trim().charAt(0).toUpperCase();
+    const colors = {
+      A: "bg-red-100 text-red-700 border-red-200",
+      B: "bg-blue-100 text-blue-700 border-blue-200",
+      C: "bg-green-100 text-green-700 border-green-200",
+      D: "bg-purple-100 text-purple-700 border-purple-200",
+      E: "bg-emerald-100 text-emerald-700 border-emerald-200", // Esther
+      F: "bg-pink-100 text-pink-700 border-pink-200",
+      G: "bg-orange-100 text-orange-700 border-orange-200",
+      H: "bg-indigo-100 text-indigo-700 border-indigo-200",
+      I: "bg-cyan-100 text-cyan-700 border-cyan-200",
+      J: "bg-rose-100 text-rose-700 border-rose-200",
+      K: "bg-amber-100 text-amber-700 border-amber-200",
+      L: "bg-violet-100 text-violet-700 border-violet-200",
+      M: "bg-lime-100 text-lime-700 border-lime-200",
+      N: "bg-sky-100 text-sky-700 border-sky-200",
+      O: "bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200",
+      P: "bg-teal-100 text-teal-700 border-teal-200",
+      Q: "bg-slate-200 text-slate-800 border-slate-300",
+      R: "bg-red-50 text-red-600 border-red-100",
+      S: "bg-blue-50 text-blue-600 border-blue-100",
+      T: "bg-emerald-50 text-emerald-600 border-emerald-100",
+      U: "bg-indigo-50 text-indigo-600 border-indigo-100",
+      V: "bg-purple-50 text-purple-600 border-purple-100",
+      W: "bg-orange-50 text-orange-600 border-orange-100",
+      X: "bg-gray-200 text-gray-700 border-gray-300",
+      Y: "bg-yellow-100 text-yellow-700 border-yellow-200",
+      Z: "bg-zinc-800 text-zinc-100 border-zinc-900", // High contrast for Z
+    };
+    return colors[char] || "bg-gray-100 text-gray-600 border-gray-200";
+};
+
+// Helper function to get initials from a name
+const getInitials = (name) => {
+  if (!name) return 'ST';
+  
+  return name
+    .split(' ')
+    .map(part => part.charAt(0).toUpperCase())
+    .slice(0, 2)
+    .join('');
+};
+
+
+
+
 const getResourceTypeIcon = (type) => {
   switch (type?.toLowerCase()) {
     case 'video':
@@ -120,6 +170,19 @@ const getResourceTypeIcon = (type) => {
       return <FiFile className="text-gray-600" />;
   }
 };
+
+
+
+const getGradeStatus = (grade) => {
+  const g = grade?.toUpperCase();
+  if (['A', 'A-'].includes(g)) return { color: 'text-emerald-600 bg-emerald-50', remark: 'Excellent! Outstanding performance.' };
+  if (['B+', 'B', 'B-'].includes(g)) return { color: 'text-blue-600 bg-blue-50', remark: 'Very Good. Keep pushing for the A.' };
+  if (['C+', 'C'].includes(g)) return { color: 'text-amber-600 bg-amber-50', remark: 'Good effort. Room for improvement.' };
+  return { color: 'text-rose-600 bg-rose-50', remark: 'Work harder. Focus on core concepts.' };
+};
+
+
+
 
 const getStatusColor = (status) => {
   switch (status?.toLowerCase()) {
@@ -206,29 +269,50 @@ export default function StudentPortalPage() {
     resourceType: false
   });
 
-  const fetchStudentResults = useCallback(async () => {
-    if (!student?.admissionNumber) return;
-    setResultsLoading(true);
-    setResultsError(null);
-    try {
-      const resp = await fetch(`/api/results?action=student-results&admissionNumber=${encodeURIComponent(student.admissionNumber)}&includeStudent=true`);
-      const data = await resp.json();
-      if (!resp.ok || !data.success) {
-        setStudentResults([]);
-        setResultsError(data.error || 'Not uploaded yet');
-      } else {
-        const results = Array.isArray(data.results) ? data.results : [];
-        setStudentResults(results);
-        if (results.length === 0) setResultsError('Not uploaded yet');
+
+const fetchStudentResults = useCallback(async () => {
+  if (!student?.admissionNumber) return;
+  setResultsLoading(true);
+  setResultsError(null);
+  
+  try {
+    console.log(`Fetching results for student: ${student.admissionNumber}`);
+    
+    const response = await fetch(`/api/results?action=student-results&admissionNumber=${encodeURIComponent(student.admissionNumber)}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Cache-Control': 'no-cache'
       }
-    } catch (err) {
-      console.error('Failed fetching student results:', err);
-      setStudentResults([]);
-      setResultsError('Not uploaded yet');
-    } finally {
-      setResultsLoading(false);
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || `HTTP ${response.status}: Failed to fetch results`);
     }
-  }, [student]);
+    
+    if (data.success) {
+      const results = Array.isArray(data.results) ? data.results : [];
+      console.log(`Received ${results.length} results for student`);
+      setStudentResults(results);
+      
+      if (results.length === 0) {
+        setResultsError('No academic results available yet');
+      }
+    } else {
+      setStudentResults([]);
+      setResultsError(data.error || 'No results found');
+    }
+  } catch (err) {
+    console.error('Failed fetching student results:', err);
+    setStudentResults([]);
+    setResultsError('Unable to load results. Please try again.');
+  } finally {
+    setResultsLoading(false);
+  }
+}, [student, token]);
+
+
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -841,444 +925,306 @@ export default function StudentPortalPage() {
             >
               <FiFilter size={18} />
             </button>
-            
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-r from-blue-600 to-blue-800 flex items-center justify-center">
-                <FiUser className="text-white text-sm" />
-              </div>
-              <div>
-                <p className="font-bold text-gray-900 text-xs sm:text-sm">{student.fullName}</p>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] sm:text-xs text-gray-600">Form {student.form}</span>
-                  {student.stream && (
-                    <>
-                      <span className="text-gray-400 text-[10px]">•</span>
-                      <span className="text-[10px] sm:text-xs text-gray-600">{student.stream}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
+          <div className="group flex items-center gap-3 sm:gap-4 p-1">
+  {/* Modern Initials Icon - Dynamic based on Name */}
+  <div className={`
+    w-9 h-9 sm:w-11 sm:h-11 
+    rounded-xl flex items-center justify-center 
+    font-bold text-xs sm:text-sm tracking-tight
+    shadow-sm border transition-all duration-300
+    group-hover:scale-110 group-hover:shadow-md
+    ${getColorScheme(student.fullName)}
+  `}>
+    {getInitials(student.fullName)}
+  </div>
+
+  <div className="flex flex-col min-w-0">
+    {/* Student Name - Truncates if too long on mobile */}
+    <p className="font-bold text-gray-900 text-sm sm:text-base truncate leading-tight tracking-tight">
+      {student.fullName}
+    </p>
+    
+    <div className="flex items-center gap-2 mt-0.5">
+      {/* Form Badge */}
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-gray-100 text-gray-500 border border-gray-200/50">
+        F{student.form}
+      </span>
+      
+      {student.stream && (
+        <div className="flex items-center gap-1.5">
+          <span className="w-1 h-1 rounded-full bg-gray-300" />
+          <span className="text-[10px] sm:text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+            {student.stream}
+          </span>
+        </div>
+      )}
+    </div>
+  </div>
+</div>
           </div>
 
           {/* Search Bar - Hidden on mobile */}
-          <div className="hidden md:flex flex-1 max-w-md mx-4">
-            <div className="relative w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FiSearch className="text-gray-400 text-sm" />
-              </div>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={`Search ${viewMode}...`}
-                className="block w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all"
-              />
-              {searchTerm && (
-                <button 
-                  onClick={() => setSearchTerm('')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                >
-                  <FiX size={14} />
-                </button>
-              )}
-            </div>
-          </div>
+        <div className="hidden md:flex flex-1 max-w-[40%] mx-auto lg:mx-8">
+  <div className="relative w-full group">
+    {/* Animated Search Icon */}
+    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-transform duration-300 group-focus-within:scale-110">
+      <FiSearch className="text-gray-400 group-focus-within:text-blue-600 transition-colors duration-300" size={18} />
+    </div>
+
+    <input
+      type="text"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      placeholder={`Search ${viewMode}...`}
+      className={`
+        block w-full 
+        pl-12 pr-10 py-2.5 
+        bg-gray-50/50 hover:bg-white
+        border border-gray-200/80 rounded-2xl
+        text-gray-900 font-bold text-base
+        placeholder:text-gray-400 placeholder:font-normal
+        transition-all duration-300 ease-out
+        focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500
+        focus:bg-white focus:shadow-xl focus:shadow-blue-500/5
+      `}
+    />
+
+    {/* Modern Clear Button */}
+    {searchTerm && (
+      <button 
+        onClick={() => setSearchTerm('')}
+        className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-300 hover:text-red-500 transition-colors duration-200"
+      >
+        <div className="bg-gray-100 hover:bg-red-50 p-1 rounded-lg">
+           <FiX size={16} />
+        </div>
+      </button>
+    )}
+    
+    {/* Subtle keyboard shortcut indicator (optional decoration) */}
+    {!searchTerm && (
+      <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none group-focus-within:hidden">
+        <kbd className="px-1.5 py-0.5 text-[10px] font-semibold text-gray-400 bg-white border border-gray-200 rounded-md shadow-sm">
+          /
+        </kbd>
+      </div>
+    )}
+  </div>
+</div>
           
-          <div className="flex items-center gap-2">
-            {/* Refresh Button */}
-            <button
-              onClick={handleRefresh}
-              className="px-2 py-1 text-xs text-gray-600 bg-transparent hover:bg-gray-100 rounded-lg transition-all flex items-center gap-1"
-              title="Refresh"
-            >
-              <FiRefreshCw className={`text-sm ${(loading || resourcesLoading || feeLoading) ? "animate-spin" : ""}`} />
-            </button>
+        <div className="flex flex-wrap items-center justify-end gap-3 ml-auto">
+  
+  {/* View Toggle Group - Modern Segmented Control */}
+  <div className="flex p-1.5 bg-gray-100/80 backdrop-blur-sm rounded-2xl border border-gray-200/50">
+    <button
+      onClick={() => setViewMode("assignments")}
+      className={`px-4 py-2 text-xs lg:text-sm font-bold rounded-xl transition-all duration-300 whitespace-nowrap min-w-max
+        ${viewMode === "assignments"
+          ? "bg-white text-blue-600 shadow-sm ring-1 ring-black/5"
+          : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+        }`}
+    >
+      Assignments
+    </button>
+    <button
+      onClick={() => setViewMode("resources")}
+      className={`px-4 py-2 text-xs lg:text-sm font-bold rounded-xl transition-all duration-300 whitespace-nowrap min-w-max
+        ${viewMode === "resources"
+          ? "bg-white text-blue-600 shadow-sm ring-1 ring-black/5"
+          : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+        }`}
+    >
+      Resources
+    </button>
+  </div>
 
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="px-2 py-1 text-xs text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-all flex items-center gap-1"
-            >
-              <FiLogOut className="text-sm" />
-            </button>
+  {/* Utility Buttons */}
+  <div className="flex items-center gap-2">
+    {/* Refresh Button - Text Only */}
+    <button
+      onClick={handleRefresh}
+      disabled={loading || resourcesLoading || feeLoading}
+      className="px-4 py-2 text-xs lg:text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-2xl hover:bg-gray-50 hover:border-gray-300 active:scale-95 transition-all shadow-sm whitespace-nowrap min-w-max"
+    >
+      {(loading || resourcesLoading || feeLoading) ? "Refreshing..." : "Sync Data"}
+    </button>
 
-            {/* View Toggle */}
-            <div className="flex bg-transparent p-0.5 rounded-lg border border-gray-300/40 gap-0.5">
-              <button
-                onClick={() => setViewMode("assignments")}
-                className={`px-2 py-1.5 text-xs rounded-lg transition-all flex items-center gap-1
-                  ${
-                    viewMode === "assignments"
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-              >
-                <FiClipboard size={12} />
-                <span className="hidden sm:inline">Assignments</span>
-              </button>
-              <button
-                onClick={() => setViewMode("resources")}
-                className={`px-2 py-1.5 text-xs rounded-lg transition-all flex items-center gap-1
-                  ${
-                    viewMode === "resources"
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-              >
-                <FiFilePlus size={12} />
-                <span className="hidden sm:inline">Resources</span>
-              </button>
-            </div>
-          </div>
+    {/* Logout Button - Text Only */}
+    <button
+      onClick={handleLogout}
+      className="px-4 py-2 text-xs lg:text-sm font-bold text-white bg-red-500 hover:bg-red-600 rounded-2xl shadow-md shadow-red-200 active:scale-95 transition-all whitespace-nowrap min-w-max"
+    >
+      Sign Out
+    </button>
+  </div>
+</div>
         </div>
       </header>
 
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
-          
-          {/* Filter Sidebar - Modern Design */}
-          <aside className={`
-            fixed lg:static inset-y-0 left-0 w-72 sm:w-80 bg-white lg:bg-transparent z-50 transform transition-transform duration-300 ease-in-out shadow-xl lg:shadow-none overflow-y-auto lg:overflow-visible border-r lg:border-r-0 border-gray-200/50
-            ${isFilterSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          `}>
-            <div className="p-3 sm:p-4 lg:p-0 lg:sticky lg:top-4 space-y-4">
-              
-              <div className="flex items-center justify-between lg:hidden mb-3">
-                <h2 className="text-base font-bold text-gray-900">Filters</h2>
-                <button onClick={() => setIsFilterSidebarOpen(false)} className="p-1.5 hover:bg-gray-100 rounded-lg">
-                  <FiX size={18} />
-                </button>
-              </div>
+      <aside
+  className={`
+    fixed lg:static
+    inset-y-0 left-0
+    w-72 sm:w-80
+    bg-white/95 lg:bg-transparent
+    z-[60] lg:z-auto
+    transform transition-transform duration-300 ease-out
+    shadow-2xl lg:shadow-none
+    overflow-y-auto lg:overflow-visible
+    border-r lg:border-r-0 border-gray-200/40
+    ${isFilterSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+  `}
+>
+  <div className="p-4 lg:p-0 lg:sticky lg:top-4 space-y-4">
 
-              {/* Mobile Search */}
-              <div className="lg:hidden mb-3">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search..."
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                />
-              </div>
+    {/* Header (Mobile only) */}
+    <div className="flex items-center justify-between lg:hidden">
+      <h2 className="text-sm font-semibold text-gray-900">Filters</h2>
+      <button
+        onClick={() => setIsFilterSidebarOpen(false)}
+        className="p-2 rounded-lg bg-gray-100 text-gray-700"
+      >
+        <FiX size={16} />
+      </button>
+    </div>
 
-              {/* Fee Balance Card - Modern */}
-              <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                        <FiDollarSign className="text-white" />
-                      </div>
-                      Fee Balance
-                    </h3>
-                    {feeLoading ? (
-                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    ) : feeError ? (
-                      <FiAlertCircle className="text-red-500 text-sm" />
-                    ) : null}
-                  </div>
-                  
-                  {feeLoading ? (
-                    <div className="space-y-2">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                      <div className="h-3 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                    </div>
-                  ) : feeError ? (
-                    <p className="text-red-600 text-xs">Failed to load fee balance</p>
-                  ) : feeBalance ? (
-                    <>
-                      <div className="flex items-end gap-2 mb-3">
-                        <span className="text-2xl font-bold text-gray-900">
-                          KES {feeBalance.summary.totalBalance.toLocaleString()}
-                        </span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${getFeeStatusColor(feeBalance.summary.totalBalance, feeBalance.summary.totalAmount)} text-white`}>
-                          {getFeeStatusText(feeBalance.summary.totalBalance)}
-                        </span>
-                      </div>
-                      
-                      <div className="space-y-2 mb-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-600">Total Fees</span>
-                          <span className="font-medium">KES {feeBalance.summary.totalAmount.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-600">Total Paid</span>
-                          <span className="font-medium text-emerald-600">KES {feeBalance.summary.totalPaid.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-600">Outstanding</span>
-                          <span className="font-medium text-red-600">KES {feeBalance.summary.totalBalance.toLocaleString()}</span>
-                        </div>
-                      </div>
-                      
-                      <button
-                        onClick={() => setShowFeeDetails(true)}
-                        className="w-full py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-medium hover:shadow-md transition-all"
-                      >
-                        View Details
-                      </button>
-                    </>
-                  ) : (
-                    <p className="text-gray-500 text-xs">No fee information available</p>
-                  )}
-                </div>
-              </div>
+    {/* Search (Mobile only) */}
+    <div className="lg:hidden">
+      <input
+        type="text"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Search"
+        className="
+          w-full px-4 py-2.5
+          rounded-xl
+          border border-gray-200
+          bg-gray-50
+          text-sm
+          focus:outline-none
+          focus:ring-2 focus:ring-blue-500/30
+        "
+      />
+    </div>
 
-              {/* Filter Controls */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                      <FiSliders className="text-blue-600" />
-                      Filters
-                    </h3>
-                    {(selectedClass !== 'all' || selectedSubject !== 'all' || selectedTeacher !== 'all' || selectedStatus !== 'all' || selectedResourceType !== 'all' || searchTerm) && (
-                      <button
-                        onClick={clearFilters}
-                        className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1"
-                      >
-                        <FiX size={12} /> Clear
-                      </button>
-                    )}
-                  </div>
-                </div>
+    {/* Fee Balance Card */}
+    <div className="relative bg-gradient-to-br from-white to-blue-50 rounded-2xl border border-gray-200/60 shadow-sm">
+      <div className="p-4 space-y-3">
 
-                <div className="divide-y divide-gray-200">
-                  {/* Class Filter - Modern */}
-                  <div className="p-3">
-                    <button
-                      onClick={() => toggleFilter('class')}
-                      className="flex items-center justify-between w-full text-left"
-                    >
-                      <div className="flex items-center gap-2">
-                        <FiUsers className="text-blue-600 text-sm" />
-                        <span className="text-sm font-medium text-gray-900">Class</span>
-                      </div>
-                      {expandedFilters.class ? <FiChevronUp className="text-gray-400" /> : <FiChevronDown className="text-gray-400" />}
-                    </button>
-                    
-                    {expandedFilters.class && (
-                      <div className="mt-3 space-y-2">
-                        {classes.map(cls => (
-                          <label key={cls} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
-                            <input
-                              type="radio"
-                              name="class"
-                              checked={selectedClass === cls}
-                              onChange={() => setSelectedClass(cls)}
-                              className="text-blue-600 focus:ring-blue-500"
-                            />
-                            <div className="flex items-center justify-between flex-1">
-                              <span className="text-sm text-gray-700">
-                                {cls === 'all' ? 'All Classes' : cls}
-                              </span>
-                              {student && cls !== 'all' && cls === (student.stream ? `Form ${student.form} ${student.stream}` : `Form ${student.form}`) && (
-                                <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Your Class</span>
-                              )}
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center">
+            <FiDollarSign className="text-white text-sm" />
+          </div>
+          <h3 className="text-sm font-semibold text-gray-900">Fee Balance</h3>
+        </div>
 
-                  {viewMode === 'assignments' ? (
-                    <>
-                      {/* Subject Filter */}
-                      <div className="p-3">
-                        <button
-                          onClick={() => toggleFilter('subject')}
-                          className="flex items-center justify-between w-full text-left"
-                        >
-                          <div className="flex items-center gap-2">
-                            <FiBook className="text-blue-600 text-sm" />
-                            <span className="text-sm font-medium text-gray-900">Subject</span>
-                          </div>
-                          {expandedFilters.subject ? <FiChevronUp className="text-gray-400" /> : <FiChevronDown className="text-gray-400" />}
-                        </button>
-                        
-                        {expandedFilters.subject && (
-                          <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
-                            {subjects.map(subject => (
-                              <label key={subject} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
-                                <input
-                                  type="radio"
-                                  name="subject"
-                                  checked={selectedSubject === subject}
-                                  onChange={() => setSelectedSubject(subject)}
-                                  className="text-blue-600 focus:ring-blue-500"
-                                />
-                                <span className="text-sm text-gray-700">
-                                  {subject === 'all' ? 'All Subjects' : subject}
-                                </span>
-                              </label>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Teacher Filter */}
-                      <div className="p-3">
-                        <button
-                          onClick={() => toggleFilter('teacher')}
-                          className="flex items-center justify-between w-full text-left"
-                        >
-                          <div className="flex items-center gap-2">
-                            <FiUser className="text-blue-600 text-sm" />
-                            <span className="text-sm font-medium text-gray-900">Teacher</span>
-                          </div>
-                          {expandedFilters.teacher ? <FiChevronUp className="text-gray-400" /> : <FiChevronDown className="text-gray-400" />}
-                        </button>
-                        
-                        {expandedFilters.teacher && (
-                          <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
-                            {teachers.map(teacher => (
-                              <label key={teacher} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
-                                <input
-                                  type="radio"
-                                  name="teacher"
-                                  checked={selectedTeacher === teacher}
-                                  onChange={() => setSelectedTeacher(teacher)}
-                                  className="text-blue-600 focus:ring-blue-500"
-                                />
-                                <span className="text-sm text-gray-700">
-                                  {teacher === 'all' ? 'All Teachers' : teacher}
-                                </span>
-                              </label>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Status Filter */}
-                      <div className="p-3">
-                        <button
-                          onClick={() => toggleFilter('status')}
-                          className="flex items-center justify-between w-full text-left"
-                        >
-                          <div className="flex items-center gap-2">
-                            <FiCheckCircle className="text-blue-600 text-sm" />
-                            <span className="text-sm font-medium text-gray-900">Status</span>
-                          </div>
-                          {expandedFilters.status ? <FiChevronUp className="text-gray-400" /> : <FiChevronDown className="text-gray-400" />}
-                        </button>
-                        
-                        {expandedFilters.status && (
-                          <div className="mt-3 grid grid-cols-2 gap-2">
-                            {ASSIGNMENT_STATUS.map(status => (
-                              <label key={status.id} className="relative">
-                                <input
-                                  type="radio"
-                                  name="status"
-                                  checked={selectedStatus === status.id}
-                                  onChange={() => setSelectedStatus(status.id)}
-                                  className="sr-only peer"
-                                />
-                                <div className="p-2 border border-gray-200 rounded-lg text-center cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all hover:bg-gray-50">
-                                  <div className="flex flex-col items-center gap-1">
-                                    <div className="text-gray-600">{status.icon}</div>
-                                    <span className="text-xs font-medium text-gray-700">{status.label}</span>
-                                  </div>
-                                </div>
-                              </label>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  ) : (
-                    /* Resource Type Filter */
-                    <div className="p-3">
-                      <button
-                        onClick={() => toggleFilter('resourceType')}
-                        className="flex items-center justify-between w-full text-left"
-                      >
-                        <div className="flex items-center gap-2">
-                          <FiFilePlus className="text-blue-600 text-sm" />
-                          <span className="text-sm font-medium text-gray-900">Resource Type</span>
-                        </div>
-                        {expandedFilters.resourceType ? <FiChevronUp className="text-gray-400" /> : <FiChevronDown className="text-gray-400" />}
-                      </button>
-                      
-                      {expandedFilters.resourceType && (
-                        <div className="mt-3 grid grid-cols-2 gap-2">
-                          {RESOURCE_TYPES.map(type => (
-                            <label key={type.id} className="relative">
-                              <input
-                                type="radio"
-                                name="resourceType"
-                                checked={selectedResourceType === type.id}
-                                onChange={() => setSelectedResourceType(type.id)}
-                                className="sr-only peer"
-                              />
-                              <div className="p-2 border border-gray-200 rounded-lg text-center cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all hover:bg-gray-50">
-                                <div className="flex flex-col items-center gap-1">
-                                  <div className={`${type.color === 'gray' ? 'text-gray-600' : `text-${type.color}-500`}`}>
-                                    {type.icon}
-                                  </div>
-                                  <span className="text-xs font-medium text-gray-700">{type.label}</span>
-                                </div>
-                              </div>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Active Filters */}
-              {(selectedClass !== 'all' || selectedSubject !== 'all' || selectedTeacher !== 'all' || selectedStatus !== 'all' || selectedResourceType !== 'all') && (
-                <div className="bg-gray-50 rounded-xl border border-gray-200 p-3">
-                  <h4 className="text-xs font-bold text-gray-900 mb-2">Active Filters</h4>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedClass !== 'all' && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                        Class: {selectedClass}
-                        <button onClick={() => setSelectedClass('all')} className="hover:text-blue-900">
-                          <FiX size={10} />
-                        </button>
-                      </span>
-                    )}
-                    {selectedSubject !== 'all' && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                        Subject: {selectedSubject}
-                        <button onClick={() => setSelectedSubject('all')} className="hover:text-green-900">
-                          <FiX size={10} />
-                        </button>
-                      </span>
-                    )}
-                    {selectedTeacher !== 'all' && viewMode === 'assignments' && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                        Teacher: {selectedTeacher}
-                        <button onClick={() => setSelectedTeacher('all')} className="hover:text-purple-900">
-                          <FiX size={10} />
-                        </button>
-                      </span>
-                    )}
-                    {selectedStatus !== 'all' && viewMode === 'assignments' && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
-                        Status: {selectedStatus}
-                        <button onClick={() => setSelectedStatus('all')} className="hover:text-orange-900">
-                          <FiX size={10} />
-                        </button>
-                      </span>
-                    )}
-                    {selectedResourceType !== 'all' && viewMode === 'resources' && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
-                        Type: {selectedResourceType}
-                        <button onClick={() => setSelectedResourceType('all')} className="hover:text-indigo-900">
-                          <FiX size={10} />
-                        </button>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
+        {feeLoading ? (
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-200 rounded-lg animate-pulse" />
+            <div className="h-3 bg-gray-200 rounded-lg w-3/4 animate-pulse" />
+          </div>
+        ) : feeError ? (
+          <p className="text-xs text-red-600">Unable to load fee data</p>
+        ) : feeBalance ? (
+          <>
+            <div className="text-2xl font-bold text-gray-900">
+              KES {feeBalance.summary.totalBalance.toLocaleString()}
             </div>
-          </aside>
+
+            <div className="space-y-1 text-xs text-gray-600">
+              <div className="flex justify-between">
+                <span>Total Fees</span>
+                <span className="font-medium">
+                  KES {feeBalance.summary.totalAmount.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Paid</span>
+                <span className="font-medium text-emerald-600">
+                  KES {feeBalance.summary.totalPaid.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Outstanding</span>
+                <span className="font-medium text-red-600">
+                  KES {feeBalance.summary.totalBalance.toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowFeeDetails(true)}
+              className="
+                mt-3 w-full py-2.5
+                rounded-xl
+                bg-blue-600
+                text-white text-sm font-medium
+              "
+            >
+              View Details
+            </button>
+          </>
+        ) : (
+          <p className="text-xs text-gray-500">No data available</p>
+        )}
+      </div>
+    </div>
+
+    {/* Filters Container */}
+    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm divide-y divide-gray-200/50">
+
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <FiSliders className="text-blue-600 text-sm" />
+          <span className="text-sm font-semibold text-gray-900">Filters</span>
+        </div>
+
+        <button
+          onClick={clearFilters}
+          className="text-xs font-medium text-red-600"
+        >
+          Reset
+        </button>
+      </div>
+
+      {/* Example Filter Block */}
+      <div className="p-4 space-y-3">
+        <span className="text-xs font-semibold text-gray-700 uppercase">
+          Class
+        </span>
+
+        <div className="space-y-2">
+          {classes.map(cls => (
+            <label
+              key={cls}
+              className="
+                flex items-center gap-2
+                px-3 py-2
+                rounded-xl
+                border border-gray-200
+                bg-gray-50
+              "
+            >
+              <input
+                type="radio"
+                checked={selectedClass === cls}
+                onChange={() => setSelectedClass(cls)}
+                className="text-blue-600"
+              />
+              <span className="text-sm text-gray-700">
+                {cls === 'all' ? 'All Classes' : cls}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</aside>
+
 
           {/* Main Content */}
           <main className="flex-1 min-w-0">
@@ -1769,48 +1715,134 @@ export default function StudentPortalPage() {
               </>
             )}
 
-            {/* My Results */}
-            <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-bold text-gray-900">My Results</h3>
-                <span className="text-xs text-gray-500">Admission: {student.admissionNumber}</span>
-              </div>
- 
-              {resultsLoading ? (
-                <div className="text-xs text-gray-500">Loading results...</div>
-              ) : resultsError ? (
-                <div className="text-xs text-gray-600">Not uploaded yet</div>
-              ) : studentResults.length === 0 ? (
-                <div className="text-xs text-gray-600">Not uploaded yet</div>
-              ) : (
-                <div className="space-y-3 text-xs text-gray-700">
-                  {studentResults.map((res) => {
-                    const subjects = Array.isArray(res.subjects) ? res.subjects : (typeof res.subjects === 'string' ? JSON.parse(res.subjects) : []);
-                    const total = subjects.reduce((s, it) => s + (it.score || 0), 0);
-                    const avg = subjects.length ? (total / subjects.length).toFixed(2) : '0.00';
-                    return (
-                      <div key={`${res.admissionNumber}-${res.academicYear}-${res.term}`} className="p-2 bg-gray-50 rounded-lg border border-gray-100">
-                        <div className="flex items-center justify-between">
-                          <div className="font-semibold">{res.academicYear} • {res.term}</div>
-                          <div className="text-right text-gray-600">
-                            <div>Avg: {avg}</div>
-                            <div>Points: {res.totalPoints ?? res.totalPoints}</div>
-                          </div>
-                        </div>
-                        <div className="mt-2 grid grid-cols-2 gap-2 text-[12px]">
-                          {subjects.map((sub, i) => (
-                            <div key={i} className="flex justify-between">
-                              <span className="truncate pr-2">{sub.subject || sub.name}</span>
-                              <span className="font-semibold">{sub.score ?? '-'}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
+   <div className="bg-white rounded-[2rem] p-6 sm:p-8 border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.04)] mb-8">
+  {/* Header Section */}
+  <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+    <div className="flex items-center gap-4">
+      <div className="w-12 h-12 flex items-center justify-center bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-100">
+        <FiAward className="text-white text-xl" />
+      </div>
+      <div>
+        <h3 className="text-lg font-black text-gray-900 tracking-tight">Academic Performance</h3>
+        <p className="text-sm font-bold text-gray-400">Admission: <span className="text-indigo-600">{student.admissionNumber}</span></p>
+      </div>
+    </div>
+    
+    <button
+      onClick={fetchStudentResults}
+      disabled={resultsLoading}
+      className="flex items-center gap-2 px-6 py-2.5 bg-gray-900 hover:bg-indigo-600 text-white rounded-xl text-sm font-bold transition-all active:scale-95 disabled:opacity-50 shadow-md"
+    >
+      <FiRefreshCw className={`${resultsLoading ? "animate-spin" : ""}`} />
+      {resultsLoading ? 'Syncing...' : 'Refresh'}
+    </button>
+  </div>
+
+  {/* Status Handling */}
+  {resultsLoading ? (
+    <div className="flex flex-col items-center justify-center py-20 space-y-3">
+      <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      <p className="text-sm font-bold text-gray-400 animate-pulse">Compiling Report Card...</p>
+    </div>
+  ) : resultsError ? (
+    <div className="text-center py-12 bg-rose-50 rounded-3xl border border-rose-100 border-dashed">
+      <FiAlertTriangle className="text-rose-500 text-3xl mx-auto mb-3" />
+      <p className="text-sm font-bold text-rose-800">{resultsError}</p>
+    </div>
+  ) : studentResults.length === 0 ? (
+    <div className="text-center py-12 bg-gray-50 rounded-3xl border border-gray-100 border-dashed">
+      <FiBook className="text-gray-300 text-3xl mx-auto mb-3" />
+      <p className="text-sm font-bold text-gray-500">No results found for this period</p>
+    </div>
+  ) : (
+    <div className="space-y-10">
+      {studentResults.map((result, index) => {
+        // Calculate dynamic overall status
+        const overallStatus = getGradeStatus(result.meanGrade || 'B');
+        
+        return (
+          <div key={index} className="group relative overflow-hidden bg-white border border-gray-100 rounded-[2rem] transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/10">
+            
+            {/* 1. Result Summary Header */}
+            <div className="p-6 bg-gray-50/50 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 bg-white border border-gray-200 text-[10px] font-black text-gray-600 rounded-lg uppercase tracking-widest">{result.academicYear}</span>
+                  <span className="px-3 py-1 bg-indigo-600 text-white text-[10px] font-black rounded-lg uppercase tracking-widest">{result.term}</span>
                 </div>
-              )}
+                <h4 className="text-lg font-black text-gray-900">{result.student?.firstName} {result.student?.lastName}</h4>
+              </div>
+
+              <div className="flex items-center gap-8">
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Mean Score</p>
+                  <p className="text-2xl font-black text-gray-900">{(result.averageScore || 0).toFixed(1)}%</p>
+                </div>
+                <div className="w-px h-10 bg-gray-200 hidden sm:block"></div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Mean Grade</p>
+                  <p className={`text-2xl font-black ${overallStatus.color.split(' ')[0]}`}>{result.meanGrade || 'A'}</p>
+                </div>
+              </div>
             </div>
+
+            {/* 2. Subjects Grid */}
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {Array.isArray(result.subjects) && result.subjects.map((subject, subIndex) => {
+                const subStatus = getGradeStatus(subject.grade);
+                return (
+                  <div key={subIndex} className="p-5 rounded-2xl border border-gray-100 bg-white hover:border-indigo-100 hover:bg-indigo-50/10 transition-all group/card">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <p className="font-bold text-gray-900 group-hover/card:text-indigo-600 transition-colors">{subject.subject || 'Subject'}</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{subject.category || 'General'}</p>
+                      </div>
+                      <span className={`px-2 py-1 rounded-lg font-black text-sm shadow-sm ${subStatus.color}`}>
+                        {subject.grade || 'N/A'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-end">
+                        <span className="text-xl font-black text-gray-900">{subject.score || 0}%</span>
+                        <span className="text-[10px] font-bold text-gray-400">Points: {subject.points || 0}</span>
+                      </div>
+                      {/* Visual Progress Bar */}
+                      <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-indigo-500 rounded-full transition-all duration-1000"
+                          style={{ width: `${subject.score || 0}%` }}
+                        ></div>
+                      </div>
+                      {/* Dynamic Remark based on helper function */}
+                      <p className="text-[10px] font-medium text-gray-500 italic opacity-80 group-hover/card:opacity-100 transition-opacity">
+                        "{subStatus.remark}"
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 3. Global Remark Footer */}
+            <div className={`mx-6 mb-6 p-4 rounded-2xl border ${overallStatus.color} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
+              <div className="flex items-center gap-3">
+                <div className="relative flex h-3 w-3">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${overallStatus.color.split(' ')[0].replace('text', 'bg')}`}></span>
+                  <span className={`relative inline-flex rounded-full h-3 w-3 ${overallStatus.color.split(' ')[0].replace('text', 'bg')}`}></span>
+                </div>
+                <p className="text-xs sm:text-sm font-bold tracking-tight italic">
+                  Overall Remark: {overallStatus.remark}
+                </p>
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Academic Summary</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  )}
+</div>
   
             {/* Footer - Compact */}
             <div className="mt-8 pt-6 border-t border-gray-200/50 text-center">

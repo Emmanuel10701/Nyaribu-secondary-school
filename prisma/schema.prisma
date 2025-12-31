@@ -665,7 +665,7 @@ model ResultUpload {
   errorLog      Json?
   term          String?
   academicYear  String?
-  results       StudentResult[] @relation("UploadToResults")
+  results       StudentResult[] // Remove @relation("UploadToResults") here
 
   @@map("results_uploads")
 }
@@ -677,13 +677,14 @@ model StudentResult {
   form            String
   term            String?
   academicYear    String?
-  subjects        Json // e.g. [{ subject: "Math", score: 83 }, ...] — for Form1/Form2 include full subject set; Form3/4 can be combos
+  subjects        Json
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
   uploadBatchId String?
-  uploadBatch   ResultUpload? @relation("UploadToResults", fields: [uploadBatchId], references: [id], onDelete: Cascade)
+  uploadBatch   ResultUpload? @relation(fields: [uploadBatchId], references: [id], onDelete: Cascade) // Keep this
 
+  @@unique([admissionNumber, term, academicYear], name: "unique_student_term_year")
   @@index([admissionNumber])
   @@map("student_results")
 }

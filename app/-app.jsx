@@ -8,7 +8,7 @@ import ModernNavbar from "./components/Navbar/page";
 export default function ClientLayoutWrapper({ children }) {
   const pathname = usePathname();
   const isMainDashboard = pathname === "/MainDashboard";
-  const isStudentportal = pathname === "/StudentPortal";
+  const isStudentportal = pathname === "/pages/StudentPortal";
 
   return (
     <>

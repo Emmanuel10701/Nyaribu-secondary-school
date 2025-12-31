@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { CircularProgress, Modal, Box, Chip, Alert, Snackbar } from '@mui/material';
+import { CircularProgress, Modal, Box, Chip, Alert as MuiAlert, Snackbar } from '@mui/material';
 import * as XLSX from 'xlsx';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
@@ -25,7 +25,7 @@ import {
   FiRepeat, FiTrendingUp as FiTrendingUpIcon, FiTrendingDown as FiTrendingDownIcon,
   FiMoreVertical, FiExternalLink, FiCopy, FiTag, FiCodesandbox,
   FiPercent as FiPercentIcon, FiStar, FiAward as FiAwardIcon,
-  FiBook as FiBookIcon, FiTarget as FiTargetIcon
+  FiBook as FiBookIcon, FiTarget as FiTargetIcon, FiPlus
 } from 'react-icons/fi';
 import {
   IoPeopleCircle, IoNewspaper, IoClose, IoStatsChart,
@@ -89,7 +89,8 @@ function ResultsDeleteModal({
   title = "Confirm Deletion",
   description = "This action cannot be undone",
   itemName = "",
-  type = "result"
+  type = "result",
+  showNotification
 }) {
   const [confirmText, setConfirmText] = useState('')
 
@@ -104,7 +105,7 @@ function ResultsDeleteModal({
     if (confirmText === phrase) {
       onConfirm()
     } else {
-      alert(`Please type "${phrase}" exactly to confirm deletion`)
+      showNotification(`Please type "${phrase}" exactly to confirm deletion`, 'warning')
     }
   }
 
@@ -182,7 +183,7 @@ function ResultsDeleteModal({
 }
 
 // File Upload Component for Results
-function ResultsFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag }) {
+function ResultsFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag, showNotification }) {
   const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -193,9 +194,9 @@ function ResultsFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag })
       const ext = selectedFile.name.toLowerCase();
       if (validExtensions.some(valid => ext.endsWith(valid))) {
         onFileSelect(selectedFile);
-        alert('Results file selected successfully');
+        showNotification('Results file selected successfully', 'success');
       } else {
-        alert('Please upload a CSV or Excel file');
+        showNotification('Please upload a CSV or Excel file', 'error');
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     }
@@ -240,7 +241,7 @@ function ResultsFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag })
 }
 
 // Result Detail Modal
-function ResultDetailModal({ result, student, onClose, onEdit, onDelete }) {
+function ResultDetailModal({ result, student, onClose, onEdit, onDelete, showNotification }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   if (!result) return null;
@@ -482,6 +483,7 @@ function ResultDetailModal({ result, student, onClose, onEdit, onDelete }) {
           loading={false}
           type="result"
           itemName={`Results for ${result.admissionNumber} - ${result.form} ${result.term} ${result.academicYear}`}
+          showNotification={showNotification}
         />
       )}
     </>
@@ -1252,6 +1254,13 @@ export default function ModernResultsManagement() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState({ type: '', id: '', name: '' });
   
+  // Notification state
+  const [notification, setNotification] = useState({
+    open: false,
+    message: '',
+    severity: 'info' // 'success', 'error', 'warning', 'info'
+  });
+
   const [filters, setFilters] = useState({
     search: '',
     form: '',
@@ -1296,6 +1305,22 @@ export default function ModernResultsManagement() {
 
   const fileInputRef = useRef(null);
 
+  // Show notification function
+  const showNotification = (message, severity = 'info') => {
+    setNotification({
+      open: true,
+      message,
+      severity
+    });
+  };
+
+  const handleCloseNotification = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setNotification({ ...notification, open: false });
+  };
+
   // Load student results
   const loadStudentResults = async (page = 1) => {
     setLoading(true);
@@ -1330,11 +1355,11 @@ export default function ModernResultsManagement() {
           pages: Math.ceil(validResults.length / pagination.limit)
         });
       } else {
-        alert(data.error || 'Failed to load results');
+        showNotification(data.error || 'Failed to load results', 'error');
       }
     } catch (error) {
       console.error('Failed to load results:', error);
-      alert(error.message || 'Failed to load results');
+      showNotification(error.message || 'Failed to load results', 'error');
     } finally {
       setLoading(false);
     }
@@ -1426,7 +1451,7 @@ export default function ModernResultsManagement() {
       }
     } catch (error) {
       console.error('Failed to load statistics:', error);
-      alert('Failed to load statistics');
+      showNotification('Failed to load statistics', 'error');
     }
   };
 
@@ -1439,11 +1464,11 @@ export default function ModernResultsManagement() {
       if (data.success) {
         setUploadHistory(data.uploads || []);
       } else {
-        alert('Failed to load upload history');
+        showNotification('Failed to load upload history', 'error');
       }
     } catch (error) {
       console.error('Failed to load history:', error);
-      alert('Failed to load upload history');
+      showNotification('Failed to load upload history', 'error');
     } finally {
       setHistoryLoading(false);
     }
@@ -1524,12 +1549,12 @@ export default function ModernResultsManagement() {
 
   const handleUpload = async () => {
     if (!file) {
-      alert('Please select a file first');
+      showNotification('Please select a file first', 'warning');
       return;
     }
 
     if (!formData.term || !formData.academicYear) {
-      alert('Please select term and academic year');
+      showNotification('Please select term and academic year', 'warning');
       return;
     }
 
@@ -1555,7 +1580,7 @@ export default function ModernResultsManagement() {
       setResult(data);
       
       if (data.success) {
-        alert(`✅ Upload successful! ${data.stats?.valid || 0} result records processed.`);
+        showNotification(`✅ Upload successful! ${data.stats?.valid || 0} result records processed.`, 'success');
         
         await Promise.all([loadStudentResults(1), loadUploadHistory(1), loadStatistics()]);
         setFile(null);
@@ -1568,11 +1593,11 @@ export default function ModernResultsManagement() {
           fileInputRef.current.value = '';
         }
       } else {
-        alert(data.error || 'Upload failed');
+        showNotification(data.error || 'Upload failed', 'error');
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert(error.message || 'Upload failed. Please try again.');
+      showNotification(error.message || 'Upload failed. Please try again.', 'error');
     } finally {
       setUploading(false);
     }
@@ -1598,18 +1623,18 @@ export default function ModernResultsManagement() {
       const data = await res.json();
       
       if (data.success) {
-        alert(data.message || 'Deleted successfully');
+        showNotification(data.message || 'Deleted successfully', 'success');
         await Promise.all([loadStudentResults(pagination.page), loadUploadHistory(1), loadStatistics()]);
         if (deleteTarget.type === 'result') {
           setSelectedResult(null);
           setSelectedStudent(null);
         }
       } else {
-        alert(data.message || 'Failed to delete');
+        showNotification(data.message || 'Failed to delete', 'error');
       }
     } catch (error) {
       console.error('Delete failed:', error);
-      alert('Failed to delete');
+      showNotification('Failed to delete', 'error');
     } finally {
       setShowDeleteModal(false);
       setDeleteTarget({ type: '', id: '', name: '' });
@@ -1628,16 +1653,16 @@ export default function ModernResultsManagement() {
       const data = await res.json();
       
       if (data.success) {
-        alert('Academic results updated successfully');
+        showNotification('Academic results updated successfully', 'success');
         await loadStudentResults(pagination.page);
         setEditingResult(null);
         setSelectedResult(data.data);
       } else {
-        alert(data.error || 'Failed to update results');
+        showNotification(data.error || 'Failed to update results', 'error');
       }
     } catch (error) {
       console.error('Update failed:', error);
-      alert('Failed to update results');
+      showNotification('Failed to update results', 'error');
     } finally {
       setLoading(false);
     }
@@ -1672,7 +1697,7 @@ export default function ModernResultsManagement() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    alert('CSV template downloaded');
+    showNotification('CSV template downloaded', 'success');
   };
 
   const downloadExcelTemplate = () => {
@@ -1687,10 +1712,10 @@ export default function ModernResultsManagement() {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Academic Results");
       XLSX.writeFile(wb, 'results_template.xlsx');
-      alert('Excel template downloaded');
+      showNotification('Excel template downloaded', 'success');
     } catch (error) {
       console.error('Error downloading Excel template:', error);
-      alert('Failed to download template');
+      showNotification('Failed to download template', 'error');
     }
   };
 
@@ -1698,7 +1723,7 @@ export default function ModernResultsManagement() {
     const validResults = studentResults.filter(result => result.student);
     
     if (validResults.length === 0) {
-      alert('No valid results to export');
+      showNotification('No valid results to export', 'warning');
       return;
     }
 
@@ -1738,7 +1763,7 @@ export default function ModernResultsManagement() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    alert(`Exported ${validResults.length} academic results to CSV`);
+    showNotification(`Exported ${validResults.length} academic results to CSV`, 'success');
   };
 
   const handlePageChange = (newPage) => {
@@ -2057,6 +2082,7 @@ export default function ModernResultsManagement() {
                   onRemove={() => setFile(null)}
                   dragActive={dragActive}
                   onDrag={handleDrag}
+                  showNotification={showNotification}
                 />
 
                 {file && (
@@ -2581,6 +2607,24 @@ export default function ModernResultsManagement() {
         )}
       </div>
 
+      {/* Notification Snackbar */}
+      <Snackbar 
+        open={notification.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <MuiAlert 
+          onClose={handleCloseNotification} 
+          severity={notification.severity} 
+          sx={{ width: '100%' }}
+          elevation={6}
+          variant="filled"
+        >
+          {notification.message}
+        </MuiAlert>
+      </Snackbar>
+
       {/* Modals */}
       {selectedResult && !editingResult && (
         <ResultDetailModal
@@ -2592,6 +2636,7 @@ export default function ModernResultsManagement() {
           }}
           onEdit={() => editResult(selectedResult)}
           onDelete={(admissionNumber) => handleDelete('result', selectedResult.id, `Results for ${admissionNumber}`)}
+          showNotification={showNotification}
         />
       )}
 
@@ -2619,6 +2664,7 @@ export default function ModernResultsManagement() {
           loading={loading}
           type={deleteTarget.type}
           itemName={deleteTarget.name}
+          showNotification={showNotification}
         />
       )}
     </div>

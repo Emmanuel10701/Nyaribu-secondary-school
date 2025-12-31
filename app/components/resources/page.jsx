@@ -81,7 +81,7 @@ const SUBJECTS = [
 ];
 
 const CLASSES = [
-  'Grade 4 North', 'Grade 5 South', 'Form 1', 'Form 2', 'Form 3', 'Form 4', 'Form 2 West'
+ 'Form 1', 'Form 2', 'Form 3', 'Form 4'
 ];
 
 const ITEMS_PER_PAGE = 10;

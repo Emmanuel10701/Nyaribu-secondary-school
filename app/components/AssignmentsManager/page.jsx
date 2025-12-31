@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'sonner';
 import { 
   FiPlus, 
   FiSearch, 
@@ -100,14 +99,18 @@ export default function AssignmentsManager() {
         setAssignments(data.assignments || []);
         setFilteredAssignments(data.assignments || []);
         if (showRefresh) {
-          toast.success('🔄 Assignments refreshed successfully!');
+          toast.success('Assignments refreshed successfully!', {
+            icon: '🔄'
+          });
         }
       } else {
         throw new Error(data.error || 'Failed to fetch assignments');
       }
     } catch (error) {
       console.error('Error fetching assignments:', error);
-      toast.error(`❌ ${error.message}`);
+      toast.error(error.message || 'Failed to fetch assignments', {
+        icon: '❌'
+      });
       setAssignments([]);
       setFilteredAssignments([]);
     } finally {
@@ -128,7 +131,9 @@ export default function AssignmentsManager() {
       }
     } catch (error) {
       console.error('Error fetching assignment:', error);
-      toast.error(`❌ ${error.message}`);
+      toast.error(error.message || 'Failed to fetch assignment', {
+        icon: '❌'
+      });
       return null;
     }
   };
@@ -150,13 +155,17 @@ export default function AssignmentsManager() {
   const handleAssignmentFilesChange = (e) => {
     const files = Array.from(e.target.files);
     setNewAssignmentFiles(files);
-    toast.info(`📁 ${files.length} assignment file(s) selected`);
+    toast.info(`${files.length} assignment file(s) selected`, {
+      icon: '📁'
+    });
   };
 
   const handleAttachmentsChange = (e) => {
     const files = Array.from(e.target.files);
     setNewAttachments(files);
-    toast.info(`📎 ${files.length} attachment(s) selected`);
+    toast.info(`${files.length} attachment(s) selected`, {
+      icon: '📎'
+    });
   };
 
   const removeAssignmentFile = (index) => {
@@ -224,7 +233,9 @@ export default function AssignmentsManager() {
         setShowModal(true);
       }
     } catch (error) {
-      toast.error('❌ Failed to load assignment details');
+      toast.error('Failed to load assignment details', {
+        icon: '❌'
+      });
     }
   };
 
@@ -236,7 +247,9 @@ export default function AssignmentsManager() {
         setShowViewModal(true);
       }
     } catch (error) {
-      toast.error('❌ Failed to load assignment details');
+      toast.error('Failed to load assignment details', {
+        icon: '❌'
+      });
     }
   };
 
@@ -257,13 +270,17 @@ export default function AssignmentsManager() {
       
       if (data.success) {
         await fetchAssignments();
-        toast.success('🗑️ Assignment deleted successfully!');
+        toast.success('Assignment deleted successfully!', {
+          icon: '🗑️'
+        });
       } else {
         throw new Error(data.error || 'Failed to delete assignment');
       }
     } catch (error) {
       console.error('Error deleting assignment:', error);
-      toast.error(`❌ ${error.message}`);
+      toast.error(error.message || 'Failed to delete assignment', {
+        icon: '❌'
+      });
     } finally {
       setShowDeleteConfirm(false);
       setAssignmentToDelete(null);
@@ -330,14 +347,22 @@ export default function AssignmentsManager() {
         setNewAssignmentFiles([]);
         setNewAttachments([]);
         toast.success(
-          `✅ Assignment ${editingAssignment ? 'updated' : 'created'} successfully!`
+          `Assignment ${editingAssignment ? 'updated' : 'created'} successfully!`,
+          {
+            icon: '✅'
+          }
         );
       } else {
         throw new Error(data.error);
       }
     } catch (error) {
       console.error('Error saving assignment:', error);
-      toast.error(`❌ ${error.message || `Failed to ${editingAssignment ? 'update' : 'create'} assignment`}`);
+      toast.error(
+        error.message || `Failed to ${editingAssignment ? 'update' : 'create'} assignment`,
+        {
+          icon: '❌'
+        }
+      );
     } finally {
       setSaving(false);
       setUploading(false);
@@ -387,9 +412,8 @@ export default function AssignmentsManager() {
     }
   };
 
-  const classes = ['Grade 4 North', 'Grade 5 South', 'Form 1', 'Form 2', 'Form 3', 'Form 4', 'Form 2 West'];
+  const classes = ['Form 1', 'Form 2', 'Form 3', 'Form 4'];
   const subjects = ['Mathematics', 'English', 'Kiswahili', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography', 'Science'];
-  const teachers = ['Mr. John Doe', 'Mr. Kamau', 'Mr. Mwangi', 'Mrs. Ochieng', 'Ms. Mutiso', 'Dr. Wanjiku', 'Mr. Anthony Wafula'];
 
   const Pagination = () => {
     const totalPages = Math.ceil(filteredAssignments.length / itemsPerPage);
@@ -459,18 +483,7 @@ export default function AssignmentsManager() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 p-4 lg:p-6 space-y-6">
-      <ToastContainer 
-        position="top-right" 
-        autoClose={4000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
+      {/* Toast container removed - sonner renders its own portal */}
 
       {/* Header with Refresh Button */}
       <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-lg border border-gray-200/50">
@@ -910,17 +923,27 @@ export default function AssignmentsManager() {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Teacher *
               </label>
-              <select
-                required
-                value={formData.teacher}
-                onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
-                className="w-full px-4 py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50"
-              >
-                <option value="">Select Teacher</option>
-                {teachers.map(teacher => (
-                  <option key={teacher} value={teacher}>{teacher}</option>
-                ))}
-              </select>
+          <input
+  type="text"
+  required
+  value={formData.teacher}
+  onChange={(e) =>
+    setFormData({ ...formData, teacher: e.target.value })
+  }
+  placeholder="Enter teacher name"
+  className="
+    w-full
+    px-4 py-3.5
+    border border-gray-300
+    rounded-xl
+    bg-white/50
+    focus:outline-none
+    focus:ring-2
+    focus:ring-blue-500
+    focus:border-transparent
+  "
+/>
+
             </div>
 
             <div>

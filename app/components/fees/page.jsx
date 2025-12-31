@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { CircularProgress, Modal, Box, Chip } from '@mui/material';
+import { CircularProgress, Modal, Box, Chip, Alert as MuiAlert, Snackbar } from '@mui/material';
 import * as XLSX from 'xlsx';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
@@ -81,7 +81,8 @@ function ModernDeleteModal({
   title = "Confirm Deletion",
   description = "This action cannot be undone",
   itemName = "",
-  type = "fee"
+  type = "fee",
+  showNotification
 }) {
   const [confirmText, setConfirmText] = useState('')
 
@@ -96,7 +97,7 @@ function ModernDeleteModal({
     if (confirmText === phrase) {
       onConfirm()
     } else {
-      alert(`Please type "${phrase}" exactly to confirm deletion`)
+      showNotification(`Please type "${phrase}" exactly to confirm deletion`, 'warning')
     }
   }
 
@@ -174,7 +175,7 @@ function ModernDeleteModal({
 }
 
 // File Upload Component
-function ModernFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag }) {
+function ModernFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag, showNotification }) {
   const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -185,9 +186,9 @@ function ModernFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag }) 
       const ext = selectedFile.name.toLowerCase();
       if (validExtensions.some(valid => ext.endsWith(valid))) {
         onFileSelect(selectedFile);
-        alert('File selected successfully');
+        showNotification('File selected successfully', 'success');
       } else {
-        alert('Please upload a CSV or Excel file');
+        showNotification('Please upload a CSV or Excel file', 'error');
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     }
@@ -228,7 +229,7 @@ function ModernFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag }) 
 }
 
 // Fee Detail Modal
-function ModernFeeDetailModal({ fee, student, onClose, onEdit, onDelete }) {
+function ModernFeeDetailModal({ fee, student, onClose, onEdit, onDelete, showNotification }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   if (!fee) return null;
@@ -493,6 +494,7 @@ function ModernFeeDetailModal({ fee, student, onClose, onEdit, onDelete }) {
           loading={false}
           type="fee"
           itemName={`Fee for ${fee.admissionNumber} - ${fee.term} ${fee.academicYear}`}
+          showNotification={showNotification}
         />
       )}
     </>
@@ -1139,6 +1141,13 @@ export default function ModernFeeManagement() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState({ type: '', id: '', name: '' });
   
+  // Notification state
+  const [notification, setNotification] = useState({
+    open: false,
+    message: '',
+    severity: 'info' // 'success', 'error', 'warning', 'info'
+  });
+
   const [filters, setFilters] = useState({
     search: '',
     term: '',
@@ -1182,6 +1191,22 @@ export default function ModernFeeManagement() {
 
   const fileInputRef = useRef(null);
 
+  // Show notification function
+  const showNotification = (message, severity = 'info') => {
+    setNotification({
+      open: true,
+      message,
+      severity
+    });
+  };
+
+  const handleCloseNotification = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setNotification({ ...notification, open: false });
+  };
+
   // Load fee balances - Only for existing students
   const loadFeeBalances = async (page = 1) => {
     setLoading(true);
@@ -1214,11 +1239,11 @@ export default function ModernFeeManagement() {
           pages: Math.ceil(validFees.length / pagination.limit)
         });
       } else {
-        alert(data.error || 'Failed to load fee balances');
+        showNotification(data.error || 'Failed to load fee balances', 'error');
       }
     } catch (error) {
       console.error('Failed to load fee balances:', error);
-      alert(error.message || 'Failed to load fee balances');
+      showNotification(error.message || 'Failed to load fee balances', 'error');
     } finally {
       setLoading(false);
     }
@@ -1296,7 +1321,7 @@ export default function ModernFeeManagement() {
       }
     } catch (error) {
       console.error('Failed to load statistics:', error);
-      alert('Failed to load statistics');
+      showNotification('Failed to load statistics', 'error');
     }
   };
 
@@ -1309,11 +1334,11 @@ export default function ModernFeeManagement() {
       if (data.success) {
         setUploadHistory(data.uploads || []);
       } else {
-        alert('Failed to load upload history');
+        showNotification('Failed to load upload history', 'error');
       }
     } catch (error) {
       console.error('Failed to load history:', error);
-      alert('Failed to load upload history');
+      showNotification('Failed to load upload history', 'error');
     } finally {
       setHistoryLoading(false);
     }
@@ -1379,12 +1404,12 @@ export default function ModernFeeManagement() {
 
   const handleUpload = async () => {
     if (!file) {
-      alert('Please select a file first');
+      showNotification('Please select a file first', 'warning');
       return;
     }
 
     if (!formData.term || !formData.academicYear) {
-      alert('Please select term and academic year');
+      showNotification('Please select term and academic year', 'warning');
       return;
     }
 
@@ -1410,7 +1435,7 @@ export default function ModernFeeManagement() {
       setResult(data);
       
       if (data.success) {
-        alert(`✅ Upload successful! ${data.stats?.valid || 0} fee records processed.`);
+        showNotification(`✅ Upload successful! ${data.stats?.valid || 0} fee records processed.`, 'success');
         
         await Promise.all([loadFeeBalances(1), loadUploadHistory(1), loadStatistics()]);
         setFile(null);
@@ -1423,11 +1448,11 @@ export default function ModernFeeManagement() {
           fileInputRef.current.value = '';
         }
       } else {
-        alert(data.error || 'Upload failed');
+        showNotification(data.error || 'Upload failed', 'error');
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert(error.message || 'Upload failed. Please try again.');
+      showNotification(error.message || 'Upload failed. Please try again.', 'error');
     } finally {
       setUploading(false);
     }
@@ -1453,18 +1478,18 @@ export default function ModernFeeManagement() {
       const data = await res.json();
       
       if (data.success) {
-        alert(data.message || 'Deleted successfully');
+        showNotification(data.message || 'Deleted successfully', 'success');
         await Promise.all([loadFeeBalances(pagination.page), loadUploadHistory(1), loadStatistics()]);
         if (deleteTarget.type === 'fee') {
           setSelectedFee(null);
           setSelectedStudent(null);
         }
       } else {
-        alert(data.message || 'Failed to delete');
+        showNotification(data.message || 'Failed to delete', 'error');
       }
     } catch (error) {
       console.error('Delete failed:', error);
-      alert('Failed to delete');
+      showNotification('Failed to delete', 'error');
     } finally {
       setShowDeleteModal(false);
       setDeleteTarget({ type: '', id: '', name: '' });
@@ -1483,16 +1508,16 @@ export default function ModernFeeManagement() {
       const data = await res.json();
       
       if (data.success) {
-        alert('Fee balance updated successfully');
+        showNotification('Fee balance updated successfully', 'success');
         await loadFeeBalances(pagination.page);
         setEditingFee(null);
         setSelectedFee(data.data);
       } else {
-        alert(data.error || 'Failed to update fee balance');
+        showNotification(data.error || 'Failed to update fee balance', 'error');
       }
     } catch (error) {
       console.error('Update failed:', error);
-      alert('Failed to update fee balance');
+      showNotification('Failed to update fee balance', 'error');
     } finally {
       setLoading(false);
     }
@@ -1527,7 +1552,7 @@ export default function ModernFeeManagement() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    alert('CSV template downloaded');
+    showNotification('CSV template downloaded', 'success');
   };
 
   const downloadExcelTemplate = () => {
@@ -1542,10 +1567,10 @@ export default function ModernFeeManagement() {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Fee Balances");
       XLSX.writeFile(wb, 'fee_balance_template.xlsx');
-      alert('Excel template downloaded');
+      showNotification('Excel template downloaded', 'success');
     } catch (error) {
       console.error('Error downloading Excel template:', error);
-      alert('Failed to download template');
+      showNotification('Failed to download template', 'error');
     }
   };
 
@@ -1553,7 +1578,7 @@ export default function ModernFeeManagement() {
     const validFees = feeBalances.filter(fee => fee.student);
     
     if (validFees.length === 0) {
-      alert('No valid fees to export');
+      showNotification('No valid fees to export', 'warning');
       return;
     }
 
@@ -1587,7 +1612,7 @@ export default function ModernFeeManagement() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    alert(`Exported ${validFees.length} fee records to CSV`);
+    showNotification(`Exported ${validFees.length} fee records to CSV`, 'success');
   };
 
   const handlePageChange = (newPage) => {
@@ -1646,7 +1671,7 @@ export default function ModernFeeManagement() {
             <button
               onClick={exportFeesToCSV}
               disabled={feeBalances.length === 0 || loading}
-              className="text-white/80 px-6 py-3 rounded-xl font-bold text-base border borderwhite/20 flex items-center gap-2 disabled:opacity-50"
+              className="text-white/80 px-6 py-3 rounded-xl font-bold text-base border border-white/20 flex items-center gap-2 disabled:opacity-50"
             >
               <FiDownload className="text-base" />
               Export Data
@@ -1799,7 +1824,7 @@ export default function ModernFeeManagement() {
                   </div>
                 </div>
 
-                <ModernFileUpload onFileSelect={handleFileSelect} file={file} onRemove={() => setFile(null)} dragActive={dragActive} onDrag={handleDrag} />
+                <ModernFileUpload onFileSelect={handleFileSelect} file={file} onRemove={() => setFile(null)} dragActive={dragActive} onDrag={handleDrag} showNotification={showNotification} />
 
                 {file && (
                   <div className="bg-white rounded-2xl p-6 border-2 border-gray-300 shadow-2xl">
@@ -2246,6 +2271,24 @@ export default function ModernFeeManagement() {
         )}
       </div>
 
+      {/* Notification Snackbar */}
+      <Snackbar 
+        open={notification.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <MuiAlert 
+          onClose={handleCloseNotification} 
+          severity={notification.severity} 
+          sx={{ width: '100%' }}
+          elevation={6}
+          variant="filled"
+        >
+          {notification.message}
+        </MuiAlert>
+      </Snackbar>
+
       {/* Modals */}
       {selectedFee && !editingFee && (
         <ModernFeeDetailModal
@@ -2257,6 +2300,7 @@ export default function ModernFeeManagement() {
           }}
           onEdit={() => editFee(selectedFee)}
           onDelete={(admissionNumber) => handleDelete('fee', selectedFee.id, `Fee for ${admissionNumber}`)}
+          showNotification={showNotification}
         />
       )}
 
@@ -2284,6 +2328,7 @@ export default function ModernFeeManagement() {
           loading={loading}
           type={deleteTarget.type}
           itemName={deleteTarget.name}
+          showNotification={showNotification}
         />
       )}
     </div>
