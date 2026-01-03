@@ -15,6 +15,7 @@ import {
   FiChevronLeft, FiChevronRight as FiChevronRightIcon, FiDownloadCloud 
 } from 'react-icons/fi';
 
+
 import {
   IoSchool, IoDocumentText, IoStatsChart,
   IoAnalytics, IoSparkles, IoClose,
@@ -177,7 +178,7 @@ function ResultsStatisticsCard({ title, value, icon: Icon, color, trend = 0, pre
   );
 }
 
-// Subject Details Modal Component
+// Subject Details Modal Component with mobile optimizations
 function SubjectDetailsModal({ result, onClose }) {
   if (!result) return null;
 
@@ -189,75 +190,75 @@ function SubjectDetailsModal({ result, onClose }) {
   const subjectCount = subjects.length;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
       <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden border-2 border-gray-300 shadow-2xl">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 p-4 md:p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 md:gap-4">
-              <div className="p-2 md:p-3 bg-white/20 rounded-2xl">
-                <FiBook className="text-xl md:text-2xl" />
+        {/* Header - Mobile Optimized */}
+        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 p-3 sm:p-4 md:p-6 text-white">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2 sm:gap-3 md:gap-4 flex-1 min-w-0">
+              <div className="p-2 md:p-3 bg-white/20 rounded-2xl flex-shrink-0 mt-1">
+                <FiBook className="text-lg sm:text-xl md:text-2xl" />
               </div>
-              <div>
-                <h2 className="text-lg md:text-2xl font-bold">Subject Performance Details</h2>
-                <p className="text-blue-100 opacity-90 text-xs md:text-sm mt-1">
-                  Admission No: {result.admissionNumber} • {result.term} {result.academicYear} • {result.form}
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base sm:text-lg md:text-2xl font-bold truncate">Subject Performance Details</h2>
+                <p className="text-blue-100 opacity-90 text-xs sm:text-sm mt-1 truncate">
+                  Adm: {result.admissionNumber} • {result.term} {result.academicYear} • {result.form}
                 </p>
               </div>
             </div>
             <button 
               onClick={onClose}
-              className="p-2 bg-white/20 rounded-2xl hover:bg-white/30 transition-colors"
+              className="p-2 bg-white/20 rounded-2xl hover:bg-white/30 transition-colors flex-shrink-0 ml-2"
             >
-              <IoClose className="text-lg md:text-xl" />
+              <IoClose className="text-lg sm:text-xl" />
             </button>
           </div>
         </div>
 
-        <div className="max-h-[calc(90vh-80px)] overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6">
-          {/* Overall Summary */}
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 md:p-6 border-2 border-blue-300">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4">
-              <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
-                <div className="text-xs md:text-sm font-semibold text-blue-700">Average Score</div>
-                <div className="text-lg md:text-2xl font-bold text-gray-900 mt-1">{averageScore.toFixed(2)}%</div>
+        <div className="max-h-[calc(90vh-70px)] overflow-y-auto p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
+          {/* Overall Summary - Mobile Stacking */}
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4 md:p-6 border-2 border-blue-300">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+              <div className="text-center p-2 sm:p-3 bg-white rounded-lg border border-blue-200">
+                <div className="text-xs font-semibold text-blue-700 truncate">Avg Score</div>
+                <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mt-1 truncate">{averageScore.toFixed(2)}%</div>
               </div>
-              <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
-                <div className="text-xs md:text-sm font-semibold text-blue-700">Total Score</div>
-                <div className="text-lg md:text-2xl font-bold text-gray-900 mt-1">{totalScore}</div>
+              <div className="text-center p-2 sm:p-3 bg-white rounded-lg border border-blue-200">
+                <div className="text-xs font-semibold text-blue-700 truncate">Total Score</div>
+                <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mt-1 truncate">{totalScore}</div>
               </div>
-              <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
-                <div className="text-xs md:text-sm font-semibold text-blue-700">Overall Grade</div>
-                <div className={`text-lg md:text-2xl font-bold mt-1 ${overallStatus.color}`}>
+              <div className="text-center p-2 sm:p-3 bg-white rounded-lg border border-blue-200">
+                <div className="text-xs font-semibold text-blue-700 truncate">Grade</div>
+                <div className={`text-lg sm:text-xl md:text-2xl font-bold mt-1 truncate ${overallStatus.color}`}>
                   {result.overallGrade || 'N/A'}
                 </div>
               </div>
-              <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
-                <div className="text-xs md:text-sm font-semibold text-blue-700">Subjects</div>
-                <div className="text-lg md:text-2xl font-bold text-gray-900 mt-1">{subjectCount}</div>
+              <div className="text-center p-2 sm:p-3 bg-white rounded-lg border border-blue-200">
+                <div className="text-xs font-semibold text-blue-700 truncate">Subjects</div>
+                <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mt-1 truncate">{subjectCount}</div>
               </div>
-              <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
-                <div className="text-xs md:text-sm font-semibold text-blue-700">Form</div>
-                <div className="text-lg md:text-2xl font-bold text-gray-900 mt-1">{result.form}</div>
+              <div className="col-span-2 sm:col-span-3 md:col-span-1 text-center p-2 sm:p-3 bg-white rounded-lg border border-blue-200">
+                <div className="text-xs font-semibold text-blue-700 truncate">Form</div>
+                <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mt-1 truncate">{result.form}</div>
               </div>
             </div>
           </div>
 
-          {/* Subjects Table */}
+          {/* Subjects Table - Mobile Scrollable */}
           <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-50 to-white px-4 py-3 border-b border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900">Subject Performance Breakdown</h3>
-              <p className="text-gray-600 text-sm">Detailed scores, grades, and comments for each subject</p>
+            <div className="bg-gradient-to-r from-gray-50 to-white px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-200">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">Subject Performance</h3>
+              <p className="text-gray-600 text-xs sm:text-sm truncate">Scores, grades, and comments per subject</p>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto -webkit-scrollbar-hide md:scrollbar-default">
+              <table className="w-full min-w-[600px]">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Subject</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Score</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Grade</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Points</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Teacher's Comment</th>
+                    <th className="px-2 sm:px-3 md:px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase truncate">Subject</th>
+                    <th className="px-2 sm:px-3 md:px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase truncate">Score</th>
+                    <th className="px-2 sm:px-3 md:px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase truncate">Grade</th>
+                    <th className="px-2 sm:px-3 md:px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase truncate">Points</th>
+                    <th className="px-2 sm:px-3 md:px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase truncate hidden sm:table-cell">Teacher's Comment</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -269,30 +270,30 @@ function SubjectDetailsModal({ result, onClose }) {
 
                     return (
                       <tr key={index} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="font-medium text-gray-900">{subject.subject}</div>
+                        <td className="px-2 sm:px-3 md:px-4 py-2">
+                          <div className="font-medium text-gray-900 text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">{subject.subject}</div>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <td className="px-2 sm:px-3 md:px-4 py-2">
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <div className="w-12 sm:w-16 md:w-20 bg-gray-200 rounded-full h-1.5 sm:h-2">
                               <div 
                                 className={`h-full rounded-full ${status.color.replace('text-', 'bg-')}`}
                                 style={{ width: `${Math.min(score, 100)}%` }}
                               />
                             </div>
-                            <span className={`font-bold min-w-10 ${status.color}`}>{score}%</span>
+                            <span className={`font-bold text-xs sm:text-sm min-w-8 sm:min-w-10 ${status.color}`}>{score}%</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${status.badgeColor}`}>
+                        <td className="px-2 sm:px-3 md:px-4 py-2">
+                          <span className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs font-bold ${status.badgeColor}`}>
                             {grade}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
-                          <span className="font-bold text-gray-900">{points}</span>
+                        <td className="px-2 sm:px-3 md:px-4 py-2">
+                          <span className="font-bold text-gray-900 text-xs sm:text-sm">{points}</span>
                         </td>
-                        <td className="px-4 py-3">
-                          <span className="text-sm text-gray-600 italic">{subject.comment || 'No comment'}</span>
+                        <td className="px-2 sm:px-3 md:px-4 py-2 hidden sm:table-cell">
+                          <span className="text-xs text-gray-600 italic truncate max-w-[150px] md:max-w-none block">{subject.comment || 'No comment'}</span>
                         </td>
                       </tr>
                     );
@@ -302,12 +303,12 @@ function SubjectDetailsModal({ result, onClose }) {
             </div>
           </div>
 
-          {/* Performance Insights */}
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 md:p-6 border-2 border-gray-300">
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Performance Analysis</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <h4 className="font-semibold text-gray-700 mb-2">Highest Scoring Subject</h4>
+          {/* Performance Insights - Mobile Stacking */}
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-3 sm:p-4 md:p-6 border-2 border-gray-300">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3">Performance Analysis</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+              <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200">
+                <h4 className="font-semibold text-gray-700 text-sm sm:text-base mb-1 sm:mb-2">Highest Subject</h4>
                 {subjects.length > 0 ? (
                   (() => {
                     const highest = subjects.reduce((max, s) => 
@@ -316,20 +317,20 @@ function SubjectDetailsModal({ result, onClose }) {
                     return (
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="font-medium">{highest.subject}</span>
-                          <span className={`font-bold ${status.color}`}>{highest.score}%</span>
+                          <span className="font-medium text-xs sm:text-sm truncate">{highest.subject}</span>
+                          <span className={`font-bold text-xs sm:text-sm ${status.color}`}>{highest.score}%</span>
                         </div>
-                        <div className="text-sm text-gray-600">{highest.comment}</div>
+                        <div className="text-xs text-gray-600 truncate">{highest.comment}</div>
                       </div>
                     );
                   })()
                 ) : (
-                  <span className="text-gray-500">No data</span>
+                  <span className="text-gray-500 text-xs sm:text-sm">No data</span>
                 )}
               </div>
               
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <h4 className="font-semibold text-gray-700 mb-2">Lowest Scoring Subject</h4>
+              <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200">
+                <h4 className="font-semibold text-gray-700 text-sm sm:text-base mb-1 sm:mb-2">Lowest Subject</h4>
                 {subjects.length > 0 ? (
                   (() => {
                     const lowest = subjects.reduce((min, s) => 
@@ -338,30 +339,30 @@ function SubjectDetailsModal({ result, onClose }) {
                     return (
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="font-medium">{lowest.subject}</span>
-                          <span className={`font-bold ${status.color}`}>{lowest.score}%</span>
+                          <span className="font-medium text-xs sm:text-sm truncate">{lowest.subject}</span>
+                          <span className={`font-bold text-xs sm:text-sm ${status.color}`}>{lowest.score}%</span>
                         </div>
-                        <div className="text-sm text-gray-600">{lowest.comment}</div>
+                        <div className="text-xs text-gray-600 truncate">{lowest.comment}</div>
                       </div>
                     );
                   })()
                 ) : (
-                  <span className="text-gray-500">No data</span>
+                  <span className="text-gray-500 text-xs sm:text-sm">No data</span>
                 )}
               </div>
               
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <h4 className="font-semibold text-gray-700 mb-2">Overall Performance</h4>
+              <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200 sm:col-span-2 md:col-span-1">
+                <h4 className="font-semibold text-gray-700 text-sm sm:text-base mb-1 sm:mb-2">Overall</h4>
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">Grade:</span>
-                    <span className={`font-bold ${overallStatus.color}`}>{result.overallGrade}</span>
+                    <span className="font-medium text-xs sm:text-sm">Grade:</span>
+                    <span className={`font-bold text-xs sm:text-sm ${overallStatus.color}`}>{result.overallGrade}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">Average:</span>
-                    <span className="font-bold text-gray-900">{averageScore.toFixed(2)}%</span>
+                    <span className="font-medium text-xs sm:text-sm">Average:</span>
+                    <span className="font-bold text-gray-900 text-xs sm:text-sm">{averageScore.toFixed(2)}%</span>
                   </div>
-                  <div className="text-sm text-gray-600 mt-2">{overallStatus.remark}</div>
+                  <div className="text-xs text-gray-600 mt-1 sm:mt-2 truncate">{overallStatus.remark}</div>
                 </div>
               </div>
             </div>
@@ -372,7 +373,7 @@ function SubjectDetailsModal({ result, onClose }) {
   );
 }
 
-// Result Card Component for Grid View - FROM SECOND CODE
+// Result Card Component for Grid View - Mobile Optimized
 function ResultCard({ result, studentAdmissionNumber, onViewSubjects }) {
   const overallStatus = getGradeStatus(result.overallGrade);
   const isStudentResult = result.admissionNumber === studentAdmissionNumber;
@@ -389,53 +390,53 @@ function ResultCard({ result, studentAdmissionNumber, onViewSubjects }) {
     >
       {isStudentResult && (
         <div className="absolute top-0 right-0">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white text-xs px-3 py-1 rounded-bl-lg font-bold shadow-lg">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white text-[10px] xs:text-xs px-2 py-0.5 sm:px-3 sm:py-1 rounded-bl-lg font-bold shadow-lg">
             Your Result
           </div>
         </div>
       )}
       
-      <div className="p-4 md:p-5">
+      <div className="p-3 sm:p-4 md:p-5">
         {/* Header */}
-        <div className="flex items-center justify-between mb-3 md:mb-4">
-          <div>
-            <h3 className="text-lg md:text-xl font-bold text-gray-900">{result.term}</h3>
-            <p className="text-xs md:text-sm text-gray-600">{result.academicYear}</p>
+        <div className="flex items-center justify-between mb-2 sm:mb-3 md:mb-4">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">{result.term}</h3>
+            <p className="text-xs text-gray-600 truncate">{result.academicYear}</p>
           </div>
-          <div className={`px-3 py-1 md:px-4 md:py-2 rounded-xl font-bold text-sm bg-gradient-to-r ${overallStatus.bgColor} text-white shadow-lg`}>
+          <div className={`px-2 py-1 sm:px-3 sm:py-1 md:px-4 md:py-2 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r ${overallStatus.bgColor} text-white shadow-lg flex-shrink-0 ml-2`}>
             {result.overallGrade || 'N/A'}
           </div>
         </div>
         
-        {/* Student Info */}
-        <div className="mb-3 md:mb-4 space-y-2">
-          <div className="flex items-center gap-2 text-sm text-gray-700">
-            <FiUser className="text-blue-500 text-sm md:text-base" />
-            <span className="font-semibold text-xs md:text-sm">Adm: {result.admissionNumber}</span>
+        {/* Student Info - Mobile Stacking */}
+        <div className="mb-3 sm:mb-4 space-y-1.5 sm:space-y-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-700">
+            <FiUser className="text-blue-500 text-xs sm:text-sm md:text-base flex-shrink-0" />
+            <span className="font-semibold truncate">Adm: {result.admissionNumber}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <IoSchool className="text-gray-400 text-sm md:text-base" />
-            <span className="text-xs md:text-sm">{result.form}</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600">
+            <IoSchool className="text-gray-400 text-xs sm:text-sm md:text-base flex-shrink-0" />
+            <span className="truncate">{result.form}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <FiBarChart2 className="text-gray-400 text-sm md:text-base" />
-            <span className="text-xs md:text-sm">Average:</span>
-            <span className="font-bold text-gray-900 text-sm md:text-base">{averageScore.toFixed(2)}%</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600">
+            <FiBarChart2 className="text-gray-400 text-xs sm:text-sm md:text-base flex-shrink-0" />
+            <span>Avg:</span>
+            <span className="font-bold text-gray-900 truncate">{averageScore.toFixed(2)}%</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <FiActivity className="text-gray-400 text-sm md:text-base" />
-            <span className="text-xs md:text-sm">Total Score:</span>
-            <span className="font-bold text-gray-900 text-sm md:text-base">{totalScore}</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600">
+            <FiActivity className="text-gray-400 text-xs sm:text-sm md:text-base flex-shrink-0" />
+            <span>Total:</span>
+            <span className="font-bold text-gray-900 truncate">{totalScore}</span>
           </div>
         </div>
         
         {/* Performance Bar */}
-        <div className="mb-4">
-          <div className="flex justify-between text-xs md:text-sm font-semibold mb-1">
-            <span className="text-gray-700">Overall Performance:</span>
+        <div className="mb-3 sm:mb-4">
+          <div className="flex justify-between text-xs font-semibold mb-1">
+            <span className="text-gray-700 truncate">Performance:</span>
             <span className={overallStatus.color}>{averageScore.toFixed(1)}%</span>
           </div>
-          <div className="w-full h-2 md:h-3 bg-gray-200 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 sm:h-2 md:h-3 bg-gray-200 rounded-full overflow-hidden">
             <div 
               className={`h-full rounded-full bg-gradient-to-r ${overallStatus.bgColor}`}
               style={{ width: `${Math.min(averageScore, 100)}%` }}
@@ -446,20 +447,20 @@ function ResultCard({ result, studentAdmissionNumber, onViewSubjects }) {
         {/* Action Button */}
         <button
           onClick={() => onViewSubjects(result)}
-          className="w-full px-3 py-2 md:px-4 md:py-2.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 rounded-xl text-xs md:text-sm font-semibold hover:from-blue-100 hover:to-blue-200 transition-all flex items-center justify-center gap-2 group-hover:shadow-md"
+          className="w-full px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 rounded-xl text-xs sm:text-sm font-semibold hover:from-blue-100 hover:to-blue-200 transition-all flex items-center justify-center gap-1 sm:gap-2 group-hover:shadow-md"
         >
-          <FiEye size={12} className="md:size-14" />
-          View Full Details
+          <FiEye className="text-xs sm:text-sm md:size-14" />
+          <span>View Details</span>
         </button>
       </div>
     </div>
   );
 }
 
-// Document Card Component
+// Document Card Component - Mobile Optimized
 function DocumentCard({ document, type = 'additional' }) {
   const getIcon = () => {
-    const iconBase = "text-xl md:text-2xl";
+    const iconBase = "text-lg sm:text-xl md:text-2xl";
     if (type === 'exam') return <FiFileText className={`${iconBase} text-rose-500`} />;
     if (document.filetype?.includes('pdf')) return <FiFileText className={`${iconBase} text-rose-500`} />;
     if (document.filetype?.includes('image')) return <FiImage className={`${iconBase} text-emerald-500`} />;
@@ -474,28 +475,28 @@ function DocumentCard({ document, type = 'additional' }) {
   };
 
   return (
-    <div className="group relative bg-white rounded-2xl p-4 border border-gray-200 shadow-sm hover:shadow-sm transition-all duration-300">
+    <div className="group relative bg-white rounded-2xl p-3 sm:p-4 border border-gray-200 shadow-sm hover:shadow-sm transition-all duration-300">
       
-      {/* Top Section: Icon & Info */}
-      <div className="flex items-start gap-4">
+      {/* Top Section: Icon & Info - Mobile Stacking */}
+      <div className="flex items-start gap-2 sm:gap-3 md:gap-4">
         {/* Modern Icon Container */}
-        <div className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gray-50 flex items-center justify-center group-hover:scale-100 transition-transform duration-300">
+        <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-2xl bg-gray-50 flex items-center justify-center">
           {getIcon()}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start">
-            <h5 className="font-bold text-gray-800 text-sm md:text-base leading-tight truncate pr-2">
+            <h5 className="font-bold text-gray-800 text-sm sm:text-base leading-tight truncate pr-1">
               {document.name || document.filename}
             </h5>
           </div>
           
-          <div className="flex flex-wrap items-center gap-2 mt-2">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] md:text-xs font-bold uppercase tracking-wider">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1 sm:mt-2">
+            <span className="inline-flex items-center px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full bg-slate-100 text-slate-600 text-[9px] xs:text-[10px] sm:text-xs font-bold uppercase tracking-wider truncate">
               {type === 'exam' ? `Form ${document.form}` : document.year || 'General'}
             </span>
-            <span className="inline-flex items-center text-gray-400 text-[10px] md:text-xs font-medium">
-              <FiDownloadCloud className="mr-1" />
+            <span className="inline-flex items-center text-gray-400 text-[9px] xs:text-[10px] sm:text-xs font-medium truncate">
+              <FiDownloadCloud className="mr-0.5 sm:mr-1 text-xs" />
               {formatSize(document.size || document.filesize)}
             </span>
           </div>
@@ -504,26 +505,23 @@ function DocumentCard({ document, type = 'additional' }) {
 
       {/* Description Section */}
       {document.description && (
-        <p className="text-gray-500 text-xs mt-3 leading-relaxed line-clamp-2 italic">
+        <p className="text-gray-500 text-xs mt-2 sm:mt-3 leading-relaxed line-clamp-2 italic">
           "{document.description}"
         </p>
       )}
 
       {/* Action Button */}
-      <div className="mt-4">
+      <div className="mt-3 sm:mt-4">
         <a
           href={document.pdf || document.filepath}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-gray-900 hover:bg-blue-600 text-white rounded-xl text-xs md:text-sm font-bold transition-all duration-300 shadow-md hover:shadow-blue-500/25 active:scale-[0.98]"
+          className="flex items-center justify-center gap-1 sm:gap-2 w-full py-2 px-3 sm:py-2.5 sm:px-4 bg-gray-900 hover:bg-blue-600 text-white rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 shadow-md hover:shadow-blue-500/25 active:scale-[0.98]"
         >
           <span>View Document</span>
-          <FiExternalLink className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          <FiExternalLink className="text-xs sm:text-sm" />
         </a>
       </div>
-
-      {/* Hover Decorative Element */}
-      <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
     </div>
   );
 }
@@ -737,22 +735,22 @@ export default function ModernResultsView({
   }
 
   return (
-    <div className="space-y-4 md:space-y-6 p-3 md:p-6">
-      {/* Header */}
-      <div className="relative bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-800 rounded-2xl p-4 md:p-6 text-white overflow-hidden">
+    <div className="space-y-3 sm:space-y-4 md:space-y-6 p-2 sm:p-3 md:p-6">
+      {/* Header - Mobile Optimized */}
+      <div className="relative bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-800 rounded-2xl p-3 sm:p-4 md:p-6 text-white overflow-hidden">
         <div className="relative z-10">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-2xl">
-                <FiAward className="text-xl md:text-2xl text-yellow-300" />
+          <div className="flex flex-col gap-2 sm:gap-3 md:gap-0 md:flex-row md:items-center justify-between">
+            <div className="flex items-start sm:items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-white/20 rounded-2xl flex-shrink-0">
+                <FiAward className="text-lg sm:text-xl md:text-2xl text-yellow-300" />
               </div>
-              <div>
-                <h1 className="text-xl md:text-3xl font-bold">Academic Results Portal</h1>
-                <p className="text-purple-100 text-sm md:text-lg mt-1">
-                  Your personal academic performance and results history
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg sm:text-xl md:text-3xl font-bold truncate">Academic Results Portal</h1>
+                <p className="text-purple-100 text-xs sm:text-sm md:text-lg mt-0.5 truncate">
+                  Your personal academic performance
                   {student?.admissionNumber && (
-                    <span className="ml-2 text-yellow-300 font-semibold">
-                      (Admission: {student.admissionNumber})
+                    <span className="ml-1 sm:ml-2 text-yellow-300 font-semibold">
+                      (Adm: {student.admissionNumber})
                     </span>
                   )}
                 </p>
@@ -761,17 +759,17 @@ export default function ModernResultsView({
             <button
               onClick={onRefreshResults}
               disabled={resultsLoading}
-              className="mt-2 md:mt-0 px-4 py-2 md:px-6 md:py-3 bg-white/20 text-white rounded-xl font-bold text-sm md:text-base hover:bg-white/30 disabled:opacity-50 flex items-center gap-2 justify-center"
+              className="mt-2 sm:mt-0 px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-3 bg-white/20 text-white rounded-xl font-bold text-xs sm:text-sm md:text-base hover:bg-white/30 disabled:opacity-50 flex items-center gap-1 sm:gap-2 justify-center w-full sm:w-auto"
             >
-              <FiRefreshCw className={resultsLoading ? 'animate-spin' : ''} />
-              {resultsLoading ? 'Refreshing...' : 'Refresh Results'}
+              <FiRefreshCw className={`text-sm sm:text-base ${resultsLoading ? 'animate-spin' : ''}`} />
+              <span>{resultsLoading ? 'Refreshing...' : 'Refresh Results'}</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Statistics Cards - CHANGED to 4 cards, student-specific */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      {/* Statistics Cards - Mobile Grid */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 lg:grid-cols-4">
         <ResultsStatisticsCard
           title="Total Results"
           value={stats.totalResults}
@@ -803,55 +801,55 @@ export default function ModernResultsView({
         />
       </div>
 
-      {/* Filters and Controls */}
-      <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 border-2 border-gray-200">
-        <div className="flex flex-col gap-3 md:gap-4">
+      {/* Filters and Controls - Mobile Stacking */}
+      <div className="bg-white rounded-xl md:rounded-2xl p-2.5 sm:p-3 md:p-4 border-2 border-gray-200">
+        <div className="flex flex-col gap-2.5 sm:gap-3 md:gap-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <IoFilterIcon className="text-purple-600" />
-              <span className="text-base md:text-lg font-bold text-gray-900">Filter Results</span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <IoFilterIcon className="text-purple-600 text-sm sm:text-base" />
+              <span className="text-sm sm:text-base md:text-lg font-bold text-gray-900">Filter Results</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <div className="flex bg-gray-100 rounded-lg p-0.5">
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 ${
+                  className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-md text-xs font-bold flex items-center gap-1 ${
                     viewMode === 'list' 
                       ? 'bg-white text-gray-900 shadow-sm' 
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  <FiList size={12} />
-                  List View
+                  <FiList className="text-xs sm:text-sm" />
+                  <span className="hidden xs:inline">List</span>
                 </button>
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 ${
+                  className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-md text-xs font-bold flex items-center gap-1 ${
                     viewMode === 'grid' 
                       ? 'bg-white text-gray-900 shadow-sm' 
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  <FiGrid size={12} />
-                  Grid View
+                  <FiGrid className="text-xs sm:text-sm" />
+                  <span className="hidden xs:inline">Grid</span>
                 </button>
               </div>
               <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="p-1.5 text-gray-600 hover:text-gray-900"
+                className="p-1 sm:p-1.5 text-gray-600 hover:text-gray-900"
               >
-                <FiChevronDown className={`transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
+                <FiChevronDown className={`text-sm sm:text-base transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
               </button>
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Select Term</label>
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-1.5 sm:gap-2 md:grid-cols-4 md:gap-3">
+            <div className="xs:col-span-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Term</label>
               <select
                 value={selectedTerm}
                 onChange={(e) => setSelectedTerm(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white"
+                className="w-full px-2 py-1.5 sm:px-3 sm:py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white"
               >
                 {uniqueTerms.map(term => (
                   <option key={term} value={term}>
@@ -861,12 +859,12 @@ export default function ModernResultsView({
               </select>
             </div>
             
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Academic Year</label>
+            <div className="xs:col-span-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Year</label>
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white"
+                className="w-full px-2 py-1.5 sm:px-3 sm:py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white"
               >
                 {uniqueYears.map(year => (
                   <option key={year} value={year}>
@@ -876,25 +874,25 @@ export default function ModernResultsView({
               </select>
             </div>
             
-            <div className="col-span-2">
+            <div className="col-span-1 xs:col-span-2">
               <label className="block text-xs font-semibold text-gray-700 mb-1">Quick Actions</label>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5 sm:gap-2">
                 {(selectedTerm !== 'all' || selectedYear !== 'all') && (
                   <button
                     onClick={() => {
                       setSelectedTerm('all');
                       setSelectedYear('all');
                     }}
-                    className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 font-bold text-sm hover:bg-gray-200 rounded-lg transition-colors"
+                    className="flex-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-gray-100 text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-200 rounded-lg transition-colors"
                   >
-                    Clear Filters
+                    Clear
                   </button>
                 )}
                 <button
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 font-bold text-sm hover:from-purple-100 hover:to-purple-200 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 font-bold text-xs sm:text-sm hover:from-purple-100 hover:to-purple-200 rounded-lg transition-colors flex items-center justify-center gap-1 sm:gap-2"
                 >
-                  <FiFilter size={12} />
+                  <FiFilter className="text-xs sm:text-sm" />
                   {showAdvancedFilters ? 'Hide Filters' : 'More Filters'}
                 </button>
               </div>
@@ -902,11 +900,11 @@ export default function ModernResultsView({
           </div>
           
           {showAdvancedFilters && (
-            <div className="pt-3 border-t border-gray-200">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="pt-2 sm:pt-3 border-t border-gray-200">
+              <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Minimum Grade</label>
-                  <select className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Min Grade</label>
+                  <select className="w-full px-2 py-1.5 sm:px-3 sm:py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm">
                     <option value="">Any Grade</option>
                     <option value="A">A</option>
                     <option value="A-">A-</option>
@@ -918,7 +916,7 @@ export default function ModernResultsView({
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Form/Class</label>
-                  <select className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm">
+                  <select className="w-full px-2 py-1.5 sm:px-3 sm:py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm">
                     <option value="">All Forms</option>
                     <option value="Form 4">Form 4</option>
                     <option value="Form 3">Form 3</option>
@@ -934,22 +932,22 @@ export default function ModernResultsView({
 
       {/* Main Content */}
       {resultsError ? (
-        <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-xl md:rounded-2xl border-2 border-red-300 p-4 md:p-6 text-center">
-          <FiAlertTriangle className="text-red-500 text-2xl md:text-3xl mx-auto mb-3" />
-          <h3 className="text-base md:text-xl font-bold text-red-800 mb-2">Unable to load results</h3>
-          <p className="text-red-600 text-sm mb-4">{resultsError}</p>
+        <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-xl md:rounded-2xl border-2 border-red-300 p-3 sm:p-4 md:p-6 text-center">
+          <FiAlertTriangle className="text-red-500 text-xl sm:text-2xl md:text-3xl mx-auto mb-2 sm:mb-3" />
+          <h3 className="text-sm sm:text-base md:text-xl font-bold text-red-800 mb-1 sm:mb-2">Unable to load results</h3>
+          <p className="text-red-600 text-xs sm:text-sm mb-3 sm:mb-4">{resultsError}</p>
           <button
             onClick={onRefreshResults}
-            className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-bold text-sm hover:shadow-lg"
+            className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-bold text-xs sm:text-sm hover:shadow-lg"
           >
             Try Again
           </button>
         </div>
       ) : filteredResults.length === 0 ? (
-        <div className="bg-white rounded-xl md:rounded-2xl border-2 border-gray-300 p-6 md:p-8 text-center">
-          <FiAward className="text-gray-300 text-3xl md:text-4xl mx-auto mb-4" />
-          <h3 className="text-base md:text-xl font-bold text-gray-800 mb-2">No results found</h3>
-          <p className="text-gray-600 text-sm">
+        <div className="bg-white rounded-xl md:rounded-2xl border-2 border-gray-300 p-4 sm:p-6 md:p-8 text-center">
+          <FiAward className="text-gray-300 text-2xl sm:text-3xl md:text-4xl mx-auto mb-3 sm:mb-4" />
+          <h3 className="text-sm sm:text-base md:text-xl font-bold text-gray-800 mb-1 sm:mb-2">No results found</h3>
+          <p className="text-gray-600 text-xs sm:text-sm">
             {selectedTerm !== 'all' || selectedYear !== 'all' 
               ? 'Try changing your filters' 
               : 'No academic results available yet'
@@ -958,17 +956,17 @@ export default function ModernResultsView({
         </div>
       ) : (
         <>
-          {/* Results Display - CHANGED header text to match second code */}
+          {/* Results Display */}
           <div>
-            <div className="mb-3 md:mb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1">Your Academic Results</h3>
-                  <p className="text-gray-600 text-sm">
-                    Showing {filteredResults.length} result{filteredResults.length !== 1 ? 's' : ''} for {student?.admissionNumber || 'you'} • Click to view detailed breakdown
+            <div className="mb-2 sm:mb-3 md:mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-0">
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-0.5 sm:mb-1 truncate">Your Academic Results</h3>
+                  <p className="text-gray-600 text-xs sm:text-sm truncate">
+                    Showing {filteredResults.length} result{filteredResults.length !== 1 ? 's' : ''} • Click for details
                   </p>
                 </div>
-                <div className="text-xs font-semibold text-gray-500">
+                <div className="text-xs font-semibold text-gray-500 mt-1 sm:mt-0">
                   {selectedTerm !== 'all' && `${selectedTerm} • `}
                   {selectedYear !== 'all' && `${selectedYear}`}
                 </div>
@@ -976,18 +974,18 @@ export default function ModernResultsView({
             </div>
 
             {viewMode === 'list' ? (
-              // List View
+              // List View - Mobile Scrollable
               <div className="bg-white rounded-xl md:rounded-2xl border-2 border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <div className="min-w-full">
+                <div className="overflow-x-auto -webkit-scrollbar-hide md:scrollbar-default">
+                  <div className="min-w-[600px]">
                     <div className="bg-gradient-to-r from-gray-50 to-white border-b-2 border-gray-200">
-                      <div className="grid grid-cols-12 gap-2 px-3 md:px-6 py-3">
-                        <div className="col-span-3 md:col-span-2 text-xs font-bold text-gray-700 uppercase">Admission</div>
-                        <div className="col-span-3 md:col-span-2 text-xs font-bold text-gray-700 uppercase">Term & Year</div>
-                        <div className="col-span-2 text-xs font-bold text-gray-700 uppercase">Form</div>
-                        <div className="col-span-2 text-xs font-bold text-gray-700 uppercase text-center">Average</div>
-                        <div className="col-span-1 text-xs font-bold text-gray-700 uppercase text-center">Grade</div>
-                        <div className="col-span-1 text-xs font-bold text-gray-700 uppercase text-center">View</div>
+                      <div className="grid grid-cols-12 gap-1 sm:gap-2 px-2 sm:px-3 md:px-6 py-2 sm:py-3">
+                        <div className="col-span-3 text-xs font-bold text-gray-700 uppercase truncate">Admission</div>
+                        <div className="col-span-3 text-xs font-bold text-gray-700 uppercase truncate">Term & Year</div>
+                        <div className="col-span-2 text-xs font-bold text-gray-700 uppercase truncate hidden xs:block">Form</div>
+                        <div className="col-span-2 xs:col-span-1 text-xs font-bold text-gray-700 uppercase text-center truncate">Avg</div>
+                        <div className="col-span-2 xs:col-span-1 text-xs font-bold text-gray-700 uppercase text-center truncate">Grade</div>
+                        <div className="col-span-2 xs:col-span-1 text-xs font-bold text-gray-700 uppercase text-center truncate">View</div>
                       </div>
                     </div>
                     <div className="divide-y divide-gray-200">
@@ -998,37 +996,37 @@ export default function ModernResultsView({
                         return (
                           <div 
                             key={index} 
-                            className={`grid grid-cols-12 gap-2 px-3 md:px-6 py-3 hover:bg-gray-50 transition-colors ${isStudentResult ? 'bg-blue-50' : ''}`}
+                            className={`grid grid-cols-12 gap-1 sm:gap-2 px-2 sm:px-3 md:px-6 py-2 sm:py-3 hover:bg-gray-50 transition-colors ${isStudentResult ? 'bg-blue-50' : ''}`}
                           >
-                            <div className="col-span-3 md:col-span-2">
-                              <div className="font-bold text-gray-900 text-sm">{result.admissionNumber}</div>
+                            <div className="col-span-3">
+                              <div className="font-bold text-gray-900 text-xs sm:text-sm truncate">{result.admissionNumber}</div>
                               {isStudentResult && (
-                                <div className="text-blue-600 text-xs font-semibold">You</div>
+                                <div className="text-blue-600 text-[10px] xs:text-xs font-semibold truncate">You</div>
                               )}
                             </div>
-                            <div className="col-span-3 md:col-span-2">
-                              <div className="font-bold text-gray-900 text-sm">{result.term}</div>
-                              <div className="text-gray-600 text-xs">{result.academicYear}</div>
+                            <div className="col-span-3">
+                              <div className="font-bold text-gray-900 text-xs sm:text-sm truncate">{result.term}</div>
+                              <div className="text-gray-600 text-[10px] xs:text-xs truncate">{result.academicYear}</div>
                             </div>
-                            <div className="col-span-2">
-                              <div className="font-medium text-gray-900 text-sm">{result.form}</div>
+                            <div className="col-span-2 hidden xs:block">
+                              <div className="font-medium text-gray-900 text-xs sm:text-sm truncate">{result.form}</div>
                             </div>
-                            <div className="col-span-2 text-center">
-                              <div className="text-base font-bold text-gray-900">{result.averageScore.toFixed(1)}%</div>
-                              <div className="text-gray-500 text-xs">Total: {result.totalScore}</div>
+                            <div className="col-span-2 xs:col-span-1 text-center">
+                              <div className="text-sm sm:text-base font-bold text-gray-900 truncate">{result.averageScore.toFixed(1)}%</div>
+                              <div className="text-gray-500 text-[10px] xs:text-xs hidden xs:block">Total: {result.totalScore}</div>
                             </div>
-                            <div className="col-span-1 text-center">
-                              <span className={`px-2 py-1 rounded-lg text-xs font-bold ${overallStatus.badgeColor}`}>
+                            <div className="col-span-2 xs:col-span-1 text-center">
+                              <span className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-lg text-[10px] xs:text-xs font-bold ${overallStatus.badgeColor}`}>
                                 {result.overallGrade || 'N/A'}
                               </span>
                             </div>
-                            <div className="col-span-1 text-center">
+                            <div className="col-span-2 xs:col-span-1 text-center">
                               <button
                                 onClick={() => handleViewSubjects(result)}
-                                className="px-3 py-1.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 rounded-lg text-xs font-bold hover:from-blue-100 hover:to-blue-200 transition-all flex items-center gap-1 justify-center mx-auto"
+                                className="px-2 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 rounded-lg text-xs font-bold hover:from-blue-100 hover:to-blue-200 transition-all flex items-center gap-0.5 sm:gap-1 justify-center mx-auto"
                               >
-                                <FiEye size={10} />
-                                <span className="hidden md:inline">View</span>
+                                <FiEye className="text-xs" />
+                                <span className="hidden xs:inline text-xs">View</span>
                               </button>
                             </div>
                           </div>
@@ -1039,8 +1037,8 @@ export default function ModernResultsView({
                 </div>
               </div>
             ) : (
-              // Grid View
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+              // Grid View - Single column on mobile
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 md:gap-4">
                 {filteredResults.map((result, index) => (
                   <ResultCard
                     key={index}
@@ -1053,37 +1051,37 @@ export default function ModernResultsView({
             )}
           </div>
 
-          {/* School Documents Section */}
+          {/* School Documents Section - Mobile Optimized */}
           <div>
-            <div className="mb-3 md:mb-4">
-              <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1">
+            <div className="mb-2 sm:mb-3 md:mb-4">
+              <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-0.5 sm:mb-1">
                 School Documents & Resources
               </h3>
-              <p className="text-gray-600 text-sm">
-                Access and download all your class exam results, term reports, and additional academic resources. Track your individual performance as well as your class ranking for this term, and stay informed about all relevant assessments and documents that contribute to your academic progress.
+              <p className="text-gray-600 text-xs sm:text-sm">
+                Access exam results, term reports, and academic resources. Track your performance and class ranking.
               </p>
             </div>
 
             {schoolLoading ? (
-              <div className="text-center py-8">
-                <CircularProgress size={24} className="text-purple-600" />
-                <p className="text-gray-600 text-sm mt-2">Loading school documents...</p>
+              <div className="text-center py-6 sm:py-8">
+                <CircularProgress size={20}  className="text-purple-600" />
+                <p className="text-gray-600 text-xs sm:text-sm mt-2">Loading school documents...</p>
               </div>
             ) : schoolError ? (
-              <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-xl border-2 border-red-300 p-4 text-center">
-                <FiAlertTriangle className="text-red-500 text-xl mx-auto mb-2" />
-                <p className="text-red-700 font-bold text-sm mb-1">Unable to load documents</p>
-                <p className="text-red-600 text-xs">{schoolError}</p>
+              <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-xl border-2 border-red-300 p-3 sm:p-4 text-center">
+                <FiAlertTriangle className="text-red-500 text-lg sm:text-xl mx-auto mb-1.5 sm:mb-2" />
+                <p className="text-red-700 font-bold text-xs sm:text-sm mb-0.5 sm:mb-1">Unable to load documents</p>
+                <p className="text-red-600 text-[10px] sm:text-xs">{schoolError}</p>
               </div>
             ) : (
-              <div className="space-y-4 md:space-y-6">
+              <div className="space-y-3 sm:space-y-4 md:space-y-6">
                 {/* Exam Results */}
                 {prioritizedExamResults.length > 0 && (
                   <div>
-                    <h4 className="text-base md:text-lg font-semibold text-gray-800 mb-2 md:mb-3">
+                    <h4 className="text-sm sm:text-base md:text-lg font-semibold text-gray-800 mb-1.5 sm:mb-2 md:mb-3">
                       Class Exam Results
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5 md:gap-3">
                       {prioritizedExamResults.map((result, index) => (
                         <DocumentCard key={index} document={result} type="exam" />
                       ))}
@@ -1094,13 +1092,13 @@ export default function ModernResultsView({
                 {/* Additional Documents / Resources */}
                 {additionalResultsFiles.length > 0 && (
                   <div>
-                    <h4 className="text-base md:text-lg font-semibold text-gray-800 mb-2 md:mb-3">
-                      Additional Resources & School Updates
+                    <h4 className="text-sm sm:text-base md:text-lg font-semibold text-gray-800 mb-1.5 sm:mb-2 md:mb-3">
+                      Additional Resources
                     </h4>
-                    <p className="text-gray-600 text-sm md:text-base mb-3">
-                      Explore these documents for important information that complements your studies. They may include curriculum updates, school announcements, guidelines, extra learning materials, and other key resources to keep you informed and up-to-date on everything happening this term.
+                    <p className="text-gray-600 text-xs sm:text-sm md:text-base mb-2 sm:mb-3">
+                      Curriculum updates, announcements, and learning materials.
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5 md:gap-3">
                       {additionalResultsFiles.map((file, index) => (
                         <DocumentCard key={index} document={file} type="additional" />
                       ))}
@@ -1120,6 +1118,34 @@ export default function ModernResultsView({
           onClose={() => setSelectedResult(null)}
         />
       )}
+
+      {/* Add CSS for hiding scrollbars on mobile */}
+      <style jsx global>{`
+        @media (max-width: 768px) {
+          /* Hide scrollbar for Chrome, Safari and Opera */
+          .-webkit-scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+          
+          /* Hide scrollbar for IE, Edge and Firefox */
+          .-webkit-scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+          }
+        }
+        
+        /* Restore scrollbar for larger screens */
+        @media (min-width: 768px) {
+          .md\\:scrollbar-default::-webkit-scrollbar {
+            display: block;
+          }
+          
+          .md\\:scrollbar-default {
+            -ms-overflow-style: auto;
+            scrollbar-width: auto;
+          }
+        }
+      `}</style>
     </div>
   );
 }

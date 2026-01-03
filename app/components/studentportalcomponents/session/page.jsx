@@ -9,18 +9,22 @@ import {
   FiChevronRight, FiSearch, FiVideo, FiBookOpen,
   FiHome, FiFolder, FiBarChart2, FiX, FiUser,
   FiStar, FiAlertCircle, FiDownload, FiShare2,
-  FiBell, FiBook, FiFileText, FiAward
+  FiBell, FiBook, FiFileText, FiAward, FiMail,
+  FiPhone, FiSave, FiPlus, FiTrash2, FiEdit,
+  FiCheck, FiLoader, FiAlertTriangle, FiInfo,
+  FiPrinter, FiCopy, FiLink, FiGlobe
 } from 'react-icons/fi';
 import { 
   FaBell, FaBars, FaChartBar, FaFolder, FaComments, 
   FaRocket, FaFire, FaBolt, FaCalendarCheck,
   FaSearch, FaTimes, FaSync, FaExclamationCircle, 
   FaCircleExclamation, FaSparkles, FaCloudUpload,
-  FaUserFriends, FaQuestionCircle, FaHome
+  FaUserFriends, FaQuestionCircle, FaHome,
+  FaGoogle, FaRegCalendarPlus
 } from 'react-icons/fa';
 
 import { HiSparkles } from "react-icons/hi2";
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 
 // ==================== LOADING SPINNER ====================
 function LoadingSpinner({ message = "Loading content..." }) {
@@ -56,6 +60,790 @@ function LoadingSpinner({ message = "Loading content..." }) {
   );
 }
 
+// Custom CSS for mobile scrollbar hiding and responsive improvements
+const mobileStyles = `
+  @media (max-width: 768px) {
+    /* Hide scrollbar for cards and modals but keep functionality */
+    .mobile-scroll-hide::-webkit-scrollbar {
+      display: none;
+    }
+    .mobile-scroll-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      overflow: auto;
+    }
+    
+    /* Improve touch targets on mobile */
+    .mobile-touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Prevent text overflow on mobile */
+    .mobile-text-ellipsis {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    
+    /* Better spacing for mobile cards */
+    .mobile-card-spacing {
+      padding: 1rem !important;
+    }
+    
+    /* Stack elements vertically on mobile */
+    .mobile-stack {
+      flex-direction: column !important;
+    }
+    
+    /* Full width on mobile */
+    .mobile-full-width {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    
+    /* Responsive image container */
+    .mobile-image-container {
+      height: 180px !important;
+    }
+    
+    /* Smaller text on mobile */
+    .mobile-text-sm {
+      font-size: 0.875rem !important;
+      line-height: 1.25rem !important;
+    }
+    
+    /* Better modal padding on mobile */
+    .mobile-modal-padding {
+      padding: 1rem !important;
+    }
+    
+    /* Adjust grid for mobile */
+    .mobile-grid-adjust {
+      grid-template-columns: 1fr !important;
+      gap: 0.75rem !important;
+    }
+    
+    /* Compact form inputs on mobile */
+    .mobile-form-compact .MuiFormControl-root {
+      margin-bottom: 0.5rem !important;
+    }
+    
+    /* Hide decorative elements on mobile */
+    .mobile-hide-decorative {
+      display: none !important;
+    }
+    
+    /* Better button spacing */
+    .mobile-button-spacing {
+      margin-top: 0.5rem !important;
+    }
+  }
+  
+  /* Small screen specific adjustments (below 640px) */
+  @media (max-width: 640px) {
+    .xs-mobile-stack {
+      flex-direction: column !important;
+    }
+    
+    .xs-mobile-full {
+      width: 100% !important;
+    }
+    
+    .xs-mobile-text-xs {
+      font-size: 0.75rem !important;
+    }
+    
+    .xs-mobile-p-2 {
+      padding: 0.5rem !important;
+    }
+  }
+`;
+
+// ==================== DETAIL MODAL COMPONENT ====================
+function DetailModal({ item, type, onClose, onBookAppointment }) {
+  if (!item) return null;
+
+  const [addingToCalendar, setAddingToCalendar] = useState(false);
+
+  // Function to create Google Calendar URL
+  const createGoogleCalendarUrl = () => {
+    const startDate = new Date(item.date);
+    let endDate = new Date(startDate);
+    
+    // Parse time if available
+    if (item.time) {
+      const timeMatch = item.time.match(/(\d+):(\d+)(am|pm)?/i);
+      if (timeMatch) {
+        let hours = parseInt(timeMatch[1]);
+        const minutes = parseInt(timeMatch[2]);
+        const ampm = timeMatch[3]?.toLowerCase();
+        
+        if (ampm === 'pm' && hours < 12) hours += 12;
+        if (ampm === 'am' && hours === 12) hours = 0;
+        
+        startDate.setHours(hours, minutes);
+        endDate.setHours(hours + 1, minutes); // Default 1 hour duration
+      }
+    }
+
+    const formatDate = (date) => date.toISOString().replace(/-|:|\.\d+/g, '');
+
+    const eventData = {
+      text: item.title || item.counselor || 'Event',
+      details: type === 'guidance' 
+        ? `Guidance Session with ${item.counselor}\n${item.description}`
+        : type === 'events'
+        ? `${item.description}\nLocation: ${item.location || 'TBA'}`
+        : item.fullContent || item.excerpt || item.description,
+      location: item.location || 'School',
+      dates: `${formatDate(startDate)}/${formatDate(endDate)}`
+    };
+
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventData.text)}&details=${encodeURIComponent(eventData.details)}&location=${encodeURIComponent(eventData.location)}&dates=${eventData.dates}`;
+  };
+
+  const handleAddToCalendar = () => {
+    setAddingToCalendar(true);
+    const calendarUrl = createGoogleCalendarUrl();
+    
+    // Open in new tab
+    window.open(calendarUrl, '_blank', 'noopener,noreferrer');
+    
+    // Reset state after a delay
+    setTimeout(() => setAddingToCalendar(false), 1500);
+  };
+
+  const getTypeLabel = () => {
+    switch(type) {
+      case 'events': return 'Event';
+      case 'guidance': return 'Guidance Session';
+      case 'news': return 'News Article';
+      default: return 'Item';
+    }
+  };
+
+  const getTypeColor = () => {
+    switch(type) {
+      case 'events': return 'from-blue-500 to-blue-600';
+      case 'guidance': return 'from-purple-500 to-purple-600';
+      case 'news': return 'from-amber-500 to-amber-600';
+      default: return 'from-gray-500 to-gray-600';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
+      <style jsx global>{mobileStyles}</style>
+      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border-2 border-gray-300 shadow-2xl mobile-full-width">
+        {/* Header */}
+        <div className={`p-4 md:p-6 text-white bg-gradient-to-r ${getTypeColor()}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+              <div className="p-2 md:p-3 bg-white/20 rounded-2xl flex-shrink-0">
+                {type === 'events' && <FiCalendar className="text-xl md:text-2xl" />}
+                {type === 'guidance' && <FiMessageSquare className="text-xl md:text-2xl" />}
+                {type === 'news' && <FiBookOpen className="text-xl md:text-2xl" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg md:text-2xl font-bold truncate">
+                  {item.title || item.counselor || 'Details'}
+                </h2>
+                <p className="opacity-90 text-sm md:text-base mt-1 truncate">
+                  {getTypeLabel()} • {item.category || 'General'}
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              className="p-2 bg-white/20 rounded-2xl hover:bg-white/30 transition-colors ml-2 mobile-touch-target"
+            >
+              <FaTimes className="text-lg md:text-xl" />
+            </button>
+          </div>
+        </div>
+
+        <div className="max-h-[calc(90vh-80px)] overflow-y-auto mobile-scroll-hide p-4 md:p-6 space-y-4 md:space-y-6">
+          {/* Image Display */}
+          {item.image && (
+            <div className="rounded-xl md:rounded-2xl overflow-hidden border border-gray-300 mobile-image-container">
+              <img 
+                src={item.image} 
+                alt={item.title || item.counselor || 'Image'}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.parentElement.innerHTML = `
+                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-r from-gray-100 to-gray-200">
+                      <div class="text-gray-400 text-center p-4">
+                        <FiImage class="text-4xl mx-auto mb-2" />
+                        <p class="text-sm">Image not available</p>
+                      </div>
+                    </div>
+                  `;
+                }}
+              />
+            </div>
+          )}
+
+          {/* Type-specific Badges */}
+          <div className="flex flex-wrap gap-2">
+            <span className={`px-3 py-1.5 bg-gradient-to-r ${getTypeColor()} text-white rounded-full text-sm font-bold`}>
+              {getTypeLabel()}
+            </span>
+            {item.category && (
+              <span className="px-3 py-1.5 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 rounded-full text-sm font-semibold">
+                {item.category}
+              </span>
+            )}
+            {type === 'guidance' && item.priority && (
+              <span className={`px-3 py-1.5 rounded-full text-sm font-bold ${
+                item.priority === 'High' 
+                  ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800'
+                  : item.priority === 'Medium'
+                  ? 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-800'
+                  : 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800'
+              }`}>
+                {item.priority} Priority
+              </span>
+            )}
+            {type === 'events' && item.featured && (
+              <span className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full text-sm font-bold">
+                ⭐ Featured
+              </span>
+            )}
+          </div>
+
+          {/* Details Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+            {/* Date */}
+            <div className="bg-gray-50 rounded-xl p-3 md:p-4 border border-gray-200">
+              <div className="flex items-center gap-2 mb-2">
+                <FiCalendar className="text-blue-500" />
+                <span className="text-sm font-semibold text-gray-700">
+                  {type === 'news' ? 'Published' : 'Date'}
+                </span>
+              </div>
+              <div className="text-base md:text-lg font-bold text-gray-900">
+                {new Date(item.date).toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </div>
+            </div>
+
+            {/* Time (if available) */}
+            {(item.time || type === 'guidance') && (
+              <div className="bg-gray-50 rounded-xl p-3 md:p-4 border border-gray-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <FiClock className="text-purple-500" />
+                  <span className="text-sm font-semibold text-gray-700">Time</span>
+                </div>
+                <div className="text-base md:text-lg font-bold text-gray-900">
+                  {item.time || 'To be scheduled'}
+                </div>
+              </div>
+            )}
+
+            {/* Type-specific detail */}
+            {type === 'events' && item.location && (
+              <div className="bg-gray-50 rounded-xl p-3 md:p-4 border border-gray-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <FiMapPin className="text-amber-500" />
+                  <span className="text-sm font-semibold text-gray-700">Location</span>
+                </div>
+                <div className="text-base md:text-lg font-bold text-gray-900 truncate">
+                  {item.location}
+                </div>
+              </div>
+            )}
+            
+            {type === 'guidance' && item.counselor && (
+              <div className="bg-gray-50 rounded-xl p-3 md:p-4 border border-gray-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <FiUser className="text-green-500" />
+                  <span className="text-sm font-semibold text-gray-700">Counselor</span>
+                </div>
+                <div className="text-base md:text-lg font-bold text-gray-900 truncate">
+                  {item.counselor}
+                </div>
+              </div>
+            )}
+            
+            {type === 'news' && item.author && (
+              <div className="bg-gray-50 rounded-xl p-3 md:p-4 border border-gray-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <FiUser className="text-indigo-500" />
+                  <span className="text-sm font-semibold text-gray-700">Author</span>
+                </div>
+                <div className="text-base md:text-lg font-bold text-gray-900 truncate">
+                  {item.author}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Main Content */}
+          <div className="space-y-4 md:space-y-6">
+            {/* Description/Content */}
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 md:p-6 border border-gray-300">
+              <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">
+                {type === 'news' ? 'Full Article' : 'Description'}
+              </h3>
+              <div className="text-gray-700 whitespace-pre-line text-sm md:text-base leading-relaxed">
+                {type === 'news' 
+                  ? item.fullContent || item.excerpt || item.description
+                  : item.description || item.notes || 'No description available.'
+                }
+              </div>
+            </div>
+
+            {/* Additional Notes (for guidance) */}
+            {type === 'guidance' && item.notes && (
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 md:p-6 border border-blue-300">
+                <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4 flex items-center gap-2">
+                  <FiInfo className="text-blue-500" />
+                  Additional Notes
+                </h3>
+                <p className="text-gray-700 whitespace-pre-line text-sm md:text-base">
+                  {item.notes}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Calendar Integration Section */}
+          <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 md:p-6 border border-emerald-300">
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4 flex items-center gap-2">
+              <FaGoogle className="text-emerald-600" />
+              Add to Google Calendar
+            </h3>
+            <p className="text-gray-700 text-sm md:text-base mb-4">
+              Save this {getTypeLabel().toLowerCase()} to your calendar to get reminders and never miss important events.
+            </p>
+            <button
+              onClick={handleAddToCalendar}
+              disabled={addingToCalendar}
+              className="px-4 md:px-6 py-3 md:py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl font-bold text-sm md:text-base hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mobile-full-width mobile-touch-target"
+            >
+              {addingToCalendar ? (
+                <>
+                  <FiLoader className="animate-spin" />
+                  Opening Calendar...
+                </>
+              ) : (
+                <>
+                  <FaRegCalendarPlus />
+                  Add to Google Calendar
+                </>
+              )}
+            </button>
+            <p className="text-gray-500 text-xs mt-2">
+              This will open Google Calendar in a new tab with all details pre-filled.
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="
+                w-full sm:w-auto
+                px-4 md:px-6 py-3 md:py-4
+                bg-gradient-to-r from-gray-100 to-gray-200
+                text-gray-700
+                rounded-xl
+                font-bold text-sm md:text-base
+                hover:from-gray-200 hover:to-gray-300
+                transition-all
+                flex items-center justify-center gap-2
+                mobile-touch-target
+              "
+            >
+              <FaTimes />
+              Close
+            </button>
+
+            {/* Book Appointment Button (for guidance) */}
+            {type === 'guidance' && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onBookAppointment?.(item);
+                }}
+                className="
+                  w-full sm:w-auto
+                  px-4 md:px-6 py-3 md:py-4
+                  bg-gradient-to-r from-purple-600 to-pink-600
+                  text-white
+                  rounded-xl
+                  font-bold text-sm md:text-base
+                  shadow-lg hover:shadow-xl
+                  transition-all
+                  flex items-center justify-center gap-2
+                  mobile-touch-target
+                "
+              >
+                <FiCalendar />
+                Book Appointment
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==================== EMERGENCY MODAL COMPONENT ====================
+function EmergencyModal({ student, onClose, onSubmit }) {
+  const [formData, setFormData] = useState({
+    emergencyType: '',
+    description: '',
+    urgency: 'medium',
+    contactPhone: '',
+    contactEmail: ''
+  });
+  
+  const [submitting, setSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [error, setError] = useState('');
+
+  // Initialize form with student data if available
+  useEffect(() => {
+    if (student) {
+      setFormData(prev => ({
+        ...prev,
+        contactEmail: student.email || '',
+        contactPhone: student.phone || ''
+      }));
+    }
+  }, [student]);
+
+  const emergencyTypes = [
+    { value: 'academic', label: 'Academic Emergency' },
+    { value: 'health', label: 'Health/Medical Emergency' },
+    { value: 'emotional', label: 'Emotional Crisis' },
+    { value: 'safety', label: 'Safety Concern' },
+    { value: 'family', label: 'Family Emergency' },
+    { value: 'other', label: 'Other Emergency' }
+  ];
+
+  const urgencyLevels = [
+    { value: 'low', label: 'Low Priority', color: 'from-green-500 to-green-600' },
+    { value: 'medium', label: 'Medium Priority', color: 'from-amber-500 to-amber-600' },
+    { value: 'high', label: 'High Priority', color: 'from-red-500 to-red-600' },
+    { value: 'critical', label: 'Critical Emergency', color: 'from-red-600 to-red-800' }
+  ];
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const emergencyData = {
+        ...formData,
+        studentId: student?.id,
+        studentName: student?.fullName,
+        studentForm: student?.form,
+        studentStream: student?.stream,
+        timestamp: new Date().toISOString()
+      };
+
+      const response = await fetch('/api/emergency', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emergencyData)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSubmitSuccess(true);
+        // Reset form after successful submission
+        setTimeout(() => {
+          setFormData({
+            emergencyType: '',
+            description: '',
+            urgency: 'medium',
+            contactPhone: '',
+            contactEmail: ''
+          });
+          setSubmitSuccess(false);
+          onClose();
+        }, 2000);
+      } else {
+        throw new Error(result.message || 'Failed to submit emergency');
+      }
+    } catch (err) {
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
+      <style jsx global>{mobileStyles}</style>
+      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border-2 border-red-300 shadow-2xl mobile-full-width">
+        {/* Header */}
+        <div className="p-4 md:p-6 text-white bg-gradient-to-r from-red-500 to-pink-600">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="p-2 md:p-3 bg-white/20 rounded-2xl">
+                <FaExclamationCircle className="text-xl md:text-2xl" />
+              </div>
+              <div>
+                <h2 className="text-lg md:text-2xl font-bold">Emergency Appointment</h2>
+                <p className="opacity-90 text-sm md:text-base mt-1">Request immediate assistance</p>
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              className="p-2 bg-white/20 rounded-2xl hover:bg-white/30 transition-colors mobile-touch-target"
+              disabled={submitting}
+            >
+              <FaTimes className="text-lg md:text-xl" />
+            </button>
+          </div>
+        </div>
+
+        <div className="max-h-[calc(90vh-80px)] overflow-y-auto mobile-scroll-hide p-4 md:p-6 space-y-4 md:space-y-6">
+          {/* Student Info */}
+          {student && (
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-300">
+              <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <FiUser className="text-blue-500" />
+                Student Information
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-gray-600">Name:</span>
+                  <span className="font-medium ml-2">{student.fullName}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Class:</span>
+                  <span className="font-medium ml-2">Form {student.form} {student.stream}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Success Message */}
+          {submitSuccess && (
+            <div className="bg-gradient-to-r from-green-100 to-emerald-100 border border-emerald-300 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <FiCheck className="text-emerald-600 text-xl" />
+                <div>
+                  <p className="font-bold text-emerald-800">Emergency request submitted successfully!</p>
+                  <p className="text-emerald-700 text-sm mt-1">Our team will contact you shortly.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-gradient-to-r from-red-100 to-pink-100 border border-red-300 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <FiAlertCircle className="text-red-600 text-xl" />
+                <div>
+                  <p className="font-bold text-red-800">Error: {error}</p>
+                  <p className="text-red-700 text-sm mt-1">Please try again or contact support directly.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Emergency Form */}
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6 mobile-form-compact">
+            {/* Emergency Type */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Emergency Type <span className="text-red-500">*</span>
+              </label>
+              <FormControl fullWidth variant="outlined" size="small">
+                <Select
+                  name="emergencyType"
+                  value={formData.emergencyType}
+                  onChange={handleChange}
+                  required
+                  displayEmpty
+                  className="bg-white"
+                >
+                  <MenuItem value="" disabled>
+                    <span className="text-gray-400">Select emergency type</span>
+                  </MenuItem>
+                  {emergencyTypes.map(type => (
+                    <MenuItem key={type.value} value={type.value}>
+                      {type.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+
+            {/* Urgency Level */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Urgency Level
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {urgencyLevels.map(level => (
+                  <button
+                    key={level.value}
+                    type="button"
+                    onClick={() => handleChange({ target: { name: 'urgency', value: level.value } })}
+                    className={`p-2 rounded-lg border-2 transition-all mobile-touch-target ${
+                      formData.urgency === level.value
+                        ? `border-red-500 bg-gradient-to-r ${level.color} text-white`
+                        : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span className="text-xs font-bold">{level.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Description <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                required
+                rows={4}
+                placeholder="Please describe the emergency situation in detail..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+              />
+            </div>
+
+            {/* Contact Information */}
+            <div className="space-y-3">
+              <h4 className="font-bold text-gray-900 text-sm">Contact Information</h4>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  name="contactPhone"
+                  value={formData.contactPhone}
+                  onChange={handleChange}
+                  placeholder="Enter phone number for immediate contact"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  name="contactEmail"
+                  value={formData.contactEmail}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter email address"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Terms & Emergency Contact */}
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-300">
+              <div className="flex items-start gap-2">
+                <FiAlertTriangle className="text-amber-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs text-gray-700">
+                    <span className="font-bold">Important:</span> For immediate life-threatening emergencies, 
+                    please call 911 or your local emergency number first. This form is for urgent school-related 
+                    matters that require immediate administrative attention.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={submitting}
+                className="
+                  w-full sm:w-auto
+                  px-4 py-3
+                  bg-gradient-to-r from-gray-100 to-gray-200
+                  text-gray-700
+                  rounded-xl
+                  font-bold text-sm
+                  hover:from-gray-200 hover:to-gray-300
+                  transition-all
+                  flex items-center justify-center gap-2
+                  mobile-touch-target
+                "
+              >
+                <FaTimes />
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                disabled={submitting || submitSuccess}
+                className="
+                  w-full sm:w-auto
+                  px-4 py-3
+                  bg-gradient-to-r from-red-600 to-pink-600
+                  text-white
+                  rounded-xl
+                  font-bold text-sm
+                  shadow-lg hover:shadow-xl
+                  transition-all
+                  flex items-center justify-center gap-2
+                  disabled:opacity-70
+                  mobile-touch-target
+                "
+              >
+                {submitting ? (
+                  <>
+                    <FiLoader className="animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <FaExclamationCircle />
+                    Submit Emergency Request
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ==================== MODERN HEADER ====================
 function ModernGuidanceHeader({ 
   student, 
@@ -66,7 +854,8 @@ function ModernGuidanceHeader({
   isMenuOpen,
   activeTab,
   setActiveTab,
-  refreshing
+  refreshing,
+  onBookEmergency
 }) {
   
   const getInitials = (name) => {
@@ -130,167 +919,172 @@ function ModernGuidanceHeader({
   };
 
   return (
-    <header className="bg-gradient-to-r from-white via-gray-50 to-blue-50 border-b border-gray-200/50 shadow-xl sticky top-0 z-30 backdrop-blur-sm bg-white/80">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-20">
-          
-          {/* Left Section */}
-          <div className="flex items-center gap-4">
-            {/* Mobile Menu Button */}
-            <button
-              onClick={onMenuToggle}
-              className="lg:hidden p-3 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 shadow-sm hover:shadow-md transition-all"
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            >
-              {isMenuOpen ? <FaTimes className="text-gray-700" /> : <FaBars className="text-gray-700" />}
-            </button>
+    <>
+      <style jsx global>{mobileStyles}</style>
+      <header className="bg-gradient-to-r from-white via-gray-50 to-blue-50 border-b border-gray-200/50 shadow-xl sticky top-0 z-30 backdrop-blur-sm bg-white/80">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6">
+          <div className="flex items-center justify-between h-16 md:h-20">
             
-            {/* Current Tab Title (Mobile) */}
-            <div className="lg:hidden flex items-center gap-3">
-              <div className={`p-2.5 ${getTabColor(activeTab)} bg-opacity-10 rounded-xl shadow-sm`}>
-                <div className={`p-1.5 rounded-lg ${getTabColor(activeTab)}`}>
-                  {getTabIcon(activeTab)}
+            {/* Left Section */}
+            <div className="flex items-center gap-2 md:gap-4">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={onMenuToggle}
+                className="lg:hidden p-2.5 md:p-3 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 shadow-sm hover:shadow-md transition-all mobile-touch-target"
+                aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+              >
+                {isMenuOpen ? <FaTimes className="text-gray-700 text-lg" /> : <FaBars className="text-gray-700 text-lg" />}
+              </button>
+              
+              {/* Current Tab Title (Mobile) */}
+              <div className="lg:hidden flex items-center gap-2 md:gap-3">
+                <div className={`p-2 ${getTabColor(activeTab)} bg-opacity-10 rounded-xl shadow-sm`}>
+                  <div className={`p-1 rounded-lg ${getTabColor(activeTab)}`}>
+                    {getTabIcon(activeTab)}
+                  </div>
+                </div>
+                <div className="max-w-[120px] md:max-w-none">
+                  <h1 className="text-sm md:text-lg font-bold text-gray-900 truncate">
+                    {activeTab === 'events' && 'School Events'}
+                    {activeTab === 'guidance' && 'Guidance'}
+                    {activeTab === 'news' && 'School News'}
+                  </h1>
+                  <p className="text-xs text-gray-500 hidden md:block">Stay Updated</p>
                 </div>
               </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">
-                  {activeTab === 'events' && 'School Events'}
-                  {activeTab === 'guidance' && 'Guidance & Counseling'}
-                  {activeTab === 'news' && 'School News'}
-                </h1>
-                <p className="text-xs text-gray-500">Stay Updated</p>
+
+              {/* Desktop Logo/Title */}
+              <div className="hidden lg:flex items-center gap-3">
+                <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
+                  <FaCalendarCheck className="text-white text-xl" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">Guidance & Events Portal</h1>
+                  <p className="text-sm text-gray-600">Stay connected with school activities</p>
+                </div>
               </div>
             </div>
 
-            {/* Desktop Logo/Title */}
-            <div className="hidden lg:flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
-                <FaCalendarCheck className="text-white text-xl" />
+            {/* Tab Navigation (Desktop) */}
+            <div className="hidden lg:flex flex-1 justify-center">
+              <div className="flex items-center gap-2 bg-gray-100 rounded-2xl p-1.5">
+                {['events', 'guidance', 'news'].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
+                      activeTab === tab 
+                        ? 'bg-white text-gray-900 shadow-lg' 
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+                    }`}
+                  >
+                    {getTabIcon(tab)}
+                    {tab === 'events' && 'School Events'}
+                    {tab === 'guidance' && 'Guidance'}
+                    {tab === 'news' && 'News'}
+                  </button>
+                ))}
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Guidance & Events Portal</h1>
-                <p className="text-sm text-gray-600">Stay connected with school activities</p>
+            </div>
+
+            {/* Right Section */}
+            <div className="flex items-center gap-1 md:gap-3">
+              {/* Search Bar (Desktop) */}
+              <div className="hidden lg:block relative">
+                <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder={`Search ${activeTab}...`}
+                  className="pl-12 pr-4 py-3 w-64 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                />
               </div>
+
+              {/* Mobile Search Button */}
+              <button className="lg:hidden p-2.5 md:p-3 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 shadow-sm hover:shadow-md transition-all mobile-touch-target">
+                <FaSearch className="text-gray-600 text-base md:text-lg" />
+              </button>
+
+              {/* Emergency Button (Mobile) */}
+              <button
+                onClick={onBookEmergency}
+                className="lg:hidden p-2.5 md:p-3 rounded-xl bg-gradient-to-r from-red-100 to-pink-200 shadow-sm hover:shadow-md transition-all mobile-touch-target"
+                title="Emergency"
+              >
+                <FaExclamationCircle className="text-red-600 text-base md:text-lg" />
+              </button>
+
+              {/* Refresh Button */}
+              <button
+                onClick={onRefresh}
+                disabled={refreshing}
+                className="p-2.5 md:p-3 rounded-xl bg-gradient-to-r from-blue-100 to-blue-200 shadow-sm hover:shadow-md transition-all group mobile-touch-target"
+                title="Refresh data"
+                aria-label="Refresh"
+              >
+                <FaSync className={`text-blue-600 text-base md:text-lg ${refreshing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+              </button>
+
+
+              {/* Student Avatar */}
+              {student && (
+                <div className="flex items-center gap-2 md:gap-3 pl-2 md:pl-3 border-l border-gray-200/50">
+                  <div className="relative group">
+                    <div
+                      className={`absolute inset-0 ${getGradientColor(student.fullName)} rounded-full blur opacity-70 group-hover:opacity-100 transition-opacity`}
+                    ></div>
+                    <div className="relative w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-white text-xs md:text-sm bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-white shadow-lg">
+                      {getInitials(student.fullName)}
+                    </div>
+                  </div>
+
+                  <div className="hidden xl:flex flex-col">
+                    <p className="text-sm font-bold text-gray-900">
+                      {student.fullName}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-gray-500">
+                         {student.form} • {student.stream}
+                      </span>
+                      <span className="w-2.5 h-2.5 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full animate-pulse"></span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Tab Navigation (Desktop) */}
-          <div className="hidden lg:flex flex-1 justify-center">
-            <div className="flex items-center gap-2 bg-gray-100 rounded-2xl p-1.5">
+        {/* Tab Navigation (Mobile) */}
+        <div className="lg:hidden border-t border-gray-200/50">
+          <div className="container mx-auto px-2 md:px-4 py-2 md:py-3">
+            <div className="flex items-center justify-between">
               {['events', 'guidance', 'news'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
+                  className={`flex flex-col items-center gap-0.5 md:gap-1 px-2 md:px-4 py-1.5 md:py-2 rounded-lg transition-all mobile-touch-target mobile-full-width ${
                     activeTab === tab 
-                      ? 'bg-white text-gray-900 shadow-lg' 
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  {getTabIcon(tab)}
-                  {tab === 'events' && 'School Events'}
-                  {tab === 'guidance' && 'Guidance'}
-                  {tab === 'news' && 'News'}
+                  <div className="text-base md:text-lg">
+                    {getTabIcon(tab)}
+                  </div>
+                  <span className="text-xs font-medium truncate w-full text-center">
+                    {tab === 'events' && 'Events'}
+                    {tab === 'guidance' && 'Guidance'}
+                    {tab === 'news' && 'News'}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
-
-          {/* Right Section */}
-          <div className="flex items-center gap-3">
-            {/* Search Bar (Desktop) */}
-            <div className="hidden lg:block relative">
-              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={`Search ${activeTab}...`}
-                className="pl-12 pr-4 py-3 w-64 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              />
-            </div>
-
-            {/* Mobile Search Button */}
-            <button className="lg:hidden p-3 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 shadow-sm hover:shadow-md transition-all">
-              <FaSearch className="text-gray-600" />
-            </button>
-
-            {/* Refresh Button */}
-            <button
-              onClick={onRefresh}
-              disabled={refreshing}
-              className="p-3 rounded-xl bg-gradient-to-r from-blue-100 to-blue-200 shadow-sm hover:shadow-md transition-all group"
-              title="Refresh data"
-              aria-label="Refresh"
-            >
-              <FaSync className={`text-blue-600 ${refreshing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
-            </button>
-
-            {/* Notifications */}
-            <button className="p-3 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 shadow-sm hover:shadow-md transition-all relative">
-              <FaBell className="text-gray-600" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs rounded-full flex items-center justify-center font-bold">
-                3
-              </span>
-            </button>
-
-            {/* Student Avatar */}
-            {student && (
-              <div className="flex items-center gap-3 pl-3 border-l border-gray-200/50">
-                <div className="relative group">
-                  <div
-                    className={`absolute inset-0 ${getGradientColor(student.fullName)} rounded-full blur opacity-70 group-hover:opacity-100 transition-opacity`}
-                  ></div>
-                  <div className="relative w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-white shadow-lg">
-                    {getInitials(student.fullName)}
-                  </div>
-                </div>
-
-                <div className="hidden xl:flex flex-col">
-                  <p className="text-sm font-bold text-gray-900">
-                    {student.fullName}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-gray-500">
-                      Form {student.form} • {student.stream}
-                    </span>
-                    <span className="w-2.5 h-2.5 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full animate-pulse"></span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
-      </div>
-
-      {/* Tab Navigation (Mobile) */}
-      <div className="lg:hidden border-t border-gray-200/50">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            {['events', 'guidance', 'news'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
-                  activeTab === tab 
-                    ? 'bg-blue-50 text-blue-600' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <div className="text-lg">
-                  {getTabIcon(tab)}
-                </div>
-                <span className="text-xs font-medium">
-                  {tab === 'events' && 'Events'}
-                  {tab === 'guidance' && 'Guidance'}
-                  {tab === 'news' && 'News'}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 }
 
@@ -300,12 +1094,14 @@ function StatisticsCards({ events, guidance, news, activeTab }) {
     events: {
       total: events.length,
       upcoming: events.filter(e => new Date(e.date) >= new Date()).length,
-      featured: events.filter(e => e.featured).length
+      featured: events.filter(e => e.featured).length,
+      withImages: events.filter(e => e.image).length
     },
     guidance: {
       total: guidance.length,
       highPriority: guidance.filter(g => g.priority === 'High').length,
-      groupSessions: guidance.filter(g => g.type === 'Group Session').length
+      groupSessions: guidance.filter(g => g.type === 'Group Session').length,
+      withImages: guidance.filter(g => g.image).length
     },
     news: {
       total: news.length,
@@ -315,7 +1111,8 @@ function StatisticsCards({ events, guidance, news, activeTab }) {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         return newsDate >= thirtyDaysAgo;
-      }).length
+      }).length,
+      withImages: news.filter(n => n.image).length
     }
   };
 
@@ -325,19 +1122,19 @@ function StatisticsCards({ events, guidance, news, activeTab }) {
         return [
           { label: 'Total Events', value: stats.events.total, color: 'from-blue-500 to-blue-600', icon: <FiCalendar /> },
           { label: 'Upcoming', value: stats.events.upcoming, color: 'from-emerald-500 to-emerald-600', icon: <FaCalendarCheck /> },
-          { label: 'Featured', value: stats.events.featured, color: 'from-amber-500 to-amber-600', icon: <FiStar /> }
+          { label: 'With Images', value: stats.events.withImages, color: 'from-cyan-500 to-cyan-600', icon: <FiFileText /> }
         ];
       case 'guidance':
         return [
           { label: 'Total Sessions', value: stats.guidance.total, color: 'from-purple-500 to-purple-600', icon: <FiMessageSquare /> },
           { label: 'High Priority', value: stats.guidance.highPriority, color: 'from-red-500 to-red-600', icon: <FiAlertCircle /> },
-          { label: 'Group Sessions', value: stats.guidance.groupSessions, color: 'from-indigo-500 to-indigo-600', icon: <FiUsers /> }
+          { label: 'With Images', value: stats.guidance.withImages, color: 'from-indigo-500 to-indigo-600', icon: <FiFileText /> }
         ];
       case 'news':
         return [
           { label: 'Total News', value: stats.news.total, color: 'from-amber-500 to-amber-600', icon: <FiBookOpen /> },
           { label: 'Featured', value: stats.news.featured, color: 'from-rose-500 to-rose-600', icon: <FiStar /> },
-          { label: 'Recent (30d)', value: stats.news.recent, color: 'from-cyan-500 to-cyan-600', icon: <HiSparkles /> }
+          { label: 'With Images', value: stats.news.withImages, color: 'from-pink-500 to-pink-600', icon: <FiFileText /> }
         ];
       default:
         return [];
@@ -345,25 +1142,25 @@ function StatisticsCards({ events, guidance, news, activeTab }) {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
       {getActiveStats().map((stat, index) => (
-        <div key={index} className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <div className={`p-3 rounded-xl bg-gradient-to-r ${stat.color}`}>
-              <div className="text-white text-xl">
+        <div key={index} className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 border border-gray-200 md:border-2 shadow-sm md:shadow-lg hover:shadow-md md:hover:shadow-xl transition-shadow duration-300 mobile-scroll-hide">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <div className={`p-2 md:p-3 rounded-lg md:rounded-xl bg-gradient-to-r ${stat.color}`}>
+              <div className="text-white text-base md:text-xl">
                 {stat.icon}
               </div>
             </div>
-            <div className={`text-sm font-bold px-3 py-1 rounded-lg ${
+            <div className={`text-xs md:text-sm font-bold px-2 md:px-3 py-1 rounded md:rounded-lg ${
               index === 0 ? 'bg-blue-100 text-blue-800' :
-              index === 1 ? 'bg-red-100 text-red-800' :
-              'bg-amber-100 text-amber-800'
+              index === 1 ? 'bg-green-100 text-green-800' :
+              'bg-purple-100 text-purple-800'
             }`}>
-              {index === 0 ? 'All' : index === 1 ? 'Priority' : 'Special'}
+              {index === 0 ? 'All' : index === 1 ? 'Active' : 'Visual'}
             </div>
           </div>
-          <h4 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{stat.value}</h4>
-          <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
+          <h4 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-1">{stat.value}</h4>
+          <p className="text-gray-600 text-xs md:text-sm font-medium mobile-text-ellipsis">{stat.label}</p>
         </div>
       ))}
     </div>
@@ -371,57 +1168,81 @@ function StatisticsCards({ events, guidance, news, activeTab }) {
 }
 
 // ==================== EVENT CARD ====================
-function EventCard({ event }) {
+function EventCard({ event, onViewDetails }) {
   const isUpcoming = new Date(event.date) >= new Date();
   
   return (
     <div className="group relative">
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-      <div className="relative bg-white rounded-2xl border-2 border-gray-200 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-        <div className="p-5">
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl md:rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+      <div className="relative bg-white rounded-xl md:rounded-2xl border border-gray-200 md:border-2 overflow-hidden shadow-sm md:shadow-lg hover:shadow-md md:hover:shadow-xl transition-all duration-300 mobile-scroll-hide">
+        {/* Event Image */}
+        {event.image && (
+          <div className="relative h-40 md:h-48 overflow-hidden">
+            <img 
+              src={event.image} 
+              alt={event.title}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-100"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = `
+                  <div class="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-50 to-blue-100">
+                    <div class="text-blue-400 text-center p-4">
+                      <FiCalendar class="text-4xl mx-auto mb-2" />
+                      <p class="text-sm font-medium">Event Image</p>
+                    </div>
+                  </div>
+                `;
+              }}
+            />
+            <div className="absolute top-2 right-2">
+              {isUpcoming && (
+                <span className="px-2 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full">
+                  Upcoming
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+        
+        <div className="p-3 md:p-5 mobile-card-spacing">
           {/* Event Header */}
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+          <div className="flex items-start justify-between mb-3 md:mb-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-1 md:gap-2 mb-2 md:mb-3">
+                <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-bold ${
                   event.category === 'sports' ? 'bg-red-100 text-red-800' :
                   event.category === 'academic' ? 'bg-blue-100 text-blue-800' :
                   'bg-purple-100 text-purple-800'
                 }`}>
                   {event.category?.charAt(0).toUpperCase() + event.category?.slice(1)}
                 </span>
-                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                <span className={`px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-xs font-bold ${
                   event.type === 'external' ? 'bg-amber-100 text-amber-800' :
                   'bg-emerald-100 text-emerald-800'
                 }`}>
                   {event.type?.charAt(0).toUpperCase() + event.type?.slice(1)}
                 </span>
                 {event.featured && (
-                  <span className="px-2 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold rounded-full">
+                  <span className="px-1.5 md:px-2 py-0.5 md:py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold rounded-full">
                     Featured
                   </span>
                 )}
               </div>
-              <h4 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">{event.title}</h4>
+              <h4 className="text-base md:text-lg font-bold text-gray-900 mb-1 md:mb-2 line-clamp-1 mobile-text-ellipsis">{event.title}</h4>
             </div>
-            {isUpcoming && (
-              <span className="px-2 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-emerald-800 text-xs font-bold rounded-full">
-                Upcoming
-              </span>
-            )}
           </div>
           
           {/* Event Description */}
-          <p className="text-gray-600 text-sm mb-5 line-clamp-2">{event.description}</p>
+          <p className="text-gray-600 text-xs md:text-sm mb-4 md:mb-5 line-clamp-2 mobile-text-ellipsis">{event.description}</p>
           
           {/* Event Details */}
-          <div className="space-y-3 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <FiCalendar className="text-blue-500" />
+          <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-blue-50 rounded-lg flex-shrink-0">
+                <FiCalendar className="text-blue-500 text-sm md:text-base" />
               </div>
-              <div>
-                <div className="text-sm font-medium text-gray-900">
+              <div className="min-w-0 flex-1">
+                <div className="text-xs md:text-sm font-medium text-gray-900 truncate">
                   {new Date(event.date).toLocaleDateString('en-US', { 
                     weekday: 'short', 
                     month: 'short', 
@@ -433,35 +1254,38 @@ function EventCard({ event }) {
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-50 rounded-lg">
-                <FiClock className="text-purple-500" />
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-purple-50 rounded-lg flex-shrink-0">
+                <FiClock className="text-purple-500 text-sm md:text-base" />
               </div>
-              <div>
-                <div className="text-sm font-medium text-gray-900">{event.time}</div>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs md:text-sm font-medium text-gray-900 truncate">{event.time}</div>
                 <div className="text-xs text-gray-500">Time</div>
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-50 rounded-lg">
-                <FiMapPin className="text-amber-500" />
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-amber-50 rounded-lg flex-shrink-0">
+                <FiMapPin className="text-amber-500 text-sm md:text-base" />
               </div>
-              <div>
-                <div className="text-sm font-medium text-gray-900 line-clamp-1">{event.location}</div>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs md:text-sm font-medium text-gray-900 truncate">{event.location}</div>
                 <div className="text-xs text-gray-500">Location</div>
               </div>
             </div>
           </div>
           
           {/* Event Footer */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-            <div className="flex items-center gap-2">
-              <FiUser className="text-gray-400 text-sm" />
-              <span className="text-xs text-gray-600">{event.attendees}</span>
+          <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-gray-200">
+            <div className="flex items-center gap-1 md:gap-2">
+              <FiUser className="text-gray-400 text-xs md:text-sm" />
+              <span className="text-xs text-gray-600 truncate">{event.attendees}</span>
             </div>
-            <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-bold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
-              View Details
+            <button
+              onClick={() => onViewDetails?.(event)}
+              className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs md:text-sm font-bold rounded-lg md:rounded-xl hover:shadow-md md:hover:shadow-lg transition-all transform hover:-translate-y-0.5 mobile-touch-target"
+            >
+              Read More
             </button>
           </div>
         </div>
@@ -471,19 +1295,50 @@ function EventCard({ event }) {
 }
 
 // ==================== GUIDANCE CARD ====================
-function GuidanceCard({ session }) {
+function GuidanceCard({ session, onViewDetails }) {
   const isUpcoming = new Date(session.date) >= new Date();
   
   return (
     <div className="group relative">
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-      <div className="relative bg-white rounded-2xl border-2 border-gray-200 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-        <div className="p-5">
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl md:rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+      <div className="relative bg-white rounded-xl md:rounded-2xl border border-gray-200 md:border-2 overflow-hidden shadow-sm md:shadow-lg hover:shadow-md md:hover:shadow-xl transition-all duration-300 mobile-scroll-hide">
+        {/* Session Image */}
+        {session.image && (
+          <div className="relative h-40 md:h-48 overflow-hidden">
+            <img 
+              src={session.image} 
+              alt={`Session with ${session.counselor}`}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-100"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = `
+                  <div class="w-full h-full flex items-center justify-center bg-gradient-to-r from-purple-50 to-pink-100">
+                    <div class="text-purple-400 text-center p-4">
+                      <FiMessageSquare class="text-4xl mx-auto mb-2" />
+                      <p class="text-sm font-medium">Guidance Session</p>
+                    </div>
+                  </div>
+                `;
+              }}
+            />
+            <div className="absolute top-2 right-2">
+              <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                session.priority === 'High' ? 'bg-red-500 text-white' :
+                session.priority === 'Medium' ? 'bg-amber-500 text-white' :
+                'bg-blue-500 text-white'
+              }`}>
+                {session.priority}
+              </span>
+            </div>
+          </div>
+        )}
+        
+        <div className="p-3 md:p-5 mobile-card-spacing">
           {/* Session Header */}
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+          <div className="flex items-start justify-between mb-3 md:mb-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-1 md:gap-2 mb-2 md:mb-3">
+                <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-bold ${
                   session.category === 'Academics' ? 'bg-blue-100 text-blue-800' :
                   session.category === 'Relationships' ? 'bg-pink-100 text-pink-800' :
                   session.category === 'Career' ? 'bg-emerald-100 text-emerald-800' :
@@ -491,35 +1346,28 @@ function GuidanceCard({ session }) {
                 }`}>
                   {session.category}
                 </span>
-                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                <span className={`px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-xs font-bold ${
                   session.type === 'Counseling' ? 'bg-purple-100 text-purple-800' :
                   'bg-indigo-100 text-indigo-800'
                 }`}>
                   {session.type}
                 </span>
               </div>
-              <h4 className="text-lg font-bold text-gray-900 mb-2">Session with {session.counselor}</h4>
+              <h4 className="text-base md:text-lg font-bold text-gray-900 mb-1 md:mb-2 truncate">Session with {session.counselor}</h4>
             </div>
-            <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-              session.priority === 'High' ? 'bg-red-100 text-red-800' :
-              session.priority === 'Medium' ? 'bg-amber-100 text-amber-800' :
-              'bg-blue-100 text-blue-800'
-            }`}>
-              {session.priority} Priority
-            </span>
           </div>
           
           {/* Session Description */}
-          <p className="text-gray-600 text-sm mb-5 line-clamp-2">{session.description}</p>
+          <p className="text-gray-600 text-xs md:text-sm mb-4 md:mb-5 line-clamp-2 mobile-text-ellipsis">{session.description}</p>
           
           {/* Session Details */}
-          <div className="space-y-3 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-50 rounded-lg">
-                <FiCalendar className="text-purple-500" />
+          <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-purple-50 rounded-lg flex-shrink-0">
+                <FiCalendar className="text-purple-500 text-sm md:text-base" />
               </div>
-              <div>
-                <div className="text-sm font-medium text-gray-900">
+              <div className="min-w-0 flex-1">
+                <div className="text-xs md:text-sm font-medium text-gray-900 truncate">
                   {new Date(session.date).toLocaleDateString('en-US', { 
                     weekday: 'short', 
                     month: 'short', 
@@ -531,23 +1379,23 @@ function GuidanceCard({ session }) {
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-pink-50 rounded-lg">
-                <FiClock className="text-pink-500" />
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-pink-50 rounded-lg flex-shrink-0">
+                <FiClock className="text-pink-500 text-sm md:text-base" />
               </div>
-              <div>
-                <div className="text-sm font-medium text-gray-900">{session.time}</div>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs md:text-sm font-medium text-gray-900 truncate">{session.time}</div>
                 <div className="text-xs text-gray-500">Time</div>
               </div>
             </div>
             
             {session.notes && (
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg mt-1">
-                  <FiMessageSquare className="text-blue-500" />
+              <div className="flex items-start gap-2 md:gap-3">
+                <div className="p-1.5 md:p-2 bg-blue-50 rounded-lg mt-0.5 flex-shrink-0">
+                  <FiMessageSquare className="text-blue-500 text-sm md:text-base" />
                 </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-900 line-clamp-2">{session.notes}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs md:text-sm font-medium text-gray-900 line-clamp-2 mobile-text-ellipsis">{session.notes}</div>
                   <div className="text-xs text-gray-500">Notes</div>
                 </div>
               </div>
@@ -555,13 +1403,16 @@ function GuidanceCard({ session }) {
           </div>
           
           {/* Session Footer */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-            <div className="flex items-center gap-2">
-              <FiUser className="text-gray-400 text-sm" />
-              <span className="text-xs text-gray-600">{session.counselor}</span>
+          <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-gray-200">
+            <div className="flex items-center gap-1 md:gap-2 min-w-0">
+              <FiUser className="text-gray-400 text-xs md:text-sm flex-shrink-0" />
+              <span className="text-xs text-gray-600 truncate">{session.counselor}</span>
             </div>
-            <button className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white text-sm font-bold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
-              Book Session
+            <button
+              onClick={() => onViewDetails?.(session)}
+              className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white text-xs md:text-sm font-bold rounded-lg md:rounded-xl hover:shadow-md md:hover:shadow-lg transition-all transform hover:-translate-y-0.5 mobile-touch-target"
+            >
+              Read More
             </button>
           </div>
         </div>
@@ -571,7 +1422,7 @@ function GuidanceCard({ session }) {
 }
 
 // ==================== NEWS CARD ====================
-function NewsCard({ newsItem }) {
+function NewsCard({ newsItem, onViewDetails }) {
   const isRecent = (() => {
     const newsDate = new Date(newsItem.date);
     const sevenDaysAgo = new Date();
@@ -581,14 +1432,43 @@ function NewsCard({ newsItem }) {
   
   return (
     <div className="group relative">
-      <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-      <div className="relative bg-white rounded-2xl border-2 border-gray-200 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-        <div className="p-5">
+      <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl md:rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+      <div className="relative bg-white rounded-xl md:rounded-2xl border border-gray-200 md:border-2 overflow-hidden shadow-sm md:shadow-lg hover:shadow-md md:hover:shadow-xl transition-all duration-300 mobile-scroll-hide">
+        {/* News Image */}
+        {newsItem.image && (
+          <div className="relative h-40 md:h-48 overflow-hidden">
+            <img 
+              src={newsItem.image} 
+              alt={newsItem.title}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-100"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = `
+                  <div class="w-full h-full flex items-center justify-center bg-gradient-to-r from-amber-50 to-orange-100">
+                    <div class="text-amber-400 text-center p-4">
+                      <FiBookOpen class="text-4xl mx-auto mb-2" />
+                      <p class="text-sm font-medium">News Article</p>
+                    </div>
+                  </div>
+                `;
+              }}
+            />
+            <div className="absolute top-2 right-2">
+              {isRecent && (
+                <span className="px-2 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full">
+                  New
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+        
+        <div className="p-3 md:p-5 mobile-card-spacing">
           {/* News Header */}
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+          <div className="flex items-start justify-between mb-3 md:mb-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-1 md:gap-2 mb-2 md:mb-3">
+                <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-bold ${
                   newsItem.category === 'community' ? 'bg-emerald-100 text-emerald-800' :
                   newsItem.category === 'academic' ? 'bg-blue-100 text-blue-800' :
                   newsItem.category === 'sports' ? 'bg-red-100 text-red-800' :
@@ -596,27 +1476,22 @@ function NewsCard({ newsItem }) {
                 }`}>
                   {newsItem.category?.charAt(0).toUpperCase() + newsItem.category?.slice(1)}
                 </span>
-                {isRecent && (
-                  <span className="px-2 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full">
-                    New
-                  </span>
-                )}
               </div>
-              <h4 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">{newsItem.title}</h4>
+              <h4 className="text-base md:text-lg font-bold text-gray-900 mb-1 md:mb-2 line-clamp-2 mobile-text-ellipsis">{newsItem.title}</h4>
             </div>
           </div>
           
           {/* News Excerpt */}
-          <p className="text-gray-600 text-sm mb-5 line-clamp-3">{newsItem.excerpt || newsItem.fullContent}</p>
+          <p className="text-gray-600 text-xs md:text-sm mb-4 md:mb-5 line-clamp-3 mobile-text-ellipsis">{newsItem.excerpt || newsItem.fullContent}</p>
           
           {/* News Details */}
-          <div className="space-y-3 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-50 rounded-lg">
-                <FiCalendar className="text-amber-500" />
+          <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-amber-50 rounded-lg flex-shrink-0">
+                <FiCalendar className="text-amber-500 text-sm md:text-base" />
               </div>
-              <div>
-                <div className="text-sm font-medium text-gray-900">
+              <div className="min-w-0 flex-1">
+                <div className="text-xs md:text-sm font-medium text-gray-900 truncate">
                   {new Date(newsItem.date).toLocaleDateString('en-US', { 
                     weekday: 'short', 
                     month: 'short', 
@@ -628,23 +1503,23 @@ function NewsCard({ newsItem }) {
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <FiUser className="text-blue-500" />
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-blue-50 rounded-lg flex-shrink-0">
+                <FiUser className="text-blue-500 text-sm md:text-base" />
               </div>
-              <div>
-                <div className="text-sm font-medium text-gray-900">{newsItem.author}</div>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs md:text-sm font-medium text-gray-900 truncate">{newsItem.author}</div>
                 <div className="text-xs text-gray-500">Author</div>
               </div>
             </div>
             
             {newsItem.likes !== undefined && (
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-pink-50 rounded-lg">
-                  <FiStar className="text-pink-500" />
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="p-1.5 md:p-2 bg-pink-50 rounded-lg flex-shrink-0">
+                  <FiStar className="text-pink-500 text-sm md:text-base" />
                 </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-900">{newsItem.likes} likes</div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs md:text-sm font-medium text-gray-900">{newsItem.likes} likes</div>
                   <div className="text-xs text-gray-500">Engagement</div>
                 </div>
               </div>
@@ -652,11 +1527,14 @@ function NewsCard({ newsItem }) {
           </div>
           
           {/* News Footer */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-            <div className="text-xs text-gray-500">
+          <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-gray-200">
+            <div className="text-xs text-gray-500 truncate">
               By {newsItem.author}
             </div>
-            <button className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-bold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
+            <button
+              onClick={() => onViewDetails?.(newsItem)}
+              className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-xs md:text-sm font-bold rounded-lg md:rounded-xl hover:shadow-md md:hover:shadow-lg transition-all transform  mobile-touch-target"
+            >
               Read More
             </button>
           </div>
@@ -679,8 +1557,13 @@ export default function GuidanceEventsView() {
   const [filterDate, setFilterDate] = useState('all');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [error, setError] = useState(null);
+  
+  // New state for modals
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItemType, setSelectedItemType] = useState(null);
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
 
-  // Fetch all data
+  // Fetch all data with image handling
   const fetchAllData = useCallback(async () => {
     try {
       setError(null);
@@ -689,7 +1572,12 @@ export default function GuidanceEventsView() {
       const eventsRes = await fetch('/api/events');
       const eventsData = await eventsRes.json();
       if (eventsData.success) {
-        setEvents(eventsData.events || []);
+        // Process events to ensure image paths are complete
+        const processedEvents = (eventsData.events || []).map(event => ({
+          ...event,
+          image: event.image ? event.image.startsWith('/') ? event.image : `/${event.image}` : null
+        }));
+        setEvents(processedEvents);
       } else {
         throw new Error('Failed to fetch events');
       }
@@ -698,7 +1586,12 @@ export default function GuidanceEventsView() {
       const guidanceRes = await fetch('/api/guidance');
       const guidanceData = await guidanceRes.json();
       if (guidanceData.success) {
-        setGuidance(guidanceData.events || []);
+        // Process guidance to ensure image paths are complete
+        const processedGuidance = (guidanceData.events || []).map(session => ({
+          ...session,
+          image: session.image ? session.image.startsWith('/') ? session.image : `/${session.image}` : null
+        }));
+        setGuidance(processedGuidance);
       } else {
         throw new Error('Failed to fetch guidance sessions');
       }
@@ -707,7 +1600,12 @@ export default function GuidanceEventsView() {
       const newsRes = await fetch('/api/news');
       const newsData = await newsRes.json();
       if (newsData.success) {
-        setNews(newsData.news || []);
+        // Process news to ensure image paths are complete
+        const processedNews = (newsData.news || []).map(newsItem => ({
+          ...newsItem,
+          image: newsItem.image ? newsItem.image.startsWith('/') ? newsItem.image : `/${newsItem.image}` : null
+        }));
+        setNews(processedNews);
       } else {
         throw new Error('Failed to fetch news');
       }
@@ -721,7 +1619,7 @@ export default function GuidanceEventsView() {
       console.error('Error fetching data:', error);
       setError('Failed to load data. Please try again.');
       
-      // Use sample data as fallback
+      // Use sample data with image handling as fallback
       setEvents([
         {
           id: 1,
@@ -733,7 +1631,8 @@ export default function GuidanceEventsView() {
           category: "sports",
           type: "external",
           featured: true,
-          attendees: "All students"
+          attendees: "All students",
+          image: null
         }
       ]);
       
@@ -747,7 +1646,8 @@ export default function GuidanceEventsView() {
           date: "2026-01-27T00:00:00.000Z",
           time: "10:00 AM",
           type: "Individual Session",
-          priority: "High"
+          priority: "High",
+          image: null
         }
       ]);
       
@@ -760,7 +1660,8 @@ export default function GuidanceEventsView() {
           date: "2026-01-02T00:00:00.000Z",
           category: "announcement",
           author: "School Administration",
-          likes: 15
+          likes: 15,
+          image: null
         }
       ]);
     } finally {
@@ -846,12 +1747,44 @@ export default function GuidanceEventsView() {
   // Clear search
   const clearSearch = () => setSearchTerm('');
 
+  // Handle view details
+  const handleViewDetails = (item) => {
+    setSelectedItem(item);
+    setSelectedItemType(activeTab);
+  };
+
+  // Handle close modal
+  const handleCloseModal = () => {
+    setSelectedItem(null);
+    setSelectedItemType(null);
+  };
+
+  // Handle book appointment from modal
+  const handleBookAppointment = (item) => {
+    // You can implement specific booking logic here
+    console.log('Booking appointment for:', item);
+    // For now, show emergency modal
+    setShowEmergencyModal(true);
+  };
+
+  // Handle book emergency appointment
+  const handleBookEmergency = () => {
+    setShowEmergencyModal(true);
+  };
+
+  // Handle close emergency modal
+  const handleCloseEmergencyModal = () => {
+    setShowEmergencyModal(false);
+  };
+
   if (loading) {
     return <LoadingSpinner message="Loading guidance and events..." />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+      <style jsx global>{mobileStyles}</style>
+      
       {/* Header */}
       <ModernGuidanceHeader
         student={student}
@@ -863,27 +1796,28 @@ export default function GuidanceEventsView() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         refreshing={refreshing}
+        onBookEmergency={handleBookEmergency}
       />
 
-      <main className="container mx-auto px-4 py-6 max-w-7xl">
+      <main className="container mx-auto px-3 sm:px-4 py-4 md:py-6 max-w-7xl">
         {/* Welcome Banner */}
-        <div className="mb-8">
-          <div className="relative overflow-hidden rounded-2xl shadow-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">
+        <div className="mb-6 md:mb-8">
+          <div className="relative overflow-hidden rounded-xl md:rounded-2xl shadow-lg md:shadow-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 mobile-scroll-hide">
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/30"></div>
-            <div className="relative p-6 md:p-8 text-white">
-              <div className="flex flex-col md:flex-row md:items-center gap-6">
-                <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm w-fit">
-                  {activeTab === 'events' && <FiCalendar className="text-2xl" />}
-                  {activeTab === 'guidance' && <FiMessageSquare className="text-2xl" />}
-                  {activeTab === 'news' && <FiBookOpen className="text-2xl" />}
+            <div className="relative p-4 md:p-6 lg:p-8 text-white">
+              <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+                <div className="p-3 md:p-4 bg-white/20 rounded-xl md:rounded-2xl backdrop-blur-sm w-fit">
+                  {activeTab === 'events' && <FiCalendar className="text-xl md:text-2xl" />}
+                  {activeTab === 'guidance' && <FiMessageSquare className="text-xl md:text-2xl" />}
+                  {activeTab === 'news' && <FiBookOpen className="text-xl md:text-2xl" />}
                 </div>
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-bold mb-2">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold mb-1 md:mb-2">
                     {activeTab === 'events' && 'School Events & Activities'}
                     {activeTab === 'guidance' && 'Guidance & Counseling'}
                     {activeTab === 'news' && 'School News & Updates'}
                   </h1>
-                  <p className="text-blue-100 text-base md:text-lg">
+                  <p className="text-blue-100 text-sm md:text-base lg:text-lg mobile-text-ellipsis">
                     {activeTab === 'events' && 'Stay informed about upcoming events, competitions, and school activities'}
                     {activeTab === 'guidance' && 'Access counseling sessions, career guidance, and support services'}
                     {activeTab === 'news' && 'Latest announcements, achievements, and important updates from school'}
@@ -891,16 +1825,16 @@ export default function GuidanceEventsView() {
                 </div>
               </div>
               
-              <div className="flex flex-wrap items-center gap-3 mt-6">
-                <span className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full backdrop-blur-sm text-sm font-bold">
-                  <HiSparkles className="text-yellow-300" />
+              <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-4 md:mt-6">
+                <span className="inline-flex items-center gap-1 md:gap-2 bg-white/20 px-3 md:px-4 py-1.5 md:py-2 rounded-full backdrop-blur-sm text-xs md:text-sm font-bold">
+                  <HiSparkles className="text-yellow-300 text-sm md:text-base" />
                   {activeTab === 'events' && `Active Events: ${filteredData.length}`}
                   {activeTab === 'guidance' && `Available Sessions: ${filteredData.length}`}
                   {activeTab === 'news' && `Recent Updates: ${filteredData.length}`}
                 </span>
                 {student && (
-                  <span className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full backdrop-blur-sm text-sm font-bold">
-                    <FaUserFriends className="text-blue-200" />
+                  <span className="inline-flex items-center gap-1 md:gap-2 bg-white/20 px-3 md:px-4 py-1.5 md:py-2 rounded-full backdrop-blur-sm text-xs md:text-sm font-bold">
+                    <FaUserFriends className="text-blue-200 text-sm md:text-base" />
                     Form {student.form} {student.stream}
                   </span>
                 )}
@@ -918,37 +1852,37 @@ export default function GuidanceEventsView() {
         />
 
         {/* Filter and Search Bar */}
-        <div className="mb-8">
-          <div className="bg-white rounded-2xl border-2 border-gray-200 p-4 md:p-6 shadow-sm">
-            <div className="flex flex-col md:flex-row md:items-center gap-4">
+        <div className="mb-6 md:mb-8">
+          <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 md:border-2 p-3 md:p-4 lg:p-6 shadow-sm mobile-scroll-hide">
+            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
               {/* Search Bar */}
               <div className="flex-1 relative">
-                <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <FaSearch className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm md:text-base" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder={`Search ${activeTab}...`}
-                  className="w-full pl-12 pr-10 py-3 bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-9 md:pl-12 pr-8 md:pr-10 py-2 md:py-3 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-300 md:border-2 rounded-lg md:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
                 {searchTerm && (
                   <button
                     onClick={clearSearch}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 mobile-touch-target"
                   >
-                    <FiX />
+                    <FiX className="text-sm md:text-base" />
                   </button>
                 )}
               </div>
 
               {/* Date Filter (Events Only) */}
               {activeTab === 'events' && (
-                <div className="flex items-center gap-3">
-                  <FiFilter className="text-gray-400" />
+                <div className="flex items-center gap-2 md:gap-3">
+                  <FiFilter className="text-gray-400 hidden md:block" />
                   <select
                     value={filterDate}
                     onChange={(e) => setFilterDate(e.target.value)}
-                    className="px-4 py-3 border-2 border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gradient-to-r from-gray-50 to-gray-100"
+                    className="w-full md:w-auto px-3 md:px-4 py-2 md:py-3 border border-gray-300 md:border-2 rounded-lg md:rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gradient-to-r from-gray-50 to-gray-100"
                   >
                     <option value="all">All Events</option>
                     <option value="upcoming">Upcoming Only</option>
@@ -956,45 +1890,54 @@ export default function GuidanceEventsView() {
                   </select>
                 </div>
               )}
+
+              {/* Emergency Button (Desktop) */}
+              <button
+                onClick={handleBookEmergency}
+                className="hidden md:flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl font-bold text-sm hover:shadow-lg transition-all mobile-touch-target"
+              >
+                <FaExclamationCircle />
+                Emergency
+              </button>
             </div>
           </div>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-200 rounded-2xl">
-            <div className="flex items-center gap-3">
-              <FaExclamationCircle className="text-red-500 text-xl" />
-              <div>
-                <p className="text-red-700 font-bold">{error}</p>
-                <p className="text-red-600 text-sm">Using sample data for demonstration.</p>
+          <div className="mb-4 md:mb-6 p-3 md:p-4 bg-gradient-to-r from-red-50 to-red-100 border border-red-200 md:border-2 rounded-xl md:rounded-2xl">
+            <div className="flex items-center gap-2 md:gap-3">
+              <FaExclamationCircle className="text-red-500 text-lg md:text-xl" />
+              <div className="flex-1 min-w-0">
+                <p className="text-red-700 font-bold text-sm md:text-base">{error}</p>
+                <p className="text-red-600 text-xs md:text-sm">Using sample data for demonstration.</p>
               </div>
             </div>
           </div>
         )}
 
         {/* Content Grid */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+        <div className="mb-8 md:mb-12">
+          <div className="flex items-center justify-between mb-4 md:mb-6">
+            <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 truncate">
               {activeTab === 'events' && 'Upcoming Events'}
               {activeTab === 'guidance' && 'Available Sessions'}
               {activeTab === 'news' && 'Latest News'}
             </h2>
-            <span className="px-3 py-1.5 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 text-sm font-bold rounded-full">
+            <span className="px-2 md:px-3 py-1 md:py-1.5 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 text-xs md:text-sm font-bold rounded-full">
               {filteredData.length} Items
             </span>
           </div>
 
           {filteredData.length === 0 ? (
-            <div className="bg-white rounded-2xl border-2 border-gray-300 p-8 md:p-12 text-center">
-              <div className="text-gray-300 text-5xl mx-auto mb-4">
+            <div className="bg-white rounded-xl md:rounded-2xl border border-gray-300 md:border-2 p-6 md:p-8 lg:p-12 text-center">
+              <div className="text-gray-300 text-4xl md:text-5xl mx-auto mb-3 md:mb-4">
                 {activeTab === 'events' && <FiCalendar />}
                 {activeTab === 'guidance' && <FiMessageSquare />}
                 {activeTab === 'news' && <FiBookOpen />}
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">No items found</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">No items found</h3>
+              <p className="text-gray-600 text-sm md:text-base mb-3 md:mb-4">
                 {searchTerm 
                   ? 'Try a different search term' 
                   : 'No items available at the moment'}
@@ -1002,21 +1945,21 @@ export default function GuidanceEventsView() {
               {searchTerm && (
                 <button
                   onClick={clearSearch}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl font-bold text-sm hover:shadow-lg"
+                  className="px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg md:rounded-xl font-bold text-xs md:text-sm hover:shadow-md md:hover:shadow-lg mobile-touch-target"
                 >
                   Clear Search
                 </button>
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {filteredData.map((item) => {
                 if (activeTab === 'events') {
-                  return <EventCard key={item.id} event={item} />;
+                  return <EventCard key={item.id} event={item} onViewDetails={handleViewDetails} />;
                 } else if (activeTab === 'guidance') {
-                  return <GuidanceCard key={item.id} session={item} />;
+                  return <GuidanceCard key={item.id} session={item} onViewDetails={handleViewDetails} />;
                 } else {
-                  return <NewsCard key={item.id} newsItem={item} />;
+                  return <NewsCard key={item.id} newsItem={item} onViewDetails={handleViewDetails} />;
                 }
               })}
             </div>
@@ -1024,41 +1967,44 @@ export default function GuidanceEventsView() {
         </div>
 
         {/* Quick Links/Resources */}
-        <div className="mt-12">
-          <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 md:p-8 text-white shadow-2xl">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-              <div>
-                <h3 className="text-xl font-bold mb-3">Need Assistance?</h3>
-                <p className="text-gray-300">
+        <div className="mt-8 md:mt-12">
+          <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl md:rounded-2xl p-4 md:p-6 lg:p-8 text-white shadow-lg md:shadow-2xl mobile-scroll-hide">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-6 md:mb-8">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3">Need Assistance?</h3>
+                <p className="text-gray-300 text-sm md:text-base">
                   Our guidance counselors and support staff are here to help with any concerns.
                 </p>
               </div>
-              <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
+              <button 
+                onClick={handleBookEmergency}
+                className="px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-lg md:rounded-xl hover:shadow-md md:hover:shadow-lg transition-all transform  mobile-touch-target mobile-full-width md:w-auto"
+              >
                 Book Appointment
               </button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white/10 p-5 rounded-xl backdrop-blur-sm">
-                <h4 className="font-bold mb-3 flex items-center gap-2">
-                  <FiMessageSquare /> Guidance Office
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+              <div className="bg-white/10 p-3 md:p-5 rounded-lg md:rounded-xl backdrop-blur-sm">
+                <h4 className="font-bold mb-2 md:mb-3 flex items-center gap-1 md:gap-2 text-sm md:text-base">
+                  <FiMessageSquare className="text-sm md:text-base" /> Guidance Office
                 </h4>
-                <p className="text-gray-300 text-sm">Room 12, Admin Block</p>
-                <p className="text-gray-300 text-sm">Mon-Fri: 8:00 AM - 4:00 PM</p>
+                <p className="text-gray-300 text-xs md:text-sm">Room 12, Admin Block</p>
+                <p className="text-gray-300 text-xs md:text-sm">Mon-Fri: 8:00 AM - 4:00 PM</p>
               </div>
-              <div className="bg-white/10 p-5 rounded-xl backdrop-blur-sm">
-                <h4 className="font-bold mb-3 flex items-center gap-2">
-                  <FiBell /> Contact
+              <div className="bg-white/10 p-3 md:p-5 rounded-lg md:rounded-xl backdrop-blur-sm">
+                <h4 className="font-bold mb-2 md:mb-3 flex items-center gap-1 md:gap-2 text-sm md:text-base">
+                  <FiBell className="text-sm md:text-base" /> Contact
                 </h4>
-                <p className="text-gray-300 text-sm">guidance@school.edu</p>
-                <p className="text-gray-300 text-sm">(123) 456-7890</p>
+                <p className="text-gray-300 text-xs md:text-sm">guidance@school.edu</p>
+                <p className="text-gray-300 text-xs md:text-sm">(123) 456-7890</p>
               </div>
-              <div className="bg-white/10 p-5 rounded-xl backdrop-blur-sm">
-                <h4 className="font-bold mb-3 flex items-center gap-2">
-                  <FiAlertCircle /> Emergency
+              <div className="bg-white/10 p-3 md:p-5 rounded-lg md:rounded-xl backdrop-blur-sm">
+                <h4 className="font-bold mb-2 md:mb-3 flex items-center gap-1 md:gap-2 text-sm md:text-base">
+                  <FiAlertCircle className="text-sm md:text-base" /> Emergency
                 </h4>
-                <p className="text-gray-300 text-sm">24/7 Student Support</p>
-                <p className="text-gray-300 text-sm">(123) 456-7891</p>
+                <p className="text-gray-300 text-xs md:text-sm">24/7 Student Support</p>
+                <p className="text-gray-300 text-xs md:text-sm">(123) 456-7891</p>
               </div>
             </div>
           </div>
@@ -1066,12 +2012,34 @@ export default function GuidanceEventsView() {
       </main>
 
       {/* Footer Note */}
-      <footer className="mt-12 py-6 border-t border-gray-200">
-        <div className="container mx-auto px-4 text-center text-gray-600 text-sm">
+      <footer className="mt-6 md:mt-12 py-4 md:py-6 border-t border-gray-200">
+        <div className="container mx-auto px-3 sm:px-4 text-center text-gray-600 text-xs md:text-sm">
           <p>© {new Date().getFullYear()} School Guidance & Events Portal. All rights reserved.</p>
           <p className="mt-1">Stay connected with school activities and support services.</p>
         </div>
       </footer>
+
+      {/* Detail Modal */}
+      {selectedItem && (
+        <DetailModal
+          item={selectedItem}
+          type={selectedItemType}
+          onClose={handleCloseModal}
+          onBookAppointment={handleBookAppointment}
+        />
+      )}
+
+      {/* Emergency Modal */}
+      {showEmergencyModal && (
+        <EmergencyModal
+          student={student}
+          onClose={handleCloseEmergencyModal}
+          onSubmit={() => {
+            // Success handling is done inside EmergencyModal
+            console.log('Emergency submitted');
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -81,6 +81,29 @@ const getFileIcon = (fileType, extension) => {
   return <FiFile className="text-gray-600" />;
 };
 
+// ==================== RESPONSIVE UTILITIES ====================
+
+// Custom CSS for hiding scrollbars on small screens
+const scrollbarHideStyles = `
+  @media (max-width: 767px) {
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .scrollbar-hide-sm::-webkit-scrollbar {
+      display: none;
+    }
+    
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .scrollbar-hide-sm {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+    
+    /* Ensure scrolling still works */
+    .scrollbar-hide-sm {
+      overflow: auto;
+    }
+  }
+`;
+
 // ==================== COMPONENTS ====================
 
 // Loading Spinner Component
@@ -94,34 +117,37 @@ function ResourcesLoadingSpinner({ message = "Loading resources...", size = "med
   const { outer, inner } = sizes[size];
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/20 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div className="text-center">
-        <div className="relative inline-block">
-          <div className="relative">
-            <CircularProgress 
-              size={outer} 
-              thickness={5}
-              className="text-blue-600"
-            />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full" style={{ width: inner, height: inner }}></div>
+    <>
+      <style>{scrollbarHideStyles}</style>
+      <div className="fixed inset-0 bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/20 flex items-center justify-center z-50 backdrop-blur-sm">
+        <div className="text-center">
+          <div className="relative inline-block">
+            <div className="relative">
+              <CircularProgress 
+                size={outer} 
+                thickness={5}
+                className="text-blue-600"
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full" style={{ width: inner, height: inner }}></div>
+              </div>
             </div>
+            <div className="absolute -inset-6 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full blur-xl opacity-30"></div>
           </div>
-          <div className="absolute -inset-6 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full blur-xl opacity-30"></div>
-        </div>
-        
-        <div className="mt-8 space-y-3">
-          <span className="block text-lg font-semibold text-gray-800">
-            {message}
-          </span>
-          <div className="flex justify-center space-x-1.5">
-            {[0, 1, 2].map(i => (
-              <div key={i} className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            ))}
+          
+          <div className="mt-8 space-y-3">
+            <span className="block text-lg font-semibold text-gray-800">
+              {message}
+            </span>
+            <div className="flex justify-center space-x-1.5">
+              {[0, 1, 2].map(i => (
+                <div key={i} className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -225,54 +251,54 @@ function AttachmentsSection({
   }
 
   return (
-    <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 md:p-6 border-2 border-gray-300">
-      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <IoDocumentAttach className="text-blue-500" />
-        {title} ({attachments.length})
+    <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-3 sm:p-4 md:p-6 border-2 border-gray-300">
+      <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+        <IoDocumentAttach className="text-blue-500 flex-shrink-0" />
+        <span className="truncate">{title} ({attachments.length})</span>
       </h3>
       
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         {attachments.map((attachment, index) => (
           <div 
             key={index} 
-            className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-300 hover:border-blue-400 transition-colors group"
+            className="flex items-center justify-between p-2 sm:p-3 bg-white rounded-lg border border-gray-300 hover:border-blue-400 transition-colors group"
           >
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="p-2 bg-gray-100 rounded-lg">
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+              <div className="p-1.5 sm:p-2 bg-gray-100 rounded-lg flex-shrink-0">
                 {getFileIcon(attachment.fileType, attachment.extension)}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-gray-900 text-sm truncate">
+                <div className="font-medium text-gray-900 text-xs sm:text-sm truncate">
                   {attachment.fileName}
                 </div>
-                <div className="text-xs text-gray-600 flex items-center gap-2 mt-1">
-                  <span className="bg-gray-200 px-2 py-0.5 rounded">
+                <div className="text-xs text-gray-600 flex flex-wrap items-center gap-1 sm:gap-2 mt-0.5 sm:mt-1">
+                  <span className="bg-gray-200 px-1.5 py-0.5 rounded text-xs">
                     {attachment.fileType || attachment.extension?.toUpperCase() || 'File'}
                   </span>
                   {attachment.fileSize && (
-                    <span>{attachment.fileSize}</span>
+                    <span className="text-xs">{attachment.fileSize}</span>
                   )}
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 ml-3 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-3 shrink-0">
               <a
                 href={attachment.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
                 title="Preview"
               >
-                <FiEye size={16} />
+                <FiEye size={14} className="sm:size-4" />
               </a>
               <a
                 href={attachment.url}
                 download={attachment.fileName}
-                className="p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 title="Download"
               >
-                <FiDownload size={16} />
+                <FiDownload size={14} className="sm:size-4" />
               </a>
             </div>
           </div>
@@ -292,12 +318,12 @@ function ResourceStatsCard({ title, value, icon: Icon, color, trend = 0, prefix 
   };
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-6 border-2 border-gray-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
-      <div className="flex items-center justify-between mb-3 md:mb-4">
-        <div className={`p-2 md:p-3 rounded-xl bg-gradient-to-r ${color}`}>
-          <Icon className="text-white text-xl md:text-2xl" />
+    <div className="bg-white rounded-2xl p-3 sm:p-4 md:p-6 border-2 border-gray-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+      <div className="flex items-center justify-between mb-2 sm:mb-3 md:mb-4">
+        <div className={`p-1.5 sm:p-2 md:p-3 rounded-xl bg-gradient-to-r ${color} flex-shrink-0`}>
+          <Icon className="text-white text-lg sm:text-xl md:text-2xl" />
         </div>
-        <div className={`text-xs md:text-sm font-bold px-2 py-1 md:px-3 md:py-1 rounded-lg ${
+        <div className={`text-xs px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg font-bold ${
           trend > 0 
             ? 'bg-green-100 text-green-800' 
             : trend < 0 
@@ -307,10 +333,10 @@ function ResourceStatsCard({ title, value, icon: Icon, color, trend = 0, prefix 
           {trend > 0 ? `+${trend}%` : trend < 0 ? `${trend}%` : '0%'}
         </div>
       </div>
-      <h4 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">{formatValue(value)}</h4>
-      <p className="text-gray-900 text-xs md:text-sm font-semibold">{title}</p>
+      <h4 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">{formatValue(value)}</h4>
+      <p className="text-gray-900 text-xs sm:text-sm font-semibold truncate">{title}</p>
       {description && (
-        <p className="text-gray-600 text-xs mt-1">{description}</p>
+        <p className="text-gray-600 text-xs mt-0.5 truncate">{description}</p>
       )}
     </div>
   );
@@ -336,23 +362,23 @@ function ResourceAssignmentCard({ item, type = 'resource', isStudentClass = fals
     >
       {isStudentClass && (
         <div className="absolute top-0 right-0">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white text-xs px-3 py-1 rounded-bl-lg font-bold shadow-lg">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white text-xs px-2 py-0.5 sm:px-3 sm:py-1 rounded-bl-lg font-bold shadow-lg">
             Your Class
           </div>
         </div>
       )}
 
       {isOverdue && (
-        <div className="absolute top-0 left-0 w-full bg-gradient-to-r from-rose-500 to-rose-600 text-white text-xs px-3 py-1 text-center font-bold">
+        <div className="absolute top-0 left-0 w-full bg-gradient-to-r from-rose-500 to-rose-600 text-white text-xs px-2 py-0.5 text-center font-bold">
           ⚠️ Overdue
         </div>
       )}
 
-      <div className="p-4 md:p-5">
+      <div className="p-3 sm:p-4 md:p-5">
         {/* Header */}
-        <div className="flex items-start justify-between mb-3 md:mb-4">
-          <div className="flex items-start gap-3">
-            <div className={`p-2 md:p-3 rounded-xl ${
+        <div className="flex items-start justify-between mb-2 sm:mb-3 md:mb-4">
+          <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+            <div className={`p-1.5 sm:p-2 md:p-3 rounded-xl flex-shrink-0 ${
               isResource 
                 ? 'bg-blue-50' 
                 : item.status === 'completed' 
@@ -360,44 +386,44 @@ function ResourceAssignmentCard({ item, type = 'resource', isStudentClass = fals
                   : 'bg-amber-50'
             }`}>
               {isResource ? (
-                <ResourceTypeIcon type={item.type} size={20} />
+                <ResourceTypeIcon type={item.type} size={16} className="sm:size-5" />
               ) : (
-                <FiBook className={item.status === 'completed' ? 'text-emerald-500' : 'text-amber-500'} size={20} />
+                <FiBook className={`${item.status === 'completed' ? 'text-emerald-500' : 'text-amber-500'} size-4 sm:size-5`} />
               )}
             </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-gray-900 text-sm md:text-base line-clamp-2">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-gray-900 text-sm sm:text-base line-clamp-2">
                 {item.title}
               </h3>
-              <p className="text-xs text-gray-600 mt-1">
+              <p className="text-xs text-gray-600 mt-0.5 truncate">
                 {isResource ? item.subject : `${item.subject} • ${item.teacher}`}
               </p>
             </div>
           </div>
           {!isResource && (
-            <div className="ml-2">
+            <div className="ml-2 flex-shrink-0">
               <StatusBadge status={item.status} size="sm" />
             </div>
           )}
         </div>
 
         {/* Details */}
-        <div className="space-y-2 text-sm text-gray-600 mb-3 md:mb-4">
+        <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 md:mb-4">
           {!isResource && (
-            <div className="flex items-center gap-2">
-              <FiCalendar size={14} className="text-blue-500" />
-              <span className="text-xs">Due: {new Date(item.dueDate).toLocaleDateString()}</span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <FiCalendar size={12} className="sm:size-4 text-blue-500 flex-shrink-0" />
+              <span className="text-xs truncate">Due: {new Date(item.dueDate).toLocaleDateString()}</span>
             </div>
           )}
-          <div className="flex items-center gap-2">
-            <IoSchool size={14} className="text-purple-500" />
-            <span className="text-xs">{item.className}</span>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <IoSchool size={12} className="sm:size-4 text-purple-500 flex-shrink-0" />
+            <span className="text-xs truncate">{item.className}</span>
           </div>
           
           {/* Attachment Indicators */}
           {totalAttachments > 0 && (
-            <div className="flex items-center gap-2">
-              <IoDocumentAttach size={14} className="text-green-500" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <IoDocumentAttach size={12} className="sm:size-4 text-green-500 flex-shrink-0" />
               <span className="text-xs">
                 {totalAttachments} {totalAttachments === 1 ? 'attachment' : 'attachments'}
               </span>
@@ -405,36 +431,36 @@ function ResourceAssignmentCard({ item, type = 'resource', isStudentClass = fals
           )}
           
           {isResource && item.fileSize && (
-            <div className="flex items-center gap-2">
-              <FiFile size={14} className="text-gray-500" />
-              <span className="text-xs">{item.fileSize}</span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <FiFile size={12} className="sm:size-4 text-gray-500 flex-shrink-0" />
+              <span className="text-xs truncate">{item.fileSize}</span>
             </div>
           )}
         </div>
 
         {/* Description */}
         {item.description && (
-          <p className="text-xs text-gray-700 mb-3 md:mb-4 line-clamp-2">
+          <p className="text-xs text-gray-700 mb-2 sm:mb-3 md:mb-4 line-clamp-2">
             {item.description}
           </p>
         )}
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex flex-col xs:flex-row gap-2">
           <button
             onClick={() => onView?.(item)}
-            className="flex-1 py-2 md:py-2.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 rounded-xl text-xs md:text-sm font-semibold hover:from-blue-100 hover:to-blue-200 transition-all flex items-center justify-center gap-2"
+            className="w-full xs:flex-1 py-1.5 sm:py-2 md:py-2.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 rounded-xl text-xs sm:text-sm font-semibold hover:from-blue-100 hover:to-blue-200 transition-all flex items-center justify-center gap-1.5"
           >
-            <FiEye size={12} />
+            <FiEye size={12} className="sm:size-4" />
             {isResource ? 'Preview' : 'View Details'}
           </button>
           <button
             onClick={() => onDownload?.(item)}
-            className="px-3 py-2 md:py-2.5 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-xl text-xs md:text-sm font-semibold hover:from-gray-100 hover:to-gray-200 transition-all flex items-center justify-center gap-2"
+            className="w-full xs:w-auto px-3 py-1.5 sm:py-2 md:py-2.5 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-xl text-xs sm:text-sm font-semibold hover:from-gray-100 hover:to-gray-200 transition-all flex items-center justify-center gap-1.5"
           >
-            <FiDownload size={12} />
+            <FiDownload size={12} className="sm:size-4" />
             {totalAttachments > 0 && (
-              <span className="ml-1">({totalAttachments})</span>
+              <span className="ml-0.5">({totalAttachments})</span>
             )}
           </button>
         </div>
@@ -451,177 +477,180 @@ function ResourceDetailsModal({ item, type = 'resource', onClose, onDownload }) 
   const isOverdue = !isResource && new Date(item.dueDate) < new Date() && item.status !== 'completed';
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border-2 border-gray-300 shadow-2xl">
-        {/* Header */}
-        <div className={`p-4 md:p-6 text-white ${
-          isResource 
-            ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800' 
-            : 'bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-800'
-        }`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 md:gap-4">
-              <div className="p-2 md:p-3 bg-white/20 rounded-2xl">
-                {isResource ? (
-                  <ResourceTypeIcon type={item.type} size={24} />
-                ) : (
-                  <FiBook className="text-white" size={24} />
-                )}
+    <>
+      <style>{scrollbarHideStyles}</style>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
+        <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border-2 border-gray-300 shadow-2xl">
+          {/* Header */}
+          <div className={`p-3 sm:p-4 md:p-6 text-white ${
+            isResource 
+              ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800' 
+              : 'bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-800'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-1 min-w-0">
+                <div className="p-1.5 sm:p-2 md:p-3 bg-white/20 rounded-2xl flex-shrink-0">
+                  {isResource ? (
+                    <ResourceTypeIcon type={item.type} size={20} className="sm:size-6" />
+                  ) : (
+                    <FiBook className="text-white size-5 sm:size-6" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-base sm:text-lg md:text-2xl font-bold truncate">{item.title}</h2>
+                  <p className="opacity-90 text-xs sm:text-sm mt-0.5 truncate">
+                    {isResource ? `${item.type} • ${item.subject}` : `${item.subject} • ${item.teacher}`}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-lg md:text-2xl font-bold">{item.title}</h2>
-                <p className="opacity-90 text-xs md:text-sm mt-1">
-                  {isResource ? `${item.type} • ${item.subject}` : `${item.subject} • ${item.teacher}`}
-                </p>
-              </div>
+              <button 
+                onClick={onClose}
+                className="p-1.5 sm:p-2 bg-white/20 rounded-2xl hover:bg-white/30 transition-colors flex-shrink-0 ml-2"
+              >
+                <IoClose className="text-lg sm:text-xl" />
+              </button>
             </div>
-            <button 
-              onClick={onClose}
-              className="p-2 bg-white/20 rounded-2xl hover:bg-white/30 transition-colors"
-            >
-              <IoClose className="text-lg md:text-xl" />
-            </button>
-          </div>
-        </div>
-
-        <div className="max-h-[calc(90vh-80px)] overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6">
-          {/* Status & Class Badges */}
-          <div className="flex flex-wrap gap-2">
-            {!isResource && <StatusBadge status={item.status} size="md" />}
-            <span className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 rounded-full text-sm font-semibold">
-              {item.className}
-            </span>
-            {isResource && (
-              <span className="px-3 py-1.5 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-full text-sm font-semibold">
-                {item.type}
-              </span>
-            )}
-            {isOverdue && (
-              <span className="px-3 py-1.5 bg-gradient-to-r from-rose-100 to-rose-200 text-rose-800 rounded-full text-sm font-semibold">
-                ⚠️ Overdue
-              </span>
-            )}
           </div>
 
-          {/* Details Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="max-h-[calc(90vh-72px)] sm:max-h-[calc(90vh-80px)] overflow-y-auto scrollbar-hide-sm p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
+            {/* Status & Class Badges */}
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              {!isResource && <StatusBadge status={item.status} size="sm" className="sm:size-md" />}
+              <span className="px-2 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 rounded-full text-xs sm:text-sm font-semibold">
+                {item.className}
+              </span>
+              {isResource && (
+                <span className="px-2 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-full text-xs sm:text-sm font-semibold">
+                  {item.type}
+                </span>
+              )}
+              {isOverdue && (
+                <span className="px-2 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-rose-100 to-rose-200 text-rose-800 rounded-full text-xs sm:text-sm font-semibold">
+                  ⚠️ Overdue
+                </span>
+              )}
+            </div>
+
+            {/* Details Grid */}
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+              {!isResource && (
+                <>
+                  <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-xl border border-gray-200">
+                    <div className="text-xs sm:text-sm font-semibold text-gray-700">Due Date</div>
+                    <div className="text-sm sm:text-base md:text-lg font-bold text-gray-900 mt-0.5 sm:mt-1">
+                      {new Date(item.dueDate).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-xl border border-gray-200">
+                    <div className="text-xs sm:text-sm font-semibold text-gray-700">Teacher</div>
+                    <div className="text-sm sm:text-base md:text-lg font-bold text-gray-900 mt-0.5 sm:mt-1 truncate">{item.teacher}</div>
+                  </div>
+                </>
+              )}
+              <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="text-xs sm:text-sm font-semibold text-gray-700">Subject</div>
+                <div className="text-sm sm:text-base md:text-lg font-bold text-gray-900 mt-0.5 sm:mt-1 truncate">{item.subject}</div>
+              </div>
+              {isResource && item.fileSize && (
+                <div className="text-center p-2 sm:p-3 bg-gray-50 rounded-xl border border-gray-200">
+                  <div className="text-xs sm:text-sm font-semibold text-gray-700">File Size</div>
+                  <div className="text-sm sm:text-base md:text-lg font-bold text-gray-900 mt-0.5 sm:mt-1">{item.fileSize}</div>
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
+            {item.description && (
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-3 sm:p-4 md:p-6 border-2 border-gray-300">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3">Description</h3>
+                <p className="text-gray-700 text-sm sm:text-base whitespace-pre-line">{item.description}</p>
+              </div>
+            )}
+
+            {/* Instructions for Assignments */}
+            {!isResource && item.instructions && (
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4 md:p-6 border-2 border-blue-300">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3 flex items-center gap-1.5">
+                  <FiInfo className="text-blue-500 flex-shrink-0" />
+                  <span>Assignment Instructions</span>
+                </h3>
+                <p className="text-gray-700 text-sm sm:text-base whitespace-pre-line">{item.instructions}</p>
+              </div>
+            )}
+
+            {/* ATTACHMENTS SECTIONS */}
+            
+            {/* Resource Attachment */}
+            {isResource && item.mainAttachment && (
+              <AttachmentsSection
+                title="File Attachment"
+                attachments={[item.mainAttachment]}
+              />
+            )}
+
+            {/* Assignment Files */}
             {!isResource && (
               <>
-                <div className="text-center p-3 bg-gray-50 rounded-xl border border-gray-200">
-                  <div className="text-xs md:text-sm font-semibold text-gray-700">Due Date</div>
-                  <div className="text-base md:text-lg font-bold text-gray-900 mt-1">
-                    {new Date(item.dueDate).toLocaleDateString()}
-                  </div>
-                </div>
-                <div className="text-center p-3 bg-gray-50 rounded-xl border border-gray-200">
-                  <div className="text-xs md:text-sm font-semibold text-gray-700">Teacher</div>
-                  <div className="text-base md:text-lg font-bold text-gray-900 mt-1">{item.teacher}</div>
-                </div>
+                {(item.assignmentFileAttachments?.length || 0) > 0 && (
+                  <AttachmentsSection
+                    title="Assignment Files"
+                    attachments={item.assignmentFileAttachments || []}
+                  />
+                )}
+                
+                {(item.attachmentAttachments?.length || 0) > 0 && (
+                  <AttachmentsSection
+                    title="Additional Attachments"
+                    attachments={item.attachmentAttachments || []}
+                  />
+                )}
               </>
             )}
-            <div className="text-center p-3 bg-gray-50 rounded-xl border border-gray-200">
-              <div className="text-xs md:text-sm font-semibold text-gray-700">Subject</div>
-              <div className="text-base md:text-lg font-bold text-gray-900 mt-1">{item.subject}</div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
+              {/* Close Button */}
+              <button
+                onClick={onClose}
+                className="
+                  w-full sm:w-auto
+                  px-3 sm:px-4 py-2 sm:py-3
+                  bg-gradient-to-r from-gray-100 to-gray-200
+                  text-gray-700
+                  rounded-xl
+                  font-bold text-xs sm:text-sm
+                  hover:from-gray-200 hover:to-gray-300
+                  transition-all
+                  flex items-center justify-center gap-1.5 sm:gap-2
+                "
+              >
+                <FiArrowRight className="rotate-180 text-sm sm:text-base" />
+                <span>Close</span>
+              </button>
+
+              {/* Download Button */}
+              <button
+                onClick={() => onDownload?.(item)}
+                className="
+                  w-full sm:w-auto
+                  px-3 sm:px-4 py-2 sm:py-3
+                  bg-gradient-to-r from-blue-600 to-blue-800
+                  text-white
+                  rounded-xl
+                  font-bold text-xs sm:text-sm
+                  shadow-lg hover:shadow-xl
+                  transition-all
+                  flex items-center justify-center gap-1.5 sm:gap-2
+                "
+              >
+                <FiDownload className="text-sm sm:text-base" />
+                <span>Download</span>
+              </button>
             </div>
-            {isResource && item.fileSize && (
-              <div className="text-center p-3 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="text-xs md:text-sm font-semibold text-gray-700">File Size</div>
-                <div className="text-base md:text-lg font-bold text-gray-900 mt-1">{item.fileSize}</div>
-              </div>
-            )}
-          </div>
-
-          {/* Description */}
-          {item.description && (
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 md:p-6 border-2 border-gray-300">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Description</h3>
-              <p className="text-gray-700 whitespace-pre-line">{item.description}</p>
-            </div>
-          )}
-
-          {/* Instructions for Assignments */}
-          {!isResource && item.instructions && (
-            <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 md:p-6 border-2 border-blue-300">
-              <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <FiInfo className="text-blue-500" />
-                Assignment Instructions
-              </h3>
-              <p className="text-gray-700 whitespace-pre-line">{item.instructions}</p>
-            </div>
-          )}
-
-          {/* ATTACHMENTS SECTIONS */}
-          
-          {/* Resource Attachment */}
-          {isResource && item.mainAttachment && (
-            <AttachmentsSection
-              title="File Attachment"
-              attachments={[item.mainAttachment]}
-            />
-          )}
-
-          {/* Assignment Files */}
-          {!isResource && (
-            <>
-              {(item.assignmentFileAttachments?.length || 0) > 0 && (
-                <AttachmentsSection
-                  title="Assignment Files"
-                  attachments={item.assignmentFileAttachments || []}
-                />
-              )}
-              
-              {(item.attachmentAttachments?.length || 0) > 0 && (
-                <AttachmentsSection
-                  title="Additional Attachments"
-                  attachments={item.attachmentAttachments || []}
-                />
-              )}
-            </>
-          )}
-
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 w-full">
-            {/* Close Button */}
-            <button
-              onClick={onClose}
-              className="
-                w-full sm:w-auto
-                px-4 py-3
-                bg-gradient-to-r from-gray-100 to-gray-200
-                text-gray-700
-                rounded-xl
-                font-bold text-sm
-                hover:from-gray-200 hover:to-gray-300
-                transition-all
-                flex items-center justify-center gap-2
-              "
-            >
-              <FiArrowRight className="rotate-180 text-base" />
-              Close
-            </button>
-
-            {/* Download Button */}
-            <button
-              onClick={() => onDownload?.(item)}
-              className="
-                w-full sm:w-auto
-                px-4 py-3
-                bg-gradient-to-r from-blue-600 to-blue-800
-                text-white
-                rounded-xl
-                font-bold text-sm
-                shadow-lg hover:shadow-xl
-                transition-all
-                flex items-center justify-center gap-2
-              "
-            >
-              <FiDownload className="text-base" />
-              Download
-            </button>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -926,413 +955,416 @@ export default function ModernResourcesAssignmentsView({
   }
 
   return (
-    <div className="space-y-4 md:space-y-6 p-3 md:p-6">
-      {/* Header */}
-      <div className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 rounded-2xl p-4 md:p-6 text-white overflow-hidden">
-        <div className="relative z-10">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-2xl">
-                <IoDocumentsOutline className="text-xl md:text-2xl text-yellow-300" />
-              </div>
-              <div>
-                <h1 className="text-xl md:text-3xl font-bold">Learning Resources & Assignments</h1>
-                <p className="text-blue-100 text-sm md:text-lg mt-1">
-                  Access study materials and track your academic work
-                  {student?.form && (
-                    <span className="ml-2 text-yellow-300 font-semibold">
-                      (Form {student.form} {student.stream || ''})
-                    </span>
-                  )}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleRefresh}
-              disabled={isLoading}
-              className="mt-2 md:mt-0 px-4 py-2 md:px-6 md:py-3 bg-white/20 text-white rounded-xl font-bold text-sm md:text-base hover:bg-white/30 disabled:opacity-50 flex items-center gap-2 justify-center"
-            >
-              <FiRefreshCw className={isLoading ? 'animate-spin' : ''} />
-              {isLoading ? 'Refreshing...' : 'Refresh'}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-        <ResourceStatsCard
-          title="Total Assignments"
-          value={stats.totalAssignments}
-          icon={FiBook}
-          color="from-purple-500 to-purple-700"
-          trend={stats.totalAssignments > 0 ? Math.round((stats.pendingAssignments / stats.totalAssignments) * 100) : 0}
-          description={`${stats.pendingAssignments} pending`}
-        />
-        <ResourceStatsCard
-          title="Learning Resources"
-          value={stats.totalResources}
-          icon={IoDocumentsOutline}
-          color="from-blue-500 to-blue-700"
-          trend={stats.pdfResources}
-          suffix=" PDFs"
-          description="Study materials available"
-        />
-        <ResourceStatsCard
-          title="Completion Rate"
-          value={stats.averageCompletion}
-          icon={FiCheckCircle}
-          color="from-emerald-500 to-emerald-700"
-          trend={stats.averageCompletion}
-          suffix="%"
-          description="Assignments completed"
-        />
-      </div>
-
-      {/* Tabs & Filters */}
-      <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 border-2 border-gray-200">
-        <div className="flex flex-col gap-3 md:gap-4">
-          {/* Tabs */}
-          <div className="flex border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab('assignments')}
-              className={`flex-1 py-2 md:py-3 text-center font-bold text-sm md:text-base border-b-2 ${
-                activeTab === 'assignments'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <FiBook />
-                Assignments ({assignments.length})
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('resources')}
-              className={`flex-1 py-2 md:py-3 text-center font-bold text-sm md:text-base border-b-2 ${
-                activeTab === 'resources'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <IoDocumentsOutline />
-                Resources ({resources.length})
-              </div>
-            </button>
-          </div>
-
-          {/* Search and Controls */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="flex-1">
-              <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder={`Search ${activeTab === 'assignments' ? 'assignments' : 'resources'}...`}
-                  className="w-full pl-12 pr-10 py-2.5 md:py-3 border-2 border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <FiX />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex bg-gray-100 rounded-lg p-0.5">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 ${
-                    viewMode === 'grid' 
-                      ? 'bg-white text-gray-900 shadow-sm' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  <FiGrid size={12} />
-                  Grid
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 ${
-                    viewMode === 'list' 
-                      ? 'bg-white text-gray-900 shadow-sm' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  <FiList size={12} />
-                  List
-                </button>
+    <>
+      <style>{scrollbarHideStyles}</style>
+      <div className="space-y-3 sm:space-y-4 md:space-y-6 p-3 sm:p-4 md:p-6">
+        {/* Header */}
+        <div className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 rounded-2xl p-3 sm:p-4 md:p-6 text-white overflow-hidden">
+          <div className="relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 md:gap-0">
+              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                <div className="p-1.5 sm:p-2 bg-white/20 rounded-2xl flex-shrink-0">
+                  <IoDocumentsOutline className="text-lg sm:text-xl md:text-2xl text-yellow-300" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-lg sm:text-xl md:text-3xl font-bold truncate">Learning Resources & Assignments</h1>
+                  <p className="text-blue-100 text-xs sm:text-sm md:text-lg mt-0.5 truncate">
+                    Access study materials and track your academic work
+                    {student?.form && (
+                      <span className="ml-1 sm:ml-2 text-yellow-300 font-semibold">
+                        (Form {student.form} {student.stream || ''})
+                      </span>
+                    )}
+                  </p>
+                </div>
               </div>
               <button
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="p-2 border-2 border-gray-300 rounded-xl text-gray-600 hover:text-gray-900"
+                onClick={handleRefresh}
+                disabled={isLoading}
+                className="mt-2 sm:mt-0 px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-3 bg-white/20 text-white rounded-xl font-bold text-xs sm:text-sm md:text-base hover:bg-white/30 disabled:opacity-50 flex items-center gap-1.5 justify-center"
               >
-                <FiFilter />
+                <FiRefreshCw className={`${isLoading ? 'animate-spin' : ''} text-sm sm:text-base`} />
+                {isLoading ? 'Refreshing...' : 'Refresh'}
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Advanced Filters */}
-          {showAdvancedFilters && (
-            <div className="pt-3 border-t border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Class</label>
-                  <select
-                    value={selectedClass}
-                    onChange={(e) => setSelectedClass(e.target.value)}
-                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                  >
-                    {classes.map(cls => (
-                      <option key={cls} value={cls}>
-                        {cls === 'all' ? 'All Classes' : cls}
-                      </option>
-                    ))}
-                  </select>
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+          <ResourceStatsCard
+            title="Total Assignments"
+            value={stats.totalAssignments}
+            icon={FiBook}
+            color="from-purple-500 to-purple-700"
+            trend={stats.totalAssignments > 0 ? Math.round((stats.pendingAssignments / stats.totalAssignments) * 100) : 0}
+            description={`${stats.pendingAssignments} pending`}
+          />
+          <ResourceStatsCard
+            title="Learning Resources"
+            value={stats.totalResources}
+            icon={IoDocumentsOutline}
+            color="from-blue-500 to-blue-700"
+            trend={stats.pdfResources}
+            suffix=" PDFs"
+            description="Study materials available"
+          />
+          <ResourceStatsCard
+            title="Completion Rate"
+            value={stats.averageCompletion}
+            icon={FiCheckCircle}
+            color="from-emerald-500 to-emerald-700"
+            trend={stats.averageCompletion}
+            suffix="%"
+            description="Assignments completed"
+          />
+        </div>
+
+        {/* Tabs & Filters */}
+        <div className="bg-white rounded-xl md:rounded-2xl p-2 sm:p-3 md:p-4 border-2 border-gray-200">
+          <div className="flex flex-col gap-2 sm:gap-3 md:gap-4">
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200">
+              <button
+                onClick={() => setActiveTab('assignments')}
+                className={`flex-1 py-1.5 sm:py-2 md:py-3 text-center font-bold text-xs sm:text-sm md:text-base border-b-2 ${
+                  activeTab === 'assignments'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-1 sm:gap-2">
+                  <FiBook className="text-sm sm:text-base" />
+                  <span className="truncate">Assignments ({assignments.length})</span>
                 </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Subject</label>
-                  <select
-                    value={selectedSubject}
-                    onChange={(e) => setSelectedSubject(e.target.value)}
-                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                  >
-                    {subjects.map(subject => (
-                      <option key={subject} value={subject}>
-                        {subject === 'all' ? 'All Subjects' : subject}
-                      </option>
-                    ))}
-                  </select>
+              </button>
+              <button
+                onClick={() => setActiveTab('resources')}
+                className={`flex-1 py-1.5 sm:py-2 md:py-3 text-center font-bold text-xs sm:text-sm md:text-base border-b-2 ${
+                  activeTab === 'resources'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-1 sm:gap-2">
+                  <IoDocumentsOutline className="text-sm sm:text-base" />
+                  <span className="truncate">Resources ({resources.length})</span>
                 </div>
+              </button>
+            </div>
 
-                {activeTab === 'assignments' ? (
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Status</label>
-                    <select
-                      value={selectedStatus}
-                      onChange={(e) => setSelectedStatus(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                    >
-                      {statuses.map(status => (
-                        <option key={status.id} value={status.id}>
-                          {status.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Resource Type</label>
-                    <select
-                      value={selectedResourceType}
-                      onChange={(e) => setSelectedResourceType(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                    >
-                      {resourceTypes.map(type => (
-                        <option key={type.id} value={type.id}>
-                          {type.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                <div className="flex items-end">
-                  {(selectedClass !== 'all' || selectedSubject !== 'all' || 
-                    selectedStatus !== 'all' || selectedResourceType !== 'all' || searchTerm) && (
+            {/* Search and Controls */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
+              <div className="flex-1 w-full">
+                <div className="relative">
+                  <FiSearch className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm sm:text-lg" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder={`Search ${activeTab === 'assignments' ? 'assignments' : 'resources'}...`}
+                    className="w-full pl-9 sm:pl-12 pr-8 sm:pr-10 py-1.5 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  />
+                  {searchTerm && (
                     <button
-                      onClick={clearFilters}
-                      className="w-full px-3 py-2 bg-gradient-to-r from-red-50 to-red-100 text-red-600 rounded-lg text-sm font-bold hover:from-red-100 hover:to-red-200 transition-all flex items-center justify-center gap-2"
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
-                      <FiX />
-                      Clear Filters
+                      <FiX className="text-sm sm:text-base" />
                     </button>
                   )}
                 </div>
               </div>
+
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="flex bg-gray-100 rounded-lg p-0.5">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-md text-xs font-bold flex items-center gap-0.5 sm:gap-1 ${
+                      viewMode === 'grid' 
+                        ? 'bg-white text-gray-900 shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <FiGrid size={10} className="sm:size-3" />
+                    <span className="hidden xs:inline">Grid</span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-md text-xs font-bold flex items-center gap-0.5 sm:gap-1 ${
+                      viewMode === 'list' 
+                        ? 'bg-white text-gray-900 shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <FiList size={10} className="sm:size-3" />
+                    <span className="hidden xs:inline">List</span>
+                  </button>
+                </div>
+                <button
+                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                  className="p-1.5 sm:p-2 border-2 border-gray-300 rounded-xl text-gray-600 hover:text-gray-900"
+                >
+                  <FiFilter className="text-sm sm:text-base" />
+                </button>
+              </div>
+            </div>
+
+            {/* Advanced Filters */}
+            {showAdvancedFilters && (
+              <div className="pt-2 sm:pt-3 border-t border-gray-200">
+                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-0.5 sm:mb-1">Class</label>
+                    <select
+                      value={selectedClass}
+                      onChange={(e) => setSelectedClass(e.target.value)}
+                      className="w-full px-2 py-1.5 sm:px-3 sm:py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                    >
+                      {classes.map(cls => (
+                        <option key={cls} value={cls}>
+                          {cls === 'all' ? 'All Classes' : cls}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-0.5 sm:mb-1">Subject</label>
+                    <select
+                      value={selectedSubject}
+                      onChange={(e) => setSelectedSubject(e.target.value)}
+                      className="w-full px-2 py-1.5 sm:px-3 sm:py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                    >
+                      {subjects.map(subject => (
+                        <option key={subject} value={subject}>
+                          {subject === 'all' ? 'All Subjects' : subject}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {activeTab === 'assignments' ? (
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-0.5 sm:mb-1">Status</label>
+                      <select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="w-full px-2 py-1.5 sm:px-3 sm:py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                      >
+                        {statuses.map(status => (
+                          <option key={status.id} value={status.id}>
+                            {status.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-0.5 sm:mb-1">Resource Type</label>
+                      <select
+                        value={selectedResourceType}
+                        onChange={(e) => setSelectedResourceType(e.target.value)}
+                        className="w-full px-2 py-1.5 sm:px-3 sm:py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                      >
+                        {resourceTypes.map(type => (
+                          <option key={type.id} value={type.id}>
+                            {type.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div className="flex items-end">
+                    {(selectedClass !== 'all' || selectedSubject !== 'all' || 
+                      selectedStatus !== 'all' || selectedResourceType !== 'all' || searchTerm) && (
+                      <button
+                        onClick={clearFilters}
+                        className="w-full px-2 py-1.5 sm:px-3 sm:py-2 bg-gradient-to-r from-red-50 to-red-100 text-red-600 rounded-lg text-xs sm:text-sm font-bold hover:from-red-100 hover:to-red-200 transition-all flex items-center justify-center gap-1 sm:gap-2"
+                      >
+                        <FiX className="text-sm" />
+                        <span>Clear Filters</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div>
+          {/* Results Summary */}
+          <div className="mb-2 sm:mb-3 md:mb-4">
+            <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-0.5 sm:mb-1 truncate">
+              {activeTab === 'assignments' ? 'Your Assignments' : 'Learning Resources'}
+            </h3>
+            <p className="text-gray-600 text-xs sm:text-sm truncate">
+              {filteredCount} of {totalItems} items • {searchTerm && `Search: "${searchTerm}"`}
+              {isLoading && <span className="ml-1 sm:ml-2 text-blue-600">Loading...</span>}
+            </p>
+          </div>
+
+          {/* Empty State */}
+          {filteredCount === 0 && !isLoading ? (
+            <div className="bg-white rounded-xl md:rounded-2xl border-2 border-gray-300 p-4 sm:p-6 md:p-8 text-center">
+              <IoDocumentsOutline className="text-gray-300 text-xl sm:text-2xl md:text-4xl mx-auto mb-2 sm:mb-4" />
+              <h3 className="text-sm sm:text-base md:text-xl font-bold text-gray-800 mb-1 sm:mb-2">
+                No {activeTab === 'assignments' ? 'assignments' : 'resources'} found
+              </h3>
+              <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4">
+                {searchTerm ? 'Try a different search term' : 
+                 selectedClass !== 'all' || selectedSubject !== 'all' || 
+                 selectedStatus !== 'all' || selectedResourceType !== 'all' 
+                 ? 'Try adjusting your filters' 
+                 : `No ${activeTab === 'assignments' ? 'assignments' : 'resources'} available yet`}
+              </p>
+              {(searchTerm || selectedClass !== 'all' || selectedSubject !== 'all' || 
+                selectedStatus !== 'all' || selectedResourceType !== 'all') && (
+                <button
+                  onClick={clearFilters}
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg font-bold text-xs sm:text-sm hover:shadow-lg"
+                >
+                  Clear All Filters
+                </button>
+              )}
+            </div>
+          ) : viewMode === 'grid' ? (
+            // Grid View
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+              {currentItems.map((item, index) => (
+                <ResourceAssignmentCard
+                  key={index}
+                  item={item}
+                  type={activeTab}
+                  isStudentClass={item.priority === 1}
+                  onView={handleViewDetails}
+                  onDownload={handleDownload}
+                />
+              ))}
+            </div>
+          ) : (
+            // List View
+            <div className="bg-white rounded-xl md:rounded-2xl border-2 border-gray-200 overflow-hidden">
+              <div className="overflow-x-auto scrollbar-hide-sm">
+                <table className="w-full min-w-[600px]">
+                  <thead className="bg-gradient-to-r from-gray-50 to-white border-b-2 border-gray-200">
+                    <tr>
+                      <th className="px-2 sm:px-3 md:px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase">Title</th>
+                      <th className="px-2 sm:px-3 md:px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase">Subject</th>
+                      <th className="px-2 sm:px-3 md:px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase">Class</th>
+                      {activeTab === 'assignments' ? (
+                        <>
+                          <th className="px-2 sm:px-3 md:px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase">Due Date</th>
+                          <th className="px-2 sm:px-3 md:px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase">Status</th>
+                        </>
+                      ) : (
+                        <th className="px-2 sm:px-3 md:px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase">Type</th>
+                      )}
+                      <th className="px-2 sm:px-3 md:px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase">Attachments</th>
+                      <th className="px-2 sm:px-3 md:px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {currentItems.map((item, index) => {
+                      const totalAttachments = activeTab === 'assignments' 
+                        ? ((item.assignmentFileAttachments?.length || 0) + 
+                          (item.attachmentAttachments?.length || 0))
+                        : item.mainAttachment ? 1 : 0;
+                      
+                      return (
+                        <tr key={index} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-2 sm:px-3 md:px-4 py-2">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              <div className={`p-1 sm:p-1.5 rounded-lg flex-shrink-0 ${
+                                activeTab === 'assignments'
+                                  ? 'bg-amber-50'
+                                  : 'bg-blue-50'
+                              }`}>
+                                {activeTab === 'assignments' ? (
+                                  <FiBook className="text-amber-500 size-3 sm:size-4" />
+                                ) : (
+                                  <ResourceTypeIcon type={item.type} size={12} className="sm:size-4" />
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-medium text-gray-900 text-xs sm:text-sm truncate">{item.title}</div>
+                                {item.description && (
+                                  <div className="text-xs text-gray-500 line-clamp-1 hidden sm:block">{item.description}</div>
+                                )}
+                              </div>
+                              {item.priority === 1 && (
+                                <span className="ml-1 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full flex-shrink-0">Your Class</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-2 sm:px-3 md:px-4 py-2 text-xs sm:text-sm text-gray-900 truncate">{item.subject}</td>
+                          <td className="px-2 sm:px-3 md:px-4 py-2 text-xs sm:text-sm text-gray-600 truncate">{item.className}</td>
+                          {activeTab === 'assignments' ? (
+                            <>
+                              <td className="px-2 sm:px-3 md:px-4 py-2 whitespace-nowrap text-xs sm:text-sm text-gray-600">
+                                {new Date(item.dueDate).toLocaleDateString()}
+                              </td>
+                              <td className="px-2 sm:px-3 md:px-4 py-2 whitespace-nowrap">
+                                <StatusBadge status={item.status} size="sm" />
+                              </td>
+                            </>
+                          ) : (
+                            <td className="px-2 sm:px-3 md:px-4 py-2">
+                              <span className="text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 bg-gray-100 text-gray-700 rounded-md">
+                                {item.type}
+                              </span>
+                            </td>
+                          )}
+                          <td className="px-2 sm:px-3 md:px-4 py-2">
+                            {totalAttachments > 0 ? (
+                              <div className="flex items-center gap-0.5 sm:gap-1">
+                                <IoDocumentAttach className="text-green-500 text-xs sm:text-sm" />
+                                <span className="text-xs text-gray-700">{totalAttachments}</span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-gray-400">None</span>
+                            )}
+                          </td>
+                          <td className="px-2 sm:px-3 md:px-4 py-2 whitespace-nowrap">
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              <button
+                                onClick={() => handleViewDetails(item)}
+                                className="px-2 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 rounded-lg text-xs font-bold hover:from-blue-100 hover:to-blue-200 transition-all flex items-center gap-0.5 sm:gap-1"
+                              >
+                                <FiEye size={10} className="sm:size-3" />
+                                <span className="hidden xs:inline">View</span>
+                              </button>
+                              <button
+                                onClick={() => handleDownload(item)}
+                                className="p-1 sm:p-1.5 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all"
+                              >
+                                <FiDownload size={10} className="sm:size-3" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
-      </div>
 
-      {/* Content Area */}
-      <div>
-        {/* Results Summary */}
-        <div className="mb-3 md:mb-4">
-          <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1">
-            {activeTab === 'assignments' ? 'Your Assignments' : 'Learning Resources'}
-          </h3>
-          <p className="text-gray-600 text-sm">
-            {filteredCount} of {totalItems} items • {searchTerm && `Search: "${searchTerm}"`}
-            {isLoading && <span className="ml-2 text-blue-600">Loading...</span>}
-          </p>
-        </div>
-
-        {/* Empty State */}
-        {filteredCount === 0 && !isLoading ? (
-          <div className="bg-white rounded-xl md:rounded-2xl border-2 border-gray-300 p-6 md:p-8 text-center">
-            <IoDocumentsOutline className="text-gray-300 text-3xl md:text-4xl mx-auto mb-4" />
-            <h3 className="text-base md:text-xl font-bold text-gray-800 mb-2">
-              No {activeTab === 'assignments' ? 'assignments' : 'resources'} found
-            </h3>
-            <p className="text-gray-600 text-sm mb-4">
-              {searchTerm ? 'Try a different search term' : 
-               selectedClass !== 'all' || selectedSubject !== 'all' || 
-               selectedStatus !== 'all' || selectedResourceType !== 'all' 
-               ? 'Try adjusting your filters' 
-               : `No ${activeTab === 'assignments' ? 'assignments' : 'resources'} available yet`}
-            </p>
-            {(searchTerm || selectedClass !== 'all' || selectedSubject !== 'all' || 
-              selectedStatus !== 'all' || selectedResourceType !== 'all') && (
-              <button
-                onClick={clearFilters}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg font-bold text-sm hover:shadow-lg"
-              >
-                Clear All Filters
-              </button>
-            )}
-          </div>
-        ) : viewMode === 'grid' ? (
-          // Grid View
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {currentItems.map((item, index) => (
-              <ResourceAssignmentCard
-                key={index}
-                item={item}
-                type={activeTab}
-                isStudentClass={item.priority === 1}
-                onView={handleViewDetails}
-                onDownload={handleDownload}
-              />
-            ))}
-          </div>
-        ) : (
-          // List View
-          <div className="bg-white rounded-xl md:rounded-2xl border-2 border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gradient-to-r from-gray-50 to-white border-b-2 border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Title</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Subject</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Class</th>
-                    {activeTab === 'assignments' ? (
-                      <>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Due Date</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Status</th>
-                      </>
-                    ) : (
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Type</th>
-                    )}
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Attachments</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {currentItems.map((item, index) => {
-                    const totalAttachments = activeTab === 'assignments' 
-                      ? ((item.assignmentFileAttachments?.length || 0) + 
-                        (item.attachmentAttachments?.length || 0))
-                      : item.mainAttachment ? 1 : 0;
-                    
-                    return (
-                      <tr key={index} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className={`p-1.5 rounded-lg ${
-                              activeTab === 'assignments'
-                                ? 'bg-amber-50'
-                                : 'bg-blue-50'
-                            }`}>
-                              {activeTab === 'assignments' ? (
-                                <FiBook className="text-amber-500" size={14} />
-                              ) : (
-                                <ResourceTypeIcon type={item.type} size={14} />
-                              )}
-                            </div>
-                            <div>
-                              <div className="font-medium text-gray-900 text-sm">{item.title}</div>
-                              {item.description && (
-                                <div className="text-xs text-gray-500 line-clamp-1">{item.description}</div>
-                              )}
-                            </div>
-                            {item.priority === 1 && (
-                              <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">Your Class</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{item.subject}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{item.className}</td>
-                        {activeTab === 'assignments' ? (
-                          <>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                              {new Date(item.dueDate).toLocaleDateString()}
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <StatusBadge status={item.status} size="sm" />
-                            </td>
-                          </>
-                        ) : (
-                          <td className="px-4 py-3">
-                            <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-md">
-                              {item.type}
-                            </span>
-                          </td>
-                        )}
-                        <td className="px-4 py-3">
-                          {totalAttachments > 0 ? (
-                            <div className="flex items-center gap-1">
-                              <IoDocumentAttach className="text-green-500 text-sm" />
-                              <span className="text-xs text-gray-700">{totalAttachments}</span>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-gray-400">None</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleViewDetails(item)}
-                              className="px-3 py-1.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 rounded-lg text-xs font-bold hover:from-blue-100 hover:to-blue-200 transition-all flex items-center gap-1"
-                            >
-                              <FiEye size={10} />
-                              View
-                            </button>
-                            <button
-                              onClick={() => handleDownload(item)}
-                              className="p-1.5 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all"
-                            >
-                              <FiDownload size={12} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        {/* Details Modal */}
+        {selectedItem && (
+          <ResourceDetailsModal
+            item={selectedItem}
+            type={activeTab}
+            onClose={() => setSelectedItem(null)}
+            onDownload={() => handleDownload(selectedItem)}
+          />
         )}
       </div>
-
-      {/* Details Modal */}
-      {selectedItem && (
-        <ResourceDetailsModal
-          item={selectedItem}
-          type={activeTab}
-          onClose={() => setSelectedItem(null)}
-          onDownload={() => handleDownload(selectedItem)}
-        />
-      )}
-    </div>
+    </>
   );
 }

@@ -182,8 +182,7 @@ function ResultsDeleteModal({
   )
 }
 
-
-// Result Edit Modal - COMPLETELY FIXED VERSION
+// Result Edit Modal - Updated with Auto Comment Generation
 function ResultEditModal({ result, student, onClose, onSave, loading }) {
   const [formData, setFormData] = useState({
     form: result?.form || '',
@@ -194,29 +193,168 @@ function ResultEditModal({ result, student, onClose, onSave, loading }) {
 
   const [subjectEdits, setSubjectEdits] = useState([]);
 
-  // Helper functions for grade and point calculation
-  const calculateGrade = (score) => {
-    const numericScore = parseFloat(score) || 0;
-    if (numericScore >= 80) return 'A';
-    if (numericScore >= 70) return 'A-';
-    if (numericScore >= 60) return 'B+';
-    if (numericScore >= 55) return 'B';
-    if (numericScore >= 50) return 'B-';
-    if (numericScore >= 45) return 'C+';
-    if (numericScore >= 40) return 'C';
-    if (numericScore >= 35) return 'C-';
-    if (numericScore >= 30) return 'D+';
-    if (numericScore >= 25) return 'D';
-    return 'E';
+  // Enhanced comment generation function - same as in API
+  const generateSubjectComment = (score, subjectName = '') => {
+    if (score === null || score === undefined) return '';
+    
+    // Mathematics has different thresholds
+    const isMathematics = subjectName.toLowerCase().includes('mathematics');
+    
+    // Determine grade first
+    const grade = calculateGrade(score, subjectName);
+    
+    // Grade-based comment templates with progressive tones
+    const commentTemplates = {
+      'A': {
+        excellent: [
+          "Outstanding performance! Demonstrates exceptional mastery of concepts. Keep setting the bar high!",
+          "Exceptional work! Shows deep understanding and excellent application skills. Maintain this excellence!",
+          "Brilliant performance! Your dedication and hard work are clearly evident. Continue to excel!"
+        ],
+        standard: [
+          "Excellent performance! Shows strong command of the subject. Keep up the great work!",
+          "Very impressive work! Demonstrates thorough understanding of concepts. Keep it up!",
+          "Superb performance! Consistent effort and understanding are evident. Well done!"
+        ]
+      },
+      'A-': [
+        "Very good performance! Shows clear understanding and consistent effort. Aim for even higher!",
+        "Strong work! Demonstrates good grasp of concepts with minor areas for improvement.",
+        "Impressive performance! Maintain this level and strive for perfection in next assessments."
+      ],
+      'B+': [
+        "Good performance! Understanding is evident with room for growth in application.",
+        "Solid work! Shows competence in most areas. Focus on strengthening weaker topics.",
+        "Promising performance! With continued effort, you can achieve even better results."
+      ],
+      'B': [
+        "Satisfactory performance. Understands basic concepts but needs to work on depth.",
+        "Adequate performance. Shows potential but requires more consistent practice.",
+        "Fair understanding demonstrated. Focus on regular revision to improve."
+      ],
+      'B-': [
+        "Fair performance. Basic understanding present but application needs improvement.",
+        "Average performance. Would benefit from additional practice and attention to detail.",
+        "Shows some understanding. Needs to work on consistency and thoroughness."
+      ],
+      'C+': [
+        "Below average performance. Requires more focused study and regular practice.",
+        "Needs improvement. Basic concepts need reinforcement through additional practice.",
+        "Shows partial understanding. Would benefit from seeking extra help or resources."
+      ],
+      'C': [
+        "Poor performance. Fundamental concepts need serious attention and review.",
+        "Below standard. Requires significant improvement through dedicated study.",
+        "Struggling with core concepts. Seek teacher guidance and additional support."
+      ],
+      'C-': [
+        "Very poor performance. Immediate intervention and remedial work needed.",
+        "Significant improvement required. Focus on foundational concepts first.",
+        "Serious attention needed. Consider extra classes or tutoring to catch up."
+      ],
+      'D+': [
+        "Minimal understanding demonstrated. Requires urgent attention and support.",
+        "Below expectations. Needs comprehensive review of all subject materials.",
+        "Struggling significantly. Must dedicate substantial time to improve."
+      ],
+      'D': [
+        "Marginal performance. Lacks basic understanding of core concepts.",
+        "Very weak performance. Requires complete revision from basics.",
+        "Failing to grasp fundamental concepts. Immediate remedial action needed."
+      ],
+      'E': [
+        "Failed to meet minimum requirements. Requires complete relearning of subject.",
+        "Insufficient understanding demonstrated. Needs to restart learning from basics.",
+        "Performance below acceptable standards. Mandatory remedial work required."
+      ]
+    };
+
+    // Select appropriate comment based on score
+    let selectedComment = '';
+    
+    if (grade === 'A') {
+      if (score >= 90) {
+        // Excellent comments for 90+ scores
+        const excellentComments = commentTemplates.A.excellent;
+        selectedComment = excellentComments[Math.floor(Math.random() * excellentComments.length)];
+      } else {
+        // Standard A comments for 80-89 (or 75-89 for Math)
+        const standardComments = commentTemplates.A.standard;
+        selectedComment = standardComments[Math.floor(Math.random() * standardComments.length)];
+      }
+    } else {
+      const gradeComments = commentTemplates[grade];
+      if (gradeComments && Array.isArray(gradeComments)) {
+        selectedComment = gradeComments[Math.floor(Math.random() * gradeComments.length)];
+      } else {
+        // Fallback comment
+        selectedComment = `Performance graded as ${grade}. ${score >= 50 ? 'Keep working hard!' : 'Needs significant improvement.'}`;
+      }
+    }
+
+    return selectedComment;
   };
 
-  const calculatePoints = (score) => {
-    const numericScore = parseFloat(score) || 0;
-    const grade = calculateGrade(numericScore);
+  // Helper functions for grade and point calculation
+  const calculateGrade = (score, subjectName = '') => {
+    if (score === null || score === undefined) return 'N/A';
+    
+    // Mathematics has different thresholds (A starts at 75)
+    const isMathematics = subjectName.toLowerCase().includes('mathematics');
+    
+    if (isMathematics) {
+      if (score >= 75) return 'A';
+      if (score >= 70) return 'A-';
+      if (score >= 65) return 'B+';
+      if (score >= 60) return 'B';
+      if (score >= 55) return 'B-';
+      if (score >= 50) return 'C+';
+      if (score >= 45) return 'C';
+      if (score >= 40) return 'C-';
+      if (score >= 35) return 'D+';
+      if (score >= 30) return 'D';
+      return 'E';
+    } else {
+      // Standard thresholds for other subjects (A starts at 80)
+      if (score >= 80) return 'A';
+      if (score >= 70) return 'A-';
+      if (score >= 60) return 'B+';
+      if (score >= 55) return 'B';
+      if (score >= 50) return 'B-';
+      if (score >= 45) return 'C+';
+      if (score >= 40) return 'C';
+      if (score >= 35) return 'C-';
+      if (score >= 30) return 'D+';
+      if (score >= 25) return 'D';
+      return 'E';
+    }
+  };
+
+  const calculatePoints = (score, subjectName = '') => {
+    if (score === null) return null;
+    
+    const grade = calculateGrade(score, subjectName);
+    
+    // Determine subject type (main vs optional)
+    const subjectLower = subjectName.toLowerCase().trim();
+    const optionalSubjects = ['agriculture', 'business studies', 'home science', 'computer studies', 'german', 'french', 'art', 'music', 'drama'];
+    const isOptional = optionalSubjects.some(sub => subjectLower.includes(sub));
+    const subjectType = isOptional ? 'optional' : 'main';
+    
     const pointMap = {
-      'A': 12, 'A-': 11, 'B+': 10, 'B': 9, 'B-': 8,
-      'C+': 7, 'C': 6, 'C-': 5, 'D+': 4, 'D': 3, 'E': 1
+      'A': subjectType === 'main' ? 12 : 7,
+      'A-': subjectType === 'main' ? 11 : 6,
+      'B+': subjectType === 'main' ? 10 : 5,
+      'B': subjectType === 'main' ? 9 : 4,
+      'B-': subjectType === 'main' ? 8 : 3,
+      'C+': subjectType === 'main' ? 7 : 2,
+      'C': subjectType === 'main' ? 6 : 1,
+      'C-': subjectType === 'main' ? 5 : 0,
+      'D+': subjectType === 'main' ? 4 : 0,
+      'D': subjectType === 'main' ? 3 : 0,
+      'E': 0
     };
+    
     return pointMap[grade] || 0;
   };
 
@@ -235,13 +373,23 @@ function ResultEditModal({ result, student, onClose, onSave, loading }) {
       }
       
       // Ensure all subject data are properly formatted with numbers converted to strings for input
-      const parsedSubjects = subjects.map(subject => ({
-        subject: subject.subject || '',
-        score: (subject.score || subject.score === 0) ? subject.score.toString() : '', // Convert to string, keep empty if null/undefined
-        grade: subject.grade || calculateGrade(parseFloat(subject.score) || 0),
-        points: parseFloat(subject.points) || calculatePoints(parseFloat(subject.score) || 0),
-        comment: subject.comment || ''
-      }));
+      const parsedSubjects = subjects.map(subject => {
+        const scoreValue = (subject.score || subject.score === 0) ? subject.score.toString() : '';
+        const subjectName = subject.subject || '';
+        
+        // Calculate grade and points based on current score
+        const numericScore = parseFloat(scoreValue) || 0;
+        const grade = calculateGrade(numericScore, subjectName);
+        const points = calculatePoints(numericScore, subjectName);
+        
+        return {
+          subject: subjectName,
+          score: scoreValue, // Keep as string for input field
+          grade: grade,
+          points: points,
+          comment: subject.comment || '' // Keep existing comment
+        };
+      });
       
       setSubjectEdits(parsedSubjects);
     }
@@ -277,14 +425,17 @@ function ResultEditModal({ result, student, onClose, onSave, loading }) {
       } else if (!isNaN(numericValue) && numericValue !== null) {
         // Valid number - calculate and update
         const clampedValue = Math.min(100, Math.max(0, numericValue));
-        const grade = calculateGrade(clampedValue);
-        const points = calculatePoints(clampedValue);
+        const subjectName = newSubjects[index].subject || '';
+        const grade = calculateGrade(clampedValue, subjectName);
+        const points = calculatePoints(clampedValue, subjectName);
+        const comment = generateSubjectComment(clampedValue, subjectName);
         
         newSubjects[index] = { 
           ...newSubjects[index], 
           score: displayValue,  // Keep the display value
           grade: grade,
-          points: points
+          points: points,
+          comment: comment // Auto-generate comment
         };
       } else {
         // Invalid input (like letters) - keep as is without calculations
@@ -292,25 +443,33 @@ function ResultEditModal({ result, student, onClose, onSave, loading }) {
           ...newSubjects[index], 
           score: value,
           grade: '',
-          points: 0
+          points: 0,
+          comment: '' // Clear comment for invalid score
         };
       }
     } else if (field === 'subject') {
       newSubjects[index] = { ...newSubjects[index], subject: value };
     } else if (field === 'comment') {
+      // Allow manual override of comment
       newSubjects[index] = { ...newSubjects[index], comment: value };
     }
     
     setSubjectEdits(newSubjects);
   };
 
-  // Validate score input on blur - convert to proper number format
+  // Validate score input on blur - convert to proper number format and auto-generate comment
   const handleScoreBlur = (index) => {
     const newSubjects = [...subjectEdits];
     const currentValue = newSubjects[index].score;
+    const subjectName = newSubjects[index].subject || '';
     
     if (currentValue === '' || currentValue === '-') {
       // Keep as is - empty or just minus sign
+      newSubjects[index] = { 
+        ...newSubjects[index], 
+        comment: '' // Clear comment for empty score
+      };
+      setSubjectEdits(newSubjects);
       return;
     }
     
@@ -319,16 +478,25 @@ function ResultEditModal({ result, student, onClose, onSave, loading }) {
       // Format the number properly
       const formattedValue = parseFloat(numericValue.toFixed(1)).toString();
       const clampedValue = Math.min(100, Math.max(0, numericValue));
-      const grade = calculateGrade(clampedValue);
-      const points = calculatePoints(clampedValue);
+      const grade = calculateGrade(clampedValue, subjectName);
+      const points = calculatePoints(clampedValue, subjectName);
+      const comment = generateSubjectComment(clampedValue, subjectName);
       
       newSubjects[index] = { 
         ...newSubjects[index], 
         score: formattedValue,
         grade: grade,
-        points: points
+        points: points,
+        comment: comment // Auto-generate comment
       };
       
+      setSubjectEdits(newSubjects);
+    } else {
+      // Clear comment for invalid score
+      newSubjects[index] = { 
+        ...newSubjects[index], 
+        comment: '' 
+      };
       setSubjectEdits(newSubjects);
     }
   };
@@ -373,22 +541,27 @@ function ResultEditModal({ result, student, onClose, onSave, loading }) {
         }
       }
       
-      // Calculate grade and points based on final score
-      const grade = calculateGrade(scoreValue);
-      const points = calculatePoints(scoreValue);
+      // Calculate grade, points, and auto-generate comment based on final score
+      const grade = calculateGrade(scoreValue, subject.subject);
+      const points = calculatePoints(scoreValue, subject.subject);
+      
+      // If comment is empty or looks auto-generated, generate new one
+      let comment = subject.comment;
+      if (!comment || comment.includes('Performance graded as') || comment.includes('Excellent') || 
+          comment.includes('Very good') || comment.includes('Good') || comment.includes('Poor')) {
+        comment = generateSubjectComment(scoreValue, subject.subject);
+      }
       
       return {
         subject: subject.subject.trim(),
         score: scoreValue,
         grade: grade,
         points: points,
-        comment: subject.comment || ''
+        comment: comment || generateSubjectComment(scoreValue, subject.subject)
       };
     });
     
     if (validationErrors.length > 0) {
-      // Use notification function from parent
-      // showNotification(validationErrors.join(', '), 'error');
       alert(validationErrors.join('\n'));
       return;
     }
@@ -596,9 +769,13 @@ function ResultEditModal({ result, student, onClose, onSave, loading }) {
                   <div className="text-2xl font-bold text-gray-900">{overall.points}</div>
                 </div>
               </div>
+              <div className="mt-4 text-sm text-purple-700 font-semibold">
+                <FiInfo className="inline mr-2" />
+                Comments are automatically generated based on scores. Mathematics: A starts at 75, Other subjects: A starts at 80.
+              </div>
             </div>
 
-            {/* Subject Scores - UPDATED WITH FIXED INPUTS */}
+            {/* Subject Scores - UPDATED WITH AUTO-COMMENTS */}
             <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-lg">
               <div className="flex items-center justify-between mb-6">
                 <h4 className="text-xl font-bold text-gray-900">Subject Scores</h4>
@@ -741,18 +918,48 @@ function ResultEditModal({ result, student, onClose, onSave, loading }) {
                         </div>
                       )}
                       
-                      {/* Comment field */}
+                      {/* Comment field with auto-generation */}
                       <div className="mt-4">
                         <label className="block text-sm font-bold text-gray-700 mb-2">
-                          Comment (Optional)
+                          Teacher Comment {subject.score !== '' && '(Auto-generated)'}
                         </label>
-                        <input
-                          type="text"
+                        <textarea
                           value={subject.comment}
                           onChange={(e) => handleSubjectChange(index, 'comment', e.target.value)}
-                          placeholder="e.g., Excellent work, Needs improvement"
+                          onFocus={(e) => {
+                            // If comment is empty or auto-generated, generate one on focus
+                            if (!subject.comment || subject.comment.includes('Performance graded as') || 
+                                subject.comment.includes('Excellent') || subject.comment.includes('Very good') || 
+                                subject.comment.includes('Good') || subject.comment.includes('Poor')) {
+                              const numericValue = parseFloat(subject.score) || 0;
+                              const generatedComment = generateSubjectComment(numericValue, subject.subject);
+                              handleSubjectChange(index, 'comment', generatedComment);
+                            }
+                          }}
+                          placeholder="Enter or auto-generate comment..."
+                          rows={2}
                           className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-base"
                         />
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-xs text-gray-500">
+                            {subject.score !== '' && isValidScore 
+                              ? "Comment auto-generated based on score. You can edit it."
+                              : "Enter a valid score to auto-generate comment"}
+                          </span>
+                          {subject.score !== '' && isValidScore && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const numericValue = parseFloat(subject.score) || 0;
+                                const generatedComment = generateSubjectComment(numericValue, subject.subject);
+                                handleSubjectChange(index, 'comment', generatedComment);
+                              }}
+                              className="text-xs text-purple-600 font-bold hover:text-purple-800"
+                            >
+                              Regenerate Comment
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -1945,7 +2152,8 @@ export default function ModernResultsManagement() {
   const [formData, setFormData] = useState({
     term: 'Term 1',
     academicYear: '2024/2025',
-    uploadedBy: 'Admin'
+    uploadedBy: 'Admin',
+  uploadMode: 'create' // Make sure this is included
   });
 
   const fileInputRef = useRef(null);
@@ -2184,8 +2392,8 @@ const loadStatistics = async () => {
     uploadFormData.append('file', file);
     uploadFormData.append('term', formData.term);
     uploadFormData.append('academicYear', formData.academicYear);
-    uploadFormData.append('uploadedBy', formData.uploadedBy);
-
+uploadFormData.append('uploadedBy', formData.uploadedBy);
+  uploadFormData.append('uploadMode', formData.uploadMode || 'create');
     try {
       const response = await fetch('/api/results', {
         method: 'POST',
@@ -2208,7 +2416,8 @@ const loadStatistics = async () => {
         setFormData({
           term: 'Term 1',
           academicYear: '2024/2025',
-          uploadedBy: 'Admin'
+          uploadedBy: 'Admin',
+          uploadMode: 'create' // ← ADD THIS LINE
         });
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
@@ -2713,35 +2922,76 @@ const template = `admissionNumber,form,stream,term,academicYear,totalScore,avera
                     Upload Configuration
                   </h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-3">
-                        Term *
-                      </label>
-                      <select
-                        value={formData.term}
-                        onChange={(e) => setFormData({...formData, term: e.target.value})}
-                        className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-base"
-                      >
-                        <option value="Term 1">Term 1</option>
-                        <option value="Term 2">Term 2</option>
-                        <option value="Term 3">Term 3</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-3">
-                        Academic Year *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.academicYear}
-                        onChange={(e) => setFormData({...formData, academicYear: e.target.value})}
-                        placeholder="e.g., 2024/2025"
-                        className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-base"
-                      />
-                    </div>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+  <div>
+    <label className="block text-sm font-bold text-gray-700 mb-3">
+      Term *
+    </label>
+    <select
+      value={formData.term}
+      onChange={(e) => setFormData({...formData, term: e.target.value})}
+      className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-base"
+    >
+      <option value="Term 1">Term 1</option>
+      <option value="Term 2">Term 2</option>
+      <option value="Term 3">Term 3</option>
+    </select>
+  </div>
+  <div>
+    <label className="block text-sm font-bold text-gray-700 mb-3">
+      Academic Year *
+    </label>
+    <input
+      type="text"
+      required
+      value={formData.academicYear}
+      onChange={(e) => setFormData({...formData, academicYear: e.target.value})}
+      placeholder="e.g., 2024/2025"
+      className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-base"
+    />
+  </div>
+  <div>
+    <label className="block text-sm font-bold text-gray-700 mb-3">
+      Upload Mode
+    </label>
+    <div className="space-y-3">
+      <div className="flex gap-4">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name="uploadMode"
+            value="create"
+            checked={formData.uploadMode === 'create'}
+            onChange={(e) => setFormData({...formData, uploadMode: e.target.value})}
+            className="w-5 h-5 text-purple-600"
+          />
+          <span className="font-bold text-gray-800">Create</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name="uploadMode"
+            value="update"
+            checked={formData.uploadMode === 'update'}
+            onChange={(e) => setFormData({...formData, uploadMode: e.target.value})}
+            className="w-5 h-5 text-purple-600"
+          />
+          <span className="font-bold text-gray-800">Update</span>
+        </label>
+      </div>
+      <div className="text-xs text-gray-600 space-y-1">
+        <div className="flex items-start gap-1">
+          <span className="font-bold">• Create:</span>
+          <span>Skips duplicates, creates new records for different terms/years</span>
+        </div>
+        <div className="flex items-start gap-1">
+          <span className="font-bold">• Update:</span>
+          <span>Replaces existing results for same student+term+year</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
                 </div>
 
                 <ResultsFileUpload

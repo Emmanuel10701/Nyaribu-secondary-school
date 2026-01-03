@@ -3,7 +3,7 @@ import { parse } from 'papaparse';
 import * as XLSX from 'xlsx';
 import { prisma } from "../../../libs/prisma";
 
-// ========== HELPER FUNCTIONS ==========
+// ========== ENHANCED HELPER FUNCTIONS ==========
 
 const parseScore = (value) => {
   if (!value && value !== 0) return null;
@@ -15,20 +15,151 @@ const parseScore = (value) => {
   return isNaN(parsed) ? null : Math.round(parsed * 100) / 100;
 };
 
-const calculateGrade = (score) => {
+// Enhanced calculateGrade with subject-specific thresholds
+const calculateGrade = (score, subjectName = '') => {
   if (score === null || score === undefined) return 'N/A';
   
-  if (score >= 80) return 'A';
-  if (score >= 70) return 'A-';
-  if (score >= 60) return 'B+';
-  if (score >= 55) return 'B';
-  if (score >= 50) return 'B-';
-  if (score >= 45) return 'C+';
-  if (score >= 40) return 'C';
-  if (score >= 35) return 'C-';
-  if (score >= 30) return 'D+';
-  if (score >= 25) return 'D';
-  return 'E';
+  // Mathematics has different thresholds (A starts at 75)
+  const isMathematics = subjectName.toLowerCase().includes('mathematics');
+  
+  if (isMathematics) {
+    if (score >= 75) return 'A';
+    if (score >= 70) return 'A-';
+    if (score >= 65) return 'B+';
+    if (score >= 60) return 'B';
+    if (score >= 55) return 'B-';
+    if (score >= 50) return 'C+';
+    if (score >= 45) return 'C';
+    if (score >= 40) return 'C-';
+    if (score >= 35) return 'D+';
+    if (score >= 30) return 'D';
+    return 'E';
+  } else {
+    // Standard thresholds for other subjects (A starts at 80)
+    if (score >= 80) return 'A';
+    if (score >= 70) return 'A-';
+    if (score >= 60) return 'B+';
+    if (score >= 55) return 'B';
+    if (score >= 50) return 'B-';
+    if (score >= 45) return 'C+';
+    if (score >= 40) return 'C';
+    if (score >= 35) return 'C-';
+    if (score >= 30) return 'D+';
+    if (score >= 25) return 'D';
+    return 'E';
+  }
+};
+
+// AUTO-GENERATED COMMENT SYSTEM
+const generateSubjectComment = (score, subjectName = '') => {
+  if (score === null || score === undefined) return '';
+  
+  // Mathematics has different thresholds
+  const isMathematics = subjectName.toLowerCase().includes('mathematics');
+  
+  // Determine grade first
+  const grade = calculateGrade(score, subjectName);
+  
+  // Core subjects with specific grading
+  const coreSubjects = ['english', 'kiswahili', 'biology', 'chemistry', 'physics'];
+  const humanitiesSubjects = ['cre', 'ire', 'hre', 'geography', 'history'];
+  const optionalSubjects = ['agriculture', 'business studies', 'home science', 'computer studies', 'german', 'french'];
+  
+  const subjectLower = subjectName.toLowerCase().trim();
+  const isCoreSubject = coreSubjects.some(sub => subjectLower.includes(sub));
+  const isHumanities = humanitiesSubjects.some(sub => subjectLower.includes(sub));
+  const isOptional = optionalSubjects.some(sub => subjectLower.includes(sub));
+  
+  // Grade-based comment templates with progressive tones
+  const commentTemplates = {
+    'A': {
+      excellent: [
+        "Outstanding performance! Demonstrates exceptional mastery of concepts. Keep setting the bar high!",
+        "Exceptional work! Shows deep understanding and excellent application skills. Maintain this excellence!",
+        "Brilliant performance! Your dedication and hard work are clearly evident. Continue to excel!"
+      ],
+      standard: [
+        "Excellent performance! Shows strong command of the subject. Keep up the great work!",
+        "Very impressive work! Demonstrates thorough understanding of concepts. Keep it up!",
+        "Superb performance! Consistent effort and understanding are evident. Well done!"
+      ]
+    },
+    'A-': [
+      "Very good performance! Shows clear understanding and consistent effort. Aim for even higher!",
+      "Strong work! Demonstrates good grasp of concepts with minor areas for improvement.",
+      "Impressive performance! Maintain this level and strive for perfection in next assessments."
+    ],
+    'B+': [
+      "Good performance! Understanding is evident with room for growth in application.",
+      "Solid work! Shows competence in most areas. Focus on strengthening weaker topics.",
+      "Promising performance! With continued effort, you can achieve even better results."
+    ],
+    'B': [
+      "Satisfactory performance. Understands basic concepts but needs to work on depth.",
+      "Adequate performance. Shows potential but requires more consistent practice.",
+      "Fair understanding demonstrated. Focus on regular revision to improve."
+    ],
+    'B-': [
+      "Fair performance. Basic understanding present but application needs improvement.",
+      "Average performance. Would benefit from additional practice and attention to detail.",
+      "Shows some understanding. Needs to work on consistency and thoroughness."
+    ],
+    'C+': [
+      "Below average performance. Requires more focused study and regular practice.",
+      "Needs improvement. Basic concepts need reinforcement through additional practice.",
+      "Shows partial understanding. Would benefit from seeking extra help or resources."
+    ],
+    'C': [
+      "Poor performance. Fundamental concepts need serious attention and review.",
+      "Below standard. Requires significant improvement through dedicated study.",
+      "Struggling with core concepts. Seek teacher guidance and additional support."
+    ],
+    'C-': [
+      "Very poor performance. Immediate intervention and remedial work needed.",
+      "Significant improvement required. Focus on foundational concepts first.",
+      "Serious attention needed. Consider extra classes or tutoring to catch up."
+    ],
+    'D+': [
+      "Minimal understanding demonstrated. Requires urgent attention and support.",
+      "Below expectations. Needs comprehensive review of all subject materials.",
+      "Struggling significantly. Must dedicate substantial time to improve."
+    ],
+    'D': [
+      "Marginal performance. Lacks basic understanding of core concepts.",
+      "Very weak performance. Requires complete revision from basics.",
+      "Failing to grasp fundamental concepts. Immediate remedial action needed."
+    ],
+    'E': [
+      "Failed to meet minimum requirements. Requires complete relearning of subject.",
+      "Insufficient understanding demonstrated. Needs to restart learning from basics.",
+      "Performance below acceptable standards. Mandatory remedial work required."
+    ]
+  };
+
+  // Select appropriate comment based on score
+  let selectedComment = '';
+  
+  if (grade === 'A') {
+    if (score >= 90) {
+      // Excellent comments for 90+ scores
+      const excellentComments = commentTemplates.A.excellent;
+      selectedComment = excellentComments[Math.floor(Math.random() * excellentComments.length)];
+    } else {
+      // Standard A comments for 80-89 (or 75-89 for Math)
+      const standardComments = commentTemplates.A.standard;
+      selectedComment = standardComments[Math.floor(Math.random() * standardComments.length)];
+    }
+  } else {
+    const gradeComments = commentTemplates[grade];
+    if (gradeComments && Array.isArray(gradeComments)) {
+      selectedComment = gradeComments[Math.floor(Math.random() * gradeComments.length)];
+    } else {
+      // Fallback comment
+      selectedComment = `Performance graded as ${grade}. ${score >= 50 ? 'Keep working hard!' : 'Needs significant improvement.'}`;
+    }
+  }
+
+  return selectedComment;
 };
 
 const calculateResultAverage = (result) => {
@@ -54,10 +185,17 @@ const calculateResultAverage = (result) => {
   return subjects.length > 0 ? parseFloat((totalScore / subjects.length).toFixed(2)) : 0;
 };
 
-const calculatePoints = (score, subjectType = 'main') => {
+const calculatePoints = (score, subjectName = '') => {
   if (score === null) return null;
   
-  const grade = calculateGrade(score);
+  const grade = calculateGrade(score, subjectName);
+  
+  // Determine subject type (main vs optional)
+  const subjectLower = subjectName.toLowerCase().trim();
+  const optionalSubjects = ['agriculture', 'business studies', 'home science', 'computer studies', 'german', 'french', 'art', 'music', 'drama'];
+  const isOptional = optionalSubjects.some(sub => subjectLower.includes(sub));
+  const subjectType = isOptional ? 'optional' : 'main';
+  
   const pointMap = {
     'A': subjectType === 'main' ? 12 : 7,
     'A-': subjectType === 'main' ? 11 : 6,
@@ -120,22 +258,47 @@ const normalizeSubjectName = (subjectName) => {
   
   const subjectMap = {
     'english': 'English',
+    'eng': 'English',
     'kiswahili': 'Kiswahili',
+    'kiswa': 'Kiswahili',
+    'kisw': 'Kiswahili',
     'mathematics': 'Mathematics',
+    'maths': 'Mathematics',
+    'math': 'Mathematics',
     'biology': 'Biology',
+    'bio': 'Biology',
     'chemistry': 'Chemistry',
+    'chem': 'Chemistry',
     'physics': 'Physics',
+    'phy': 'Physics',
     'history': 'History',
+    'hist': 'History',
     'geography': 'Geography',
+    'geo': 'Geography',
     'cre': 'CRE',
+    'christian religious education': 'CRE',
+    'ire': 'IRE',
+    'islamic religious education': 'IRE',
+    'hre': 'HRE',
+    'hindu religious education': 'HRE',
     'business studies': 'Business Studies',
     'business': 'Business Studies',
     'bus': 'Business Studies',
     'agriculture': 'Agriculture',
     'agric': 'Agriculture',
+    'agri': 'Agriculture',
+    'home science': 'Home Science',
+    'home science': 'Home Science',
     'computer studies': 'Computer Studies',
     'computer': 'Computer Studies',
-    'comp': 'Computer Studies'
+    'comp': 'Computer Studies',
+    'ict': 'Computer Studies',
+    'german': 'German',
+    'french': 'French',
+    'art': 'Art and Design',
+    'music': 'Music',
+    'physical education': 'Physical Education',
+    'pe': 'Physical Education'
   };
   
   if (subjectMap[lowerName]) {
@@ -154,7 +317,7 @@ const normalizeSubjectName = (subjectName) => {
     .join(' ');
 };
 
-// ========== UPDATED PARSING FUNCTIONS ==========
+// ========== ENHANCED PARSING FUNCTIONS WITH AUTO-COMMENTS ==========
 
 const parseResultsCSV = async (file, term, academicYear) => {
   const text = await file.text();
@@ -167,7 +330,7 @@ const parseResultsCSV = async (file, term, academicYear) => {
         const data = results.data
           .map((row, index) => {
             try {
-              // Extract admission number (various possible column names)
+              // Extract admission number
               const admissionNumber = row.admissionNumber || row.admissionnumber || 
                                     row.admno || row.AdmNo || row.admission || row.Admission ||
                                     Object.values(row).find(val => /^3[0-5]\d{2}$/.test(String(val))) || '';
@@ -217,29 +380,19 @@ const parseResultsCSV = async (file, term, academicYear) => {
                     continue;
                   }
                   
-                  // Try to find corresponding grade, points, comment
-                  const grade = row[`${subjectName}_Grade`] || 
-                               row[`${subjectName} Grade`] || 
-                               calculateGrade(score);
-                  
-                  const points = row[`${subjectName}_Points`] ? 
-                                parseFloat(row[`${subjectName}_Points`]) :
-                                row[`${subjectName} Points`] ?
-                                parseFloat(row[`${subjectName} Points`]) :
-                                calculatePoints(score);
-                  
-                  const comment = row[`${subjectName}_Comment`] || 
-                                 row[`${subjectName} Comment`] || 
-                                 '';
-                  
                   const normalizedSubject = normalizeSubjectName(subjectName);
+                  
+                  // AUTO-GENERATE GRADE, POINTS, AND COMMENT
+                  const grade = calculateGrade(score, normalizedSubject);
+                  const points = calculatePoints(score, normalizedSubject);
+                  const comment = generateSubjectComment(score, normalizedSubject);
                   
                   subjects.push({
                     subject: normalizedSubject,
                     score: score,
-                    grade: String(grade).trim(),
-                    points: typeof points === 'number' ? points : (parseFloat(points) || 0),
-                    comment: String(comment).trim()
+                    grade: grade,
+                    points: points,
+                    comment: comment
                   });
                   
                   processedSubjects.add(subjectName.toLowerCase());
@@ -278,12 +431,17 @@ const parseResultsCSV = async (file, term, academicYear) => {
                 if (score !== null && score >= 0 && score <= 100) {
                   const normalizedCol = normalizeSubjectName(columnStr);
                   if (!processedSubjects.has(normalizedCol.toLowerCase())) {
+                    // AUTO-GENERATE GRADE, POINTS, AND COMMENT
+                    const grade = calculateGrade(score, normalizedCol);
+                    const points = calculatePoints(score, normalizedCol);
+                    const comment = generateSubjectComment(score, normalizedCol);
+                    
                     subjects.push({
                       subject: normalizedCol,
                       score: score,
-                      grade: calculateGrade(score),
-                      points: calculatePoints(score),
-                      comment: ''
+                      grade: grade,
+                      points: points,
+                      comment: comment
                     });
                     
                     processedSubjects.add(normalizedCol.toLowerCase());
@@ -300,8 +458,8 @@ const parseResultsCSV = async (file, term, academicYear) => {
                 subjects,
                 csvTerm: row.term || term || '',
                 csvAcademicYear: row.academicYear || row.academicyear || academicYear || '',
-                csvForm: row.form || '', // Note: We'll ignore this and use database form
-                csvStream: row.stream || '' // Note: We'll ignore this and use database stream
+                csvForm: row.form || '',
+                csvStream: row.stream || ''
               };
             } catch (error) {
               console.error(`Error parsing row ${index}:`, error);
@@ -330,7 +488,7 @@ const parseResultsExcel = async (file, term, academicYear) => {
     const data = jsonData
       .map((row, index) => {
         try {
-          // Extract admission number from various possible column names
+          // Extract admission number
           const findValue = (possibleKeys) => {
             for (const key of possibleKeys) {
               if (row[key] !== undefined && row[key] !== null && row[key] !== '') {
@@ -400,29 +558,19 @@ const parseResultsExcel = async (file, term, academicYear) => {
                 continue;
               }
               
-              // Try to find corresponding grade, points, comment
-              const grade = row[`${subjectName}_Grade`] || 
-                           row[`${subjectName} Grade`] || 
-                           calculateGrade(score);
-              
-              const points = row[`${subjectName}_Points`] ? 
-                            parseFloat(row[`${subjectName}_Points`]) :
-                            row[`${subjectName} Points`] ?
-                            parseFloat(row[`${subjectName} Points`]) :
-                            calculatePoints(score);
-              
-              const comment = row[`${subjectName}_Comment`] || 
-                             row[`${subjectName} Comment`] || 
-                             '';
-              
               const normalizedSubject = normalizeSubjectName(subjectName);
+              
+              // AUTO-GENERATE GRADE, POINTS, AND COMMENT
+              const grade = calculateGrade(score, normalizedSubject);
+              const points = calculatePoints(score, normalizedSubject);
+              const comment = generateSubjectComment(score, normalizedSubject);
               
               subjects.push({
                 subject: normalizedSubject,
                 score: score,
-                grade: String(grade).trim(),
-                points: typeof points === 'number' ? points : (parseFloat(points) || 0),
-                comment: String(comment).trim()
+                grade: grade,
+                points: points,
+                comment: comment
               });
               
               processedSubjects.add(subjectName.toLowerCase());
@@ -461,12 +609,17 @@ const parseResultsExcel = async (file, term, academicYear) => {
             if (score !== null && score >= 0 && score <= 100) {
               const normalizedCol = normalizeSubjectName(columnStr);
               if (!processedSubjects.has(normalizedCol.toLowerCase())) {
+                // AUTO-GENERATE GRADE, POINTS, AND COMMENT
+                const grade = calculateGrade(score, normalizedCol);
+                const points = calculatePoints(score, normalizedCol);
+                const comment = generateSubjectComment(score, normalizedCol);
+                
                 subjects.push({
                   subject: normalizedCol,
                   score: score,
-                  grade: calculateGrade(score),
-                  points: calculatePoints(score),
-                  comment: ''
+                  grade: grade,
+                  points: points,
+                  comment: comment
                 });
                 
                 processedSubjects.add(normalizedCol.toLowerCase());
@@ -483,8 +636,8 @@ const parseResultsExcel = async (file, term, academicYear) => {
             subjects,
             csvTerm: row.term || row.Term || term || '',
             csvAcademicYear: row.academicYear || row.academicyear || row.year || academicYear || '',
-            csvForm: row.form || row.Form || '', // Note: We'll ignore this and use database form
-            csvStream: row.stream || row.Stream || '' // Note: We'll ignore this and use database stream
+            csvForm: row.form || row.Form || '',
+            csvStream: row.stream || row.Stream || ''
           };
         } catch (error) {
           console.error(`Error parsing Excel row ${index}:`, error);
@@ -500,8 +653,7 @@ const parseResultsExcel = async (file, term, academicYear) => {
   }
 };
 
-// ========== UPDATED POST ENDPOINT ==========
-
+// ========== MAIN POST ENDPOINT ==========
 export async function POST(request) {
   try {
     const formData = await request.formData();
@@ -509,6 +661,7 @@ export async function POST(request) {
     const term = formData.get('term') || '';
     const academicYear = formData.get('academicYear') || '';
     const uploadedBy = formData.get('uploadedBy') || 'System';
+    const uploadMode = formData.get('uploadMode') || 'create';
     
     if (!file) {
       return NextResponse.json(
@@ -554,7 +707,7 @@ export async function POST(request) {
     try {
       let rawData = [];
       
-      // Parse file with term and academic year for fallback
+      // Parse file
       if (fileExtension === 'csv') {
         rawData = await parseResultsCSV(file, term, academicYear);
       } else {
@@ -572,14 +725,17 @@ export async function POST(request) {
         errorRows: 0,
         studentNotFound: 0,
         inactiveStudents: 0,
+        newRecords: 0,
+        updatedRecords: 0,
+        duplicateRecords: 0,
         errors: [],
         warnings: []
       };
       
-      // Get all admission numbers from CSV for batch lookup
+      // Get all admission numbers for batch lookup
       const csvAdmissionNumbers = rawData.map(r => r.admissionNumber);
       
-      // Batch fetch all students from database
+      // Batch fetch all students
       const students = await prisma.databaseStudent.findMany({
         where: {
           admissionNumber: {
@@ -612,7 +768,6 @@ export async function POST(request) {
             continue;
           }
           
-          // CRITICAL: Look up student from database map
           const student = studentMap.get(record.admissionNumber);
           
           if (!student) {
@@ -633,30 +788,30 @@ export async function POST(request) {
             continue;
           }
           
-          // Use student's CURRENT details from database
-          const studentForm = student.form; // Current form from database
-          const studentStream = student.stream; // Current stream from database
+          const studentForm = student.form;
+          const studentStream = student.stream;
           const studentName = `${student.firstName} ${student.lastName}`;
           
-          // Use term from CSV if provided, otherwise from form
           const resultTerm = record.csvTerm ? normalizeTerm(record.csvTerm) : normalizedTerm;
           const resultAcademicYear = record.csvAcademicYear ? normalizeAcademicYear(record.csvAcademicYear) : normalizedAcademicYear;
           
-          // Log warning if CSV form differs from database form
-          if (record.csvForm && record.csvForm.trim() !== '') {
-            const csvForm = record.csvForm.startsWith('Form ') ? record.csvForm : `Form ${record.csvForm}`;
-            if (csvForm !== studentForm) {
-              stats.warnings.push(`Row ${index + 2}: CSV form (${csvForm}) differs from database form (${studentForm}) for ${studentName} - Using database form`);
+          // Check for existing result
+          const existingResult = await prisma.studentResult.findFirst({
+            where: {
+              admissionNumber: record.admissionNumber,
+              term: resultTerm,
+              academicYear: resultAcademicYear
             }
-          }
+          });
           
+          // Process subjects (comments are already auto-generated)
           const cleanSubjects = record.subjects
             .map(subject => ({
               subject: subject.subject,
               score: Math.max(0, Math.min(100, subject.score || 0)),
-              grade: subject.grade || calculateGrade(subject.score || 0),
-              points: subject.points || calculatePoints(subject.score || 0),
-              comment: subject.comment || ''
+              grade: subject.grade,
+              points: subject.points,
+              comment: subject.comment // Already auto-generated
             }))
             .filter(subject => 
               subject.subject && 
@@ -673,41 +828,61 @@ export async function POST(request) {
             continue;
           }
           
-          // Check for existing result using admission number, term, and academic year
-          const existingResult = await prisma.studentResult.findFirst({
-            where: {
-              admissionNumber: record.admissionNumber,
-              term: resultTerm,
-              academicYear: resultAcademicYear
-            }
-          });
-          
+          // Handle duplicates vs new records
           if (existingResult) {
-            // Update existing result with current database form
-            await prisma.studentResult.update({
-              where: { id: existingResult.id },
-              data: {
-                form: studentForm, // Update to current database form
-                subjects: cleanSubjects,
-                updatedAt: new Date(),
-                uploadBatchId: batchId
+            if (uploadMode === 'update') {
+              // Update existing record
+              await prisma.studentResult.update({
+                where: { id: existingResult.id },
+                data: {
+                  form: studentForm,
+                  subjects: cleanSubjects,
+                  updatedAt: new Date(),
+                  uploadBatchId: batchId
+                }
+              });
+              stats.updatedRecords++;
+              stats.validRows++;
+              
+              if (existingResult.form !== studentForm) {
+                stats.warnings.push(`Row ${index + 2}: Updated form from ${existingResult.form} to ${studentForm} for ${studentName}`);
               }
-            });
+            } else {
+              // Skip duplicate record
+              stats.duplicateRecords++;
+              stats.skippedRows++;
+              stats.warnings.push(`Row ${index + 2}: Duplicate record skipped for ${studentName} (${resultTerm} ${resultAcademicYear}) - Use update mode to replace`);
+            }
           } else {
-            // Create new result with database form
+            // Create new record
             await prisma.studentResult.create({
               data: {
                 admissionNumber: record.admissionNumber,
-                form: studentForm, // Use database form, not CSV form
+                form: studentForm,
                 term: resultTerm,
                 academicYear: resultAcademicYear,
                 subjects: cleanSubjects,
                 uploadBatchId: batchId
               }
             });
+            stats.newRecords++;
+            stats.validRows++;
+            
+            // Log if student has previous results
+            const previousResults = await prisma.studentResult.findMany({
+              where: {
+                admissionNumber: record.admissionNumber
+              },
+              select: {
+                term: true,
+                academicYear: true
+              }
+            });
+            
+            if (previousResults.length > 0) {
+              stats.warnings.push(`Row ${index + 2}: Created new result for ${studentName} (${resultTerm} ${resultAcademicYear}) - Student has ${previousResults.length} previous result(s)`);
+            }
           }
-          
-          stats.validRows++;
           
         } catch (error) {
           stats.errorRows++;
@@ -716,7 +891,7 @@ export async function POST(request) {
         }
       }
       
-      // Update batch with detailed statistics
+      // Update batch with statistics
       await prisma.resultUpload.update({
         where: { id: batchId },
         data: {
@@ -726,7 +901,11 @@ export async function POST(request) {
           validRows: stats.validRows,
           skippedRows: stats.skippedRows,
           errorRows: stats.errorRows,
-          errorLog: stats.errors.length > 0 ? stats.errors.slice(0, 50) : null
+          newRecords: stats.newRecords,
+          updatedRecords: stats.updatedRecords,
+          duplicateRecords: stats.duplicateRecords,
+          errorLog: stats.errors.length > 0 ? stats.errors.slice(0, 50) : null,
+          warningLog: stats.warnings.length > 0 ? stats.warnings.slice(0, 50) : null
         }
       });
       
@@ -734,18 +913,22 @@ export async function POST(request) {
       const response = {
         success: stats.validRows > 0,
         message: stats.validRows > 0 
-          ? `Successfully processed ${stats.validRows} out of ${stats.totalRows} records`
+          ? `Successfully processed ${stats.validRows} out of ${stats.totalRows} records (${stats.newRecords} new, ${stats.updatedRecords} updated, ${stats.duplicateRecords} duplicates skipped)`
           : `Failed to process any records.`,
         batch: {
           id: batchId,
           fileName: uploadBatch.fileName,
           term: normalizedTerm,
           academicYear: normalizedAcademicYear,
+          uploadMode: uploadMode || 'create',
           status: stats.validRows > 0 ? 'completed' : 'failed'
         },
         statistics: {
           total: stats.totalRows,
           valid: stats.validRows,
+          newRecords: stats.newRecords,
+          updatedRecords: stats.updatedRecords,
+          duplicateRecords: stats.duplicateRecords,
           skipped: stats.skippedRows,
           errors: stats.errorRows,
           studentNotFound: stats.studentNotFound,
@@ -754,29 +937,6 @@ export async function POST(request) {
         warnings: stats.warnings.slice(0, 10),
         errors: stats.errors.slice(0, 10)
       };
-      
-      // Add sample data with database vs CSV comparison
-      if (rawData.length > 0) {
-        const sampleRecord = rawData[0];
-        const sampleStudent = studentMap.get(sampleRecord.admissionNumber);
-        
-        response.sample = {
-          admissionNumber: sampleRecord.admissionNumber,
-          studentInfo: sampleStudent ? {
-            name: `${sampleStudent.firstName} ${sampleStudent.lastName}`,
-            databaseForm: sampleStudent.form,
-            databaseStream: sampleStudent.stream,
-            status: sampleStudent.status
-          } : { error: 'Student not found in database' },
-          csvInfo: {
-            csvForm: sampleRecord.csvForm || '(not provided in CSV)',
-            csvStream: sampleRecord.csvStream || '(not provided in CSV)',
-            csvTerm: sampleRecord.csvTerm || '(not provided in CSV)'
-          },
-          subjectsCount: sampleRecord.subjects?.length || 0,
-          subjectsSample: sampleRecord.subjects?.slice(0, 3) || []
-        };
-      }
       
       return NextResponse.json(response);
       
@@ -799,7 +959,7 @@ export async function POST(request) {
       { 
         success: false, 
         error: error.message || 'Results upload failed',
-        suggestion: 'Please ensure your file has columns for admission number (3000-3500), term, academic year, and subject scores. Sample format: admissionNumber, English_Score, English_Grade, etc.'
+        suggestion: 'Please ensure your file has columns for admission number (3000-3500), term, academic year, and subject scores. Sample format: admissionNumber, English_Score, Mathematics_Score, etc. Comments are automatically generated.'
       },
       { status: 500 }
     );
@@ -807,10 +967,11 @@ export async function POST(request) {
 }
 
 // ========== OTHER ENDPOINTS (GET, PUT, DELETE) ==========
-// [Keep the existing GET, PUT, DELETE endpoints unchanged]
-// They already use the student database for form information
+// [Keep all other endpoints exactly as they were - unchanged]
+// GET, PUT, DELETE endpoints remain the same
 
 export async function GET(request) {
+  // ... keep existing GET endpoint exactly as it was ...
   try {
     const url = new URL(request.url);
     const action = url.searchParams.get('action');
@@ -843,6 +1004,7 @@ export async function GET(request) {
           term: true,
           academicYear: true,
           totalRows: true,
+          uploadMode: true,
           validRows: true,
           skippedRows: true,
           errorRows: true,
@@ -953,7 +1115,7 @@ export async function GET(request) {
           subjects.forEach(subject => {
             const score = parseFloat(subject.score) || 0;
             const subjectName = subject.subject || 'Unknown';
-            const grade = subject.grade || calculateGrade(score);
+            const grade = subject.grade || calculateGrade(score, subjectName);
             
             // Update subject performance (average score per subject)
             if (!subjectPerformance[subjectName]) {

@@ -46,11 +46,70 @@ import {
   FiArrowRight,
   FiInfo,
   FiFile,
-  FiUsers
+  FiUsers,
+  FiPercent,
+  FiAward,
+  FiTrendingUp as FiTrendingUpIcon,
+  FiTrendingDown as FiTrendingDownIcon,
+  FiHome,
+  FiUserPlus,
+  FiPercent as FiPercentIcon,
+  FiGlobe,
+  FiBookOpen,
+  FiHeart,
+  FiCpu,
+  FiPlay,
+  FiAward as FiAwardIcon,
+  FiMessageCircle,
+  FiImage,
+  FiTrendingDown,
+  FiActivity,
+  FiDollarSign,
+  FiCreditCard,
+  FiShield,
+  FiLock,
+  FiUnlock,
+  FiBell,
+  FiPrinter,
+  FiFileText,
+  FiCheck,
+  FiArchive,
+  FiRepeat,
+  FiMoreVertical,
+  FiExternalLink,
+  FiCopy,
+  FiTag,
+  FiCodesandbox,
+  FiStar,
+  FiBook as FiBookIcon,
+  FiTarget as FiTargetIcon,
+  FiPlus
 } from 'react-icons/fi';
 
 import { IoSchool } from 'react-icons/io5';
 import { IoDocumentText } from 'react-icons/io5';
+import { IoPeopleCircle, IoNewspaper, IoClose, IoStatsChart } from 'react-icons/io5';
+
+// Helper function for form colors
+function getFormColor(form) {
+  switch (form) {
+    case 'Form 1': return 'from-blue-500 to-blue-700';
+    case 'Form 2': return 'from-emerald-500 to-emerald-700';
+    case 'Form 3': return 'from-amber-500 to-amber-700';
+    case 'Form 4': return 'from-purple-500 to-purple-700';
+    default: return 'from-gray-400 to-gray-600';
+  }
+}
+
+// Format date helper
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
 
 // Custom Toaster with increased size
 const CustomToaster = () => (
@@ -272,6 +331,17 @@ function ModernFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag }) 
     }
   };
 
+  const handleDragEvent = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      onDrag(true);
+    } else if (e.type === 'dragleave') {
+      if (e.currentTarget.contains(e.relatedTarget)) return;
+      onDrag(false);
+    }
+  };
+
   return (
     <div
       className={`border-3 border-dashed rounded-2xl p-10 text-center transition-all duration-300 cursor-pointer ${
@@ -279,14 +349,17 @@ function ModernFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag }) 
           ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 ring-4 ring-blue-100' 
           : 'border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100'
       }`}
-      onDragEnter={onDrag}
-      onDragLeave={onDrag}
-      onDragOver={onDrag}
+      onDragEnter={handleDragEvent}
+      onDragLeave={handleDragEvent}
+      onDragOver={handleDragEvent}
       onDrop={(e) => {
         e.preventDefault();
+        e.stopPropagation();
         onDrag(false);
         const files = e.dataTransfer.files;
-        if (files && files[0]) handleFileChange({ target: { files } });
+        if (files && files[0]) {
+          handleFileChange({ target: { files } });
+        }
       }}
       onClick={() => fileInputRef.current?.click()}
     >
@@ -311,19 +384,10 @@ function ModernFileUpload({ onFileSelect, file, onRemove, dragActive, onDrag }) 
 }
 
 // Student Detail Modal
-function ModernStudentDetailModal({ student, onClose, onEdit, onDelete }) {
+function StudentDetailModal({ student, onClose, onEdit, onDelete }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   if (!student) return null;
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
 
   const calculateAge = (dob) => {
     if (!dob) return 'N/A';
@@ -339,174 +403,172 @@ function ModernStudentDetailModal({ student, onClose, onEdit, onDelete }) {
 
   return (
     <>
-  <Modal open={true} onClose={onClose}>
-  <Box
-    sx={{
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: '95vw',
-      maxWidth: '960px',
-      maxHeight: '92vh',
-      bgcolor: 'background.paper',
-      borderRadius: 3,
-      boxShadow: 20,
-      overflow: 'hidden',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-    }}
-  >
-    {/* Header */}
-    <div className="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-4 text-white">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/20 rounded-xl">
-            <IoSchool className="text-lg" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold">Student Details</h2>
-            <p className="text-xs text-blue-100 opacity-90">
-              Complete student information
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={onClose}
-          className="p-2 rounded-lg hover:bg-white/20 transition"
+      <Modal open={true} onClose={onClose}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '90vw',
+            maxWidth: '800px',
+            maxHeight: '90vh',
+            bgcolor: 'background.paper',
+            borderRadius: 3,
+            boxShadow: 24,
+            overflow: 'hidden'
+          }}
         >
-          <FiX className="text-lg" />
-        </button>
-      </div>
-    </div>
-
-    {/* Content */}
-    <div className="max-h-[calc(92vh-64px)] overflow-y-auto p-6">
-      {/* Profile */}
-      <div className="flex flex-col md:flex-row items-center gap-5 mb-6">
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center ring-2 ring-blue-100">
-          <FiUser className="text-white text-2xl" />
-        </div>
-
-        <div className="text-center md:text-left">
-          <h3 className="text-xl font-semibold text-gray-900">
-            {student.firstName}{' '}
-            {student.middleName ? student.middleName + ' ' : ''}
-            {student.lastName}
-          </h3>
-          <p className="text-sm text-gray-600">
-            Admission #{student.admissionNumber}
-          </p>
-
-          <div className="flex flex-wrap gap-1.5 mt-3 justify-center md:justify-start">
-            <span
-              className={`px-3 py-1 rounded-md text-xs font-medium text-white bg-gradient-to-r ${getFormColor(
-                student.form
-              )}`}
-            >
-              {student.form}
-            </span>
-
-            {student.stream && (
-              <span className="px-3 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-700">
-                {student.stream}
-              </span>
-            )}
-
-            <span
-              className={`px-3 py-1 rounded-md text-xs font-semibold ${
-                student.status === 'active'
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-red-100 text-red-700'
-              }`}
-            >
-              {student.status}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Info Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {[
-          {
-            title: 'Academic Information',
-            icon: <FiBook />,
-            color: 'blue',
-            items: [
-              ['Form Level', student.form],
-              ['Stream', student.stream || 'Not Assigned'],
-              ['Status', student.status.toUpperCase()],
-              ['Admission Date', formatDate(student.createdAt)],
-            ],
-          },
-          {
-            title: 'Personal Information',
-            icon: <FiUser />,
-            color: 'emerald',
-            items: [
-              ['Gender', student.gender || 'Not Specified'],
-              ['Date of Birth', formatDate(student.dateOfBirth)],
-              [
-                'Age',
-                `${calculateAge(student.dateOfBirth)} years`,
-              ],
-            ],
-          },
-        ].map(section => (
-          <div
-            key={section.title}
-            className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm"
-          >
-            <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <span className={`text-${section.color}-600`}>
-                {section.icon}
-              </span>
-              {section.title}
-            </h4>
-
-            <div className="space-y-2 text-sm">
-              {section.items.map(([label, value]) => (
-                <div
-                  key={label}
-                  className="flex justify-between text-gray-700"
-                >
-                  <span className="text-gray-500">{label}</span>
-                  <span className="font-medium">{value}</span>
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <FiUser className="text-xl" />
                 </div>
-              ))}
+                <div>
+                  <h2 className="text-2xl font-bold">Student Details</h2>
+                  <p className="text-blue-100 opacity-90">
+                    Complete student information
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-white/20 rounded-lg transition"
+              >
+                <FiX className="text-xl" />
+              </button>
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-5 border-t border-gray-200">
-        <button
-          onClick={onEdit}
-          className="flex-1 py-3 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 transition"
-        >
-          <FiEdit className="inline mr-2" />
-          Edit Student
-        </button>
+          {/* Content */}
+          <div className="p-6 max-h-[calc(90vh-120px)] overflow-y-auto">
+            {/* Profile Section */}
+            <div className="flex items-center gap-6 mb-8">
+              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                <FiUser className="text-white text-3xl" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {student.firstName} {student.middleName || ''} {student.lastName}
+                </h3>
+                <p className="text-gray-600">Admission #{student.admissionNumber}</p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <span className={`px-3 py-1 rounded-lg text-sm font-bold text-white bg-gradient-to-r ${getFormColor(student.form)}`}>
+                    {student.form}
+                  </span>
+                  {student.stream && (
+                    <span className="px-3 py-1 rounded-lg text-sm font-bold bg-purple-100 text-purple-700">
+                      {student.stream}
+                    </span>
+                  )}
+                  <span className={`px-3 py-1 rounded-lg text-sm font-bold ${
+                    student.status === 'active' 
+                      ? 'bg-emerald-100 text-emerald-700' 
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {student.status}
+                  </span>
+                </div>
+              </div>
+            </div>
 
-        <button
-          onClick={() => setShowDeleteModal(true)}
-          className="flex-1 py-3 rounded-xl text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition"
-        >
-          <FiTrash2 className="inline mr-2" />
-          Delete Student
-        </button>
-      </div>
-    </div>
-  </Box>
-</Modal>
+            {/* Information Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Personal Info */}
+              <div className="bg-gray-50 p-6 rounded-2xl">
+                <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <FiUser className="text-blue-600" />
+                  Personal Information
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Gender</span>
+                    <span className="font-semibold">{student.gender || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Date of Birth</span>
+                    <span className="font-semibold">{formatDate(student.dateOfBirth)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Age</span>
+                    <span className="font-semibold">{calculateAge(student.dateOfBirth)} years</span>
+                  </div>
+                </div>
+              </div>
 
+              {/* Academic Info */}
+              <div className="bg-gray-50 p-6 rounded-2xl">
+                <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <FiBook className="text-blue-600" />
+                  Academic Information
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Form Level</span>
+                    <span className="font-semibold">{student.form}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Stream</span>
+                    <span className="font-semibold">{student.stream || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Admission Date</span>
+                    <span className="font-semibold">{formatDate(student.createdAt)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Info */}
+              <div className="bg-gray-50 p-6 rounded-2xl md:col-span-2">
+                <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <FiPhone className="text-blue-600" />
+                  Contact Information
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-gray-600 mb-1">Email Address</p>
+                    <p className="font-semibold">{student.email || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600 mb-1">Parent Phone</p>
+                    <p className="font-semibold">{student.parentPhone || 'N/A'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-gray-600 mb-1">Address</p>
+                    <p className="font-semibold">{student.address || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200">
+              <button
+                onClick={onEdit}
+                className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:shadow-lg transition-all"
+              >
+                <FiEdit />
+                Edit Student
+              </button>
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:shadow-lg transition-all"
+              >
+                <FiTrash2 />
+                Delete Student
+              </button>
+            </div>
+          </div>
+        </Box>
+      </Modal>
 
       {showDeleteModal && (
         <ModernDeleteModal
           onClose={() => setShowDeleteModal(false)}
           onConfirm={() => {
-            onDelete(student.firstName + ' ' + student.lastName);
+            onDelete(student.id, `${student.firstName} ${student.lastName}`);
             setShowDeleteModal(false);
           }}
           loading={false}
@@ -519,7 +581,7 @@ function ModernStudentDetailModal({ student, onClose, onEdit, onDelete }) {
 }
 
 // Student Edit Modal
-function ModernStudentEditModal({ student, onClose, onSave, loading }) {
+function StudentEditModal({ student, onClose, onSave, loading }) {
   const [formData, setFormData] = useState({
     firstName: student?.firstName || '',
     middleName: student?.middleName || '',
@@ -535,327 +597,327 @@ function ModernStudentEditModal({ student, onClose, onSave, loading }) {
     status: student?.status || 'active'
   });
 
-  const FORMS = ['Form 1', 'Form 2', 'Form 3', 'Form 4'];
-  const STREAMS = ['A', 'B', 'C', 'D', 'E', 'East', 'West', 'North', 'South', 'Day', 'Boarding', 'Science', 'Arts', 'Commercial'];
-  const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     await onSave(student.id, formData);
   };
 
   return (
-<Modal open={true} onClose={onClose}>
-  <Box
-    sx={{
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: '95vw',
-      maxWidth: '880px',
-      maxHeight: '92vh',
-      bgcolor: 'background.paper',
-      borderRadius: 3,
-      boxShadow: 20,
-      overflow: 'hidden',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-    }}
-  >
-    {/* Header */}
-    <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-4 text-white">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/20 rounded-xl">
-            <FiEdit className="text-lg" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold">Edit Student Information</h2>
-            <p className="text-xs text-blue-100 opacity-90">
-              Update student details
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={onClose}
-          className="p-2 rounded-lg hover:bg-white/20 transition"
-        >
-          <FiX className="text-lg" />
-        </button>
-      </div>
-    </div>
-
-    {/* Form */}
-    <div className="max-h-[calc(92vh-64px)] overflow-y-auto p-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Personal Info */}
-        <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-          <h4 className="text-sm font-semibold text-gray-900 mb-4">
-            Personal Information
-          </h4>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              ['First Name *', 'firstName', 'text', true],
-              ['Middle Name', 'middleName', 'text'],
-              ['Last Name *', 'lastName', 'text', true],
-            ].map(([label, key, type, required]) => (
-              <div key={key}>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                  {label}
-                </label>
-                <input
-                  type={type}
-                  required={required}
-                  value={formData[key]}
-                  onChange={e =>
-                    setFormData({ ...formData, [key]: e.target.value })
-                  }
-                  className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+    <Modal open={true} onClose={onClose}>
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '90vw',
+          maxWidth: '800px',
+          maxHeight: '90vh',
+          bgcolor: 'background.paper',
+          borderRadius: 3,
+          boxShadow: 24,
+          overflow: 'hidden'
+        }}
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-xl">
+                <FiEdit className="text-xl" />
               </div>
-            ))}
-
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Gender
-              </label>
-              <select
-                value={formData.gender}
-                onChange={e =>
-                  setFormData({ ...formData, gender: e.target.value })
-                }
-                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select Gender</option>
-                {GENDERS.map(g => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <h2 className="text-2xl font-bold">Edit Student</h2>
+                <p className="text-blue-100 opacity-90">Update student information</p>
+              </div>
             </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Date of Birth
-              </label>
-              <input
-                type="date"
-                value={formData.dateOfBirth}
-                onChange={e =>
-                  setFormData({
-                    ...formData,
-                    dateOfBirth: e.target.value,
-                  })
-                }
-                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="md:col-span-2 lg:col-span-1">
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Address
-              </label>
-              <input
-                type="text"
-                value={formData.address}
-                onChange={e =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="Full address"
-              />
-            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white/20 rounded-lg transition"
+            >
+              <FiX className="text-xl" />
+            </button>
           </div>
         </div>
 
-        {/* Academic Info */}
-        <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-          <h4 className="text-sm font-semibold text-gray-900 mb-4">
-            Academic Information
-          </h4>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Admission Number *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.admissionNumber}
-                onChange={e =>
-                  setFormData({
-                    ...formData,
-                    admissionNumber: e.target.value,
-                  })
-                }
-                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                pattern="\d{4,10}"
-              />
+        {/* Form */}
+        <div className="p-6 max-h-[calc(90vh-120px)] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Personal Info */}
+            <div className="bg-gray-50 p-6 rounded-2xl">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">Personal Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    First Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Middle Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.middleName}
+                    onChange={(e) => setFormData({...formData, middleName: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Last Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Gender
+                  </label>
+                  <select
+                    value={formData.gender}
+                    onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Date of Birth
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.dateOfBirth}
+                    onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Form *
-              </label>
-              <select
-                required
-                value={formData.form}
-                onChange={e =>
-                  setFormData({ ...formData, form: e.target.value })
-                }
-                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            {/* Academic Info */}
+            <div className="bg-gray-50 p-6 rounded-2xl">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">Academic Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Admission Number *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.admissionNumber}
+                    onChange={(e) => setFormData({...formData, admissionNumber: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Form *
+                  </label>
+                  <select
+                    required
+                    value={formData.form}
+                    onChange={(e) => setFormData({...formData, form: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="Form 1">Form 1</option>
+                    <option value="Form 2">Form 2</option>
+                    <option value="Form 3">Form 3</option>
+                    <option value="Form 4">Form 4</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Stream
+                  </label>
+                  <select
+                    value={formData.stream}
+                    onChange={(e) => setFormData({...formData, stream: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Stream</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="E">E</option>
+                    <option value="Science">Science</option>
+                    <option value="Arts">Arts</option>
+                    <option value="Commercial">Commercial</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Status *
+                  </label>
+                  <select
+                    required
+                    value={formData.status}
+                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="graduated">Graduated</option>
+                    <option value="transferred">Transferred</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Info */}
+            <div className="bg-gray-50 p-6 rounded-2xl">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">Contact Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Parent Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.parentPhone}
+                    onChange={(e) => setFormData({...formData, parentPhone: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Address
+                  </label>
+                  <textarea
+                    value={formData.address}
+                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 pt-6 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all"
               >
-                {FORMS.map(f => (
-                  <option key={f} value={f}>
-                    {f}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Stream
-              </label>
-              <select
-                value={formData.stream}
-                onChange={e =>
-                  setFormData({ ...formData, stream: e.target.value })
-                }
-                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-50 hover:shadow-lg transition-all"
               >
-                <option value="">Select Stream</option>
-                {STREAMS.map(s => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="lg:col-span-3">
-              <label className="block text-xs font-medium text-gray-600 mb-2">
-                Status *
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {['active', 'inactive', 'graduated', 'transferred'].map(
-                  status => (
-                    <label
-                      key={status}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 cursor-pointer hover:border-blue-400 transition"
-                    >
-                      <input
-                        type="radio"
-                        value={status}
-                        checked={formData.status === status}
-                        onChange={e =>
-                          setFormData({
-                            ...formData,
-                            status: e.target.value,
-                          })
-                        }
-                      />
-                      <span className="text-sm capitalize">
-                        {status}
-                      </span>
-                    </label>
-                  )
+                {loading ? (
+                  <>
+                    <CircularProgress size={20} className="text-white" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <FiSave />
+                    Save Changes
+                  </>
                 )}
-              </div>
+              </button>
             </div>
-          </div>
+          </form>
         </div>
-
-        {/* Contact Info */}
-        <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-          <h4 className="text-sm font-semibold text-gray-900 mb-4">
-            Contact Information
-          </h4>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={e =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="student@example.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Parent / Guardian Phone
-              </label>
-              <input
-                type="tel"
-                value={formData.parentPhone}
-                onChange={e =>
-                  setFormData({
-                    ...formData,
-                    parentPhone: e.target.value,
-                  })
-                }
-                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="+254 700 000 000"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-5 border-t border-gray-200">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 py-3 text-sm font-semibold rounded-xl border border-gray-300 text-gray-700"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 py-3 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <CircularProgress size={16} className="text-white" />
-                Saving…
-              </>
-            ) : (
-              <>
-                <FiSave />
-                Save Changes
-              </>
-            )}
-          </button>
-        </div>
-      </form>
-    </div>
-  </Box>
-</Modal>
-
+      </Box>
+    </Modal>
   );
 }
 
-// Modern Chart Component with Recharts
-function ModernChart({ 
+// Student Statistics Card
+function StudentStatisticsCard({ title, value, icon: Icon, color, trend = 0, prefix = '', suffix = '' }) {
+  const formatValue = (val) => {
+    if (typeof val === 'number') {
+      return prefix + val.toLocaleString() + suffix;
+    }
+    return prefix + val + suffix;
+  };
+
+  return (
+    <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300">
+      <div className="flex items-center justify-between mb-4">
+        <div className={`p-3 rounded-xl bg-gradient-to-r ${color}`}>
+          <Icon className="text-white text-2xl" />
+        </div>
+        <div className={`text-sm font-bold px-3 py-1.5 rounded-lg ${
+          trend > 0 
+            ? 'bg-green-100 text-green-800 border border-green-200' 
+            : trend < 0 
+            ? 'bg-red-100 text-red-800 border border-red-200' 
+            : 'bg-gray-100 text-gray-800 border border-gray-200'
+        }`}>
+          {trend > 0 ? `↑ ${trend}%` : trend < 0 ? `↓ ${Math.abs(trend)}%` : '→ 0%'}
+        </div>
+      </div>
+      <h4 className="text-3xl font-bold text-gray-900 mb-2">{formatValue(value)}</h4>
+      <p className="text-gray-600 text-sm font-semibold">{title}</p>
+      
+      {/* Performance bar */}
+      <div className="mt-4 pt-3 border-t border-gray-100">
+        <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <span>Performance</span>
+          <span className={`font-bold ${
+            trend > 0 ? 'text-green-600' : 
+            trend < 0 ? 'text-red-600' : 'text-gray-600'
+          }`}>
+            {trend > 0 ? 'Growing' : trend < 0 ? 'Declining' : 'Stable'}
+          </span>
+        </div>
+        <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+          <div 
+            className={`h-full rounded-full transition-all duration-500 ${
+              trend > 0 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+              trend < 0 ? 'bg-gradient-to-r from-red-500 to-orange-500' :
+              'bg-gradient-to-r from-gray-400 to-gray-500'
+            }`}
+            style={{ width: `${Math.min(Math.abs(trend) * 3, 100)}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Students Chart Component
+function StudentsChart({ 
   data, 
   type = 'pie', 
   title, 
   colors = [
     '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', 
-    '#6366F1', '#EC4899', '#14B8A6', '#F97316', '#8B5CF6',
-    '#06B6D4', '#84CC16', '#F43F5E', '#A855F7', '#EAB308'
+    '#6366F1', '#EC4899', '#14B8A6', '#F97316', '#8B5CF6'
   ],
   height = 400
 }) {
@@ -872,20 +934,41 @@ function ModernChart({
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
                 outerRadius={120}
+                innerRadius={60}
                 fill="#8884d8"
                 dataKey="value"
+                paddingAngle={5}
               >
                 {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={chartColors[index % chartColors.length]}
+                    stroke="#fff"
+                    strokeWidth={2}
+                  />
                 ))}
               </Pie>
               <RechartsTooltip 
-                formatter={(value) => [value, 'Students']}
-                labelFormatter={(label) => `Category: ${label}`}
+                formatter={(value, name, props) => {
+                  const total = data.reduce((sum, item) => sum + item.value, 0);
+                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                  return [`${value} students (${percentage}%)`, 'Count'];
+                }}
+                contentStyle={{
+                  borderRadius: '12px',
+                  padding: '12px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  border: '1px solid #e5e7eb'
+                }}
               />
-              <Legend />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                formatter={(value) => <span style={{ color: '#374151', fontWeight: 600 }}>{value}</span>}
+              />
             </PieChart>
           </ResponsiveContainer>
         );
@@ -893,65 +976,65 @@ function ModernChart({
       case 'bar':
         return (
           <ResponsiveContainer width="100%" height={height}>
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis dataKey="name" stroke="#6B7280" />
-              <YAxis stroke="#6B7280" />
-              <RechartsTooltip 
-                formatter={(value) => [value, 'Students']}
-                labelFormatter={(label) => `Category: ${label}`}
+            <BarChart 
+              data={data}
+              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+            >
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke="#E5E7EB" 
+                vertical={false}
               />
-              <Legend />
-              <Bar dataKey="value" name="Students" radius={[8, 8, 0, 0]}>
+              <XAxis 
+                dataKey="name" 
+                stroke="#6B7280"
+                tick={{ fill: '#4B5563', fontSize: 12 }}
+                axisLine={{ stroke: '#D1D5DB' }}
+              />
+              <YAxis 
+                stroke="#6B7280"
+                tick={{ fill: '#4B5563', fontSize: 12 }}
+                axisLine={{ stroke: '#D1D5DB' }}
+                label={{ 
+                  value: 'Students', 
+                  angle: -90, 
+                  position: 'insideLeft',
+                  offset: -10,
+                  style: { fill: '#6B7280', fontSize: 12 }
+                }}
+              />
+              <RechartsTooltip 
+                formatter={(value) => [`${value} students`, 'Count']}
+                labelFormatter={(label) => `Category: ${label}`}
+                contentStyle={{
+                  borderRadius: '12px',
+                  padding: '12px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  border: '1px solid #e5e7eb'
+                }}
+              />
+              <Legend 
+                verticalAlign="top"
+                height={36}
+                formatter={(value) => <span style={{ color: '#374151', fontWeight: 600 }}>{value}</span>}
+              />
+              <Bar 
+                dataKey="value" 
+                name={title.includes('Gender') ? "Students" : "Count"} 
+                radius={[8, 8, 0, 0]}
+                fill={chartColors[0]}
+              >
                 {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={chartColors[index % chartColors.length]}
+                    stroke="#fff"
+                    strokeWidth={1}
+                  />
                 ))}
               </Bar>
             </BarChart>
-          </ResponsiveContainer>
-        );
-      
-      case 'radial':
-        return (
-          <ResponsiveContainer width="100%" height={height}>
-            <RadialBarChart 
-              innerRadius="10%" 
-              outerRadius="80%" 
-              data={data} 
-              startAngle={180} 
-              endAngle={0}
-            >
-              <RadialBar 
-                minAngle={15} 
-                label={{ fill: '#fff', position: 'insideStart' }} 
-                background 
-                clockWise 
-                dataKey="value"
-              >
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
-                ))}
-              </RadialBar>
-              <Legend iconSize={10} layout="vertical" verticalAlign="middle" align="right" />
-              <RechartsTooltip 
-                formatter={(value) => [value, 'Students']}
-              />
-            </RadialBarChart>
-          </ResponsiveContainer>
-        );
-      
-      case 'radar':
-        return (
-          <ResponsiveContainer width="100%" height={height}>
-            <RadarChart data={data}>
-              <PolarGrid />
-              <PolarAngleAxis dataKey="name" />
-              <PolarRadiusAxis />
-              <Radar name="Students" dataKey="value" stroke={chartColors[0]} fill={chartColors[0]} fillOpacity={0.6} />
-              <RechartsTooltip 
-                formatter={(value) => [value, 'Students']}
-              />
-            </RadarChart>
           </ResponsiveContainer>
         );
       
@@ -975,6 +1058,7 @@ function ModernChart({
               </Pie>
               <RechartsTooltip 
                 formatter={(value) => [value, 'Students']}
+                labelFormatter={(label) => `Category: ${label}`}
               />
               <Legend />
             </PieChart>
@@ -1050,51 +1134,6 @@ function ModernChart({
     </div>
   );
 }
-
-// Modern Demographic Summary Card
-function DemographicSummaryCard({ title, value, icon: Icon, color }) {
-  return (
-    <div
-      className="
-        flex-shrink-0
-        w-56 h-36
-        rounded-2xl
-        px-5 py-4
-        bg-white/70 backdrop-blur-md
-        border border-gray-200/60
-        shadow-sm
-        flex flex-col justify-between
-      "
-      style={{ minWidth: 220 }}
-    >
-      {/* Icon */}
-      <div className="flex items-center justify-between">
-        <div
-          className={`
-            flex items-center justify-center
-            w-11 h-11
-            rounded-xl
-            bg-gradient-to-br ${color}
-            shadow-sm
-          `}
-        >
-          <Icon className="text-white text-lg" />
-        </div>
-      </div>
-
-      {/* Value + Title */}
-      <div>
-        <div className="text-[28px] font-extrabold text-gray-900 leading-none tracking-tight">
-          {Number(value || 0).toLocaleString()}
-        </div>
-        <div className="mt-1 text-sm font-medium text-gray-500">
-          {title}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 
 // Statistics Summary Card Component
 function StatisticsSummaryCard({ stats, demographics, onRefresh }) {
@@ -1435,32 +1474,6 @@ function EnhancedFilterPanel({
   );
 }
 
-// Add a top-level helper so getFormColor is available across the file
-function getFormColor(form) {
-  switch (form) {
-    case 'Form 1': return 'from-blue-500 to-blue-700';
-    case 'Form 2': return 'from-emerald-500 to-emerald-700';
-    case 'Form 3': return 'from-amber-500 to-amber-700';
-    case 'Form 4': return 'from-purple-500 to-purple-700';
-    default: return 'from-gray-400 to-gray-600';
-  }
-}
-
-
-
-// Add this helper function after the imports
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
-
-// Main Component
-
-
 // Main Component
 export default function ModernStudentBulkUpload() {
   const [uploading, setUploading] = useState(false);
@@ -1537,12 +1550,10 @@ export default function ModernStudentBulkUpload() {
   const loadStats = async () => {
     setLoading(true);
     try {
-      // Call the stats endpoint
       const res = await fetch('/api/studentupload?action=stats');
       const result = await res.json();
       
       if (result.success) {
-        // Extract stats from the response structure
         const apiStats = processApiResponse(result) || {
           totalStudents: 0,
           form1: 0,
@@ -1552,7 +1563,6 @@ export default function ModernStudentBulkUpload() {
           updatedAt: new Date()
         };
         
-        // Get student data for demographic calculations
         const studentsRes = await fetch('/api/studentupload?limit=1000');
         const studentsData = await studentsRes.json();
         
@@ -1560,26 +1570,21 @@ export default function ModernStudentBulkUpload() {
           const allStudents = studentsData.data?.students || studentsData.students || [];
           const totalStudents = apiStats.totalStudents || allStudents.length;
           
-          // Calculate demographics
           const streamDistribution = {};
           const genderDistribution = {};
           const statusDistribution = {};
           
           allStudents.forEach(student => {
-            // Stream distribution
             const stream = student.stream || 'Unassigned';
             streamDistribution[stream] = (streamDistribution[stream] || 0) + 1;
             
-            // Gender distribution
             const gender = student.gender || 'Not Specified';
             genderDistribution[gender] = (genderDistribution[gender] || 0) + 1;
             
-            // Status distribution
             const status = student.status || 'active';
             statusDistribution[status] = (statusDistribution[status] || 0) + 1;
           });
           
-          // Calculate age distribution
           const ageDistribution = {
             'Under 13': 0,
             '13-15': 0,
@@ -1601,7 +1606,6 @@ export default function ModernStudentBulkUpload() {
             }
           });
           
-          // Calculate form distribution from API stats
           const formDistribution = {
             'Form 1': apiStats.form1 || 0,
             'Form 2': apiStats.form2 || 0,
@@ -1609,7 +1613,6 @@ export default function ModernStudentBulkUpload() {
             'Form 4': apiStats.form4 || 0
           };
           
-          // Prepare chart data
           const genderChartData = Object.entries(genderDistribution).map(([name, value]) => ({
             name,
             value,
@@ -1654,7 +1657,6 @@ export default function ModernStudentBulkUpload() {
             { name: 'Transferred', value: statusDistribution.transferred || 0, color: '#F59E0B' }
           ];
           
-          // Update state with all statistics
           setStats({
             totalStudents: totalStudents,
             globalStats: apiStats,
@@ -1690,8 +1692,6 @@ export default function ModernStudentBulkUpload() {
     }
   };
 
-
-  // Statistics refresh function
   const refreshStatistics = async () => {
     try {
       const res = await fetch('/api/studentupload?action=stats');
@@ -1707,7 +1707,6 @@ export default function ModernStudentBulkUpload() {
             totalStudents: apiStats.totalStudents || prev.totalStudents
           }));
           
-          // Update form chart data
           const formChartData = [
             { name: 'Form 1', value: apiStats.form1 || 0, color: '#3B82F6' },
             { name: 'Form 2', value: apiStats.form2 || 0, color: '#10B981' },
@@ -1789,7 +1788,6 @@ export default function ModernStudentBulkUpload() {
     let intervalId;
     
     if (view === 'demographics') {
-      // Refresh stats every 30 seconds when on demographics view
       intervalId = setInterval(() => {
         refreshStatistics();
       }, 30000);
@@ -1838,10 +1836,8 @@ export default function ModernStudentBulkUpload() {
     loadStudents(pagination.page);
   };
 
-  const handleDrag = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(e.type === 'dragenter' || e.type === 'dragover');
+  const handleDrag = useCallback((active) => {
+    setDragActive(active);
   }, []);
 
   const handleFileSelect = (selectedFile) => {
@@ -1958,7 +1954,6 @@ export default function ModernStudentBulkUpload() {
         sooner.success('Student updated successfully');
         await loadStudents(pagination.page);
         setEditingStudent(null);
-        setSelectedStudent(data.data?.student || data.student);
       } else {
         sooner.error(data.message || 'Failed to update student');
       }
@@ -2060,7 +2055,6 @@ export default function ModernStudentBulkUpload() {
       return;
     }
 
-    // Build worksheet data
     const worksheetData = [
       ['Admission Number', 'First Name', 'Middle Name', 'Last Name', 'Form', 'Stream', 'Gender', 'Date of Birth', 'Age', 'Status', 'Email', 'Parent Phone', 'Address'],
       ...students.map(student => {
@@ -2085,7 +2079,6 @@ export default function ModernStudentBulkUpload() {
       })
     ];
 
-    // Create and download Excel file
     try {
       const ws = XLSX.utils.aoa_to_sheet(worksheetData);
       const wb = XLSX.utils.book_new();
@@ -2225,35 +2218,37 @@ export default function ModernStudentBulkUpload() {
       <div className="space-y-6">
         {view === 'upload' && (
           <div className="space-y-6">
+            {/* Statistics Cards Row - Modern Version */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <DemographicSummaryCard
+              <StudentStatisticsCard
                 title="Total Students"
                 value={stats.totalStudents}
                 icon={FiUsers}
-                color="from-blue-500 to-blue-700"
-                trend={12}
+                color="from-purple-500 to-purple-700"
+                trend={8.5}
               />
-
-              {FORMS.map(form => {
-                const count = stats.formStats[form] || 0;
-                const colors = {
-                  'Form 1': 'from-blue-500 to-blue-700',
-                  'Form 2': 'from-emerald-500 to-emerald-700',
-                  'Form 3': 'from-amber-500 to-amber-700',
-                  'Form 4': 'from-purple-500 to-purple-700'
-                };
-
-                return (
-                  <DemographicSummaryCard
-                    key={form}
-                    title={form}
-                    value={count}
-                    icon={IoSchool}
-                    color={colors[form]}
-                    trend={Math.floor(Math.random() * 20) - 5}
-                  />
-                );
-              })}
+              <StudentStatisticsCard
+                title="Form 1 Students"
+                value={stats.globalStats?.form1 || 0}
+                icon={IoSchool}
+                color="from-blue-500 to-blue-700"
+                trend={5.2}
+              />
+              <StudentStatisticsCard
+                title="Active Students"
+                value={demographics.statusDistribution?.find(s => s.name === 'Active')?.value || 0}
+                icon={FiAward}
+                color="from-emerald-500 to-emerald-700"
+                trend={12.3}
+              />
+              <StudentStatisticsCard
+                title="Male/Female Ratio"
+                value={demographics.gender?.length > 0 ? 
+                  `${((demographics.gender.find(g => g.name === 'Male')?.value || 0) / stats.totalStudents * 100).toFixed(1)}%` : '0%'}
+                icon={FiPercent}
+                color="from-indigo-500 to-indigo-700"
+                trend={2.1}
+              />
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
@@ -2313,7 +2308,7 @@ export default function ModernStudentBulkUpload() {
                   file={file}
                   onRemove={() => setFile(null)}
                   dragActive={dragActive}
-                  onDrag={(active) => setDragActive(active)}
+                  onDrag={handleDrag}
                 />
 
                 {file && (
@@ -2513,119 +2508,118 @@ export default function ModernStudentBulkUpload() {
                         Page {pagination.page} of {pagination.pages}
                       </div>
                     </div>
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-  {students.map(student => (
-    <div
-      key={student.id}
-      className="group bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-lg transition-all duration-300"
-    >
-      {/* Top Section */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center ring-1 ring-blue-100">
-            <FiUser className="text-white text-base" />
-          </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                      {students.map(student => (
+                        <div
+                          key={student.id}
+                          className="group bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-lg transition-all duration-300"
+                        >
+                          {/* Top Section */}
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center ring-1 ring-blue-100">
+                                <FiUser className="text-white text-base" />
+                              </div>
 
-          <div className="space-y-0.5">
-            <h4 className="text-sm font-semibold text-gray-900 leading-tight">
-              {student.firstName} {student.lastName}
-            </h4>
-            <p className="text-xs text-gray-500">
-              #{student.admissionNumber}
-            </p>
-          </div>
-        </div>
+                              <div className="space-y-0.5">
+                                <h4 className="text-sm font-semibold text-gray-900 leading-tight">
+                                  {student.firstName} {student.lastName}
+                                </h4>
+                                <p className="text-xs text-gray-500">
+                                  #{student.admissionNumber}
+                                </p>
+                              </div>
+                            </div>
 
-        <button className="opacity-60 group-hover:opacity-100 transition p-1.5 rounded-md hover:bg-gray-100">
-          <FiSettings className="text-sm text-gray-500" />
-        </button>
-      </div>
+                            <button className="opacity-60 group-hover:opacity-100 transition p-1.5 rounded-md hover:bg-gray-100">
+                              <FiSettings className="text-sm text-gray-500" />
+                            </button>
+                          </div>
 
-      {/* Tags */}
-      <div className="flex flex-wrap gap-1.5 mt-3">
-        <span
-          className={`px-2.5 py-1 rounded-md text-[11px] font-medium text-white bg-gradient-to-r ${getFormColor(student.form)}`}
-        >
-          {student.form}
-        </span>
+                          {/* Tags */}
+                          <div className="flex flex-wrap gap-1.5 mt-3">
+                            <span
+                              className={`px-2.5 py-1 rounded-md text-[11px] font-medium text-white bg-gradient-to-r ${getFormColor(student.form)}`}
+                            >
+                              {student.form}
+                            </span>
 
-        {student.stream && (
-          <span className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-purple-50 text-purple-700">
-            Stream {student.stream}
-          </span>
-        )}
+                            {student.stream && (
+                              <span className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-purple-50 text-purple-700">
+                                Stream {student.stream}
+                              </span>
+                            )}
 
-        <span
-          className={`px-2.5 py-1 rounded-md text-[11px] font-semibold ${
-            student.status === 'active'
-              ? 'bg-emerald-50 text-emerald-700'
-              : 'bg-red-50 text-red-700'
-          }`}
-        >
-          {student.status}
-        </span>
-      </div>
+                            <span
+                              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold ${
+                                student.status === 'active'
+                                  ? 'bg-emerald-50 text-emerald-700'
+                                  : 'bg-red-50 text-red-700'
+                              }`}
+                            >
+                              {student.status}
+                            </span>
+                          </div>
 
-      {/* Divider */}
-      <div className="my-4 h-px bg-gray-100" />
+                          {/* Divider */}
+                          <div className="my-4 h-px bg-gray-100" />
 
-      {/* Details */}
-      <div className="space-y-2 text-xs">
-        <div className="flex justify-between">
-          <span className="text-gray-500">Form Level</span>
-          <span className="font-medium text-gray-800">{student.form}</span>
-        </div>
+                          {/* Details */}
+                          <div className="space-y-2 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Form Level</span>
+                              <span className="font-medium text-gray-800">{student.form}</span>
+                            </div>
 
-        <div className="flex justify-between">
-          <span className="text-gray-500">Stream</span>
-          <span className="font-medium text-gray-800">
-            {student.stream || '—'}
-          </span>
-        </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Stream</span>
+                              <span className="font-medium text-gray-800">
+                                {student.stream || '—'}
+                              </span>
+                            </div>
 
-        <div className="flex justify-between">
-          <span className="text-gray-500">Status</span>
-          <span
-            className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
-              student.status === 'active'
-                ? 'bg-emerald-100 text-emerald-800'
-                : 'bg-red-100 text-red-800'
-            }`}
-          >
-            {student.status}
-          </span>
-        </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Status</span>
+                              <span
+                                className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
+                                  student.status === 'active'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}
+                              >
+                                {student.status}
+                              </span>
+                            </div>
 
-        <div className="flex justify-between">
-          <span className="text-gray-500">Admitted</span>
-          <span className="font-medium text-gray-700 text-[11px]">
-            {formatDate(student.createdAt)}
-          </span>
-        </div>
-      </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Admitted</span>
+                              <span className="font-medium text-gray-700 text-[11px]">
+                                {formatDate(student.createdAt)}
+                              </span>
+                            </div>
+                          </div>
 
-      {/* Actions */}
-      <div className="flex gap-2 mt-4">
-        <button
-          onClick={() => setSelectedStudent(student)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
-        >
-          <FiEye className="text-xs" />
-          View
-        </button>
+                          {/* Actions */}
+                          <div className="flex gap-2 mt-4">
+                            <button
+                              onClick={() => setSelectedStudent(student)}
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+                            >
+                              <FiEye className="text-xs" />
+                              View
+                            </button>
 
-        <button
-          onClick={() => setEditingStudent(student)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition"
-        >
-          <FiEdit className="text-xs" />
-          Edit
-        </button>
-      </div>
-    </div>
-  ))}
-</div>
-
+                            <button
+                              onClick={() => setEditingStudent(student)}
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition"
+                            >
+                              <FiEdit className="text-xs" />
+                              Edit
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </>
                 )}
 
@@ -2654,165 +2648,164 @@ export default function ModernStudentBulkUpload() {
                       </div>
                     </div>
 
-                  <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
-  <table className="w-full min-w-[760px] text-sm">
-    <thead className="bg-gray-50 border-b border-gray-100">
-      <tr>
-        <th
-          className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide cursor-pointer hover:text-blue-600"
-          onClick={() => handleSort('firstName')}
-        >
-          <div className="flex items-center gap-1.5">
-            Student
-            {filters.sortBy === 'firstName' &&
-              (filters.sortOrder === 'asc' ? (
-                <FiChevronUp className="text-xs" />
-              ) : (
-                <FiChevronDown className="text-xs" />
-              ))}
-          </div>
-        </th>
+                    <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
+                      <table className="w-full min-w-[760px] text-sm">
+                        <thead className="bg-gray-50 border-b border-gray-100">
+                          <tr>
+                            <th
+                              className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide cursor-pointer hover:text-blue-600"
+                              onClick={() => handleSort('firstName')}
+                            >
+                              <div className="flex items-center gap-1.5">
+                                Student
+                                {filters.sortBy === 'firstName' &&
+                                  (filters.sortOrder === 'asc' ? (
+                                    <FiChevronUp className="text-xs" />
+                                  ) : (
+                                    <FiChevronDown className="text-xs" />
+                                  ))}
+                              </div>
+                            </th>
 
-        <th
-          className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide cursor-pointer hover:text-blue-600"
-          onClick={() => handleSort('form')}
-        >
-          <div className="flex items-center gap-1.5">
-            Form
-            {filters.sortBy === 'form' &&
-              (filters.sortOrder === 'asc' ? (
-                <FiChevronUp className="text-xs" />
-              ) : (
-                <FiChevronDown className="text-xs" />
-              ))}
-          </div>
-        </th>
+                            <th
+                              className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide cursor-pointer hover:text-blue-600"
+                              onClick={() => handleSort('form')}
+                            >
+                              <div className="flex items-center gap-1.5">
+                                Form
+                                {filters.sortBy === 'form' &&
+                                  (filters.sortOrder === 'asc' ? (
+                                    <FiChevronUp className="text-xs" />
+                                  ) : (
+                                    <FiChevronDown className="text-xs" />
+                                  ))}
+                              </div>
+                            </th>
 
-        <th
-          className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide cursor-pointer hover:text-blue-600"
-          onClick={() => handleSort('stream')}
-        >
-          <div className="flex items-center gap-1.5">
-            Stream
-            {filters.sortBy === 'stream' &&
-              (filters.sortOrder === 'asc' ? (
-                <FiChevronUp className="text-xs" />
-              ) : (
-                <FiChevronDown className="text-xs" />
-              ))}
-          </div>
-        </th>
+                            <th
+                              className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide cursor-pointer hover:text-blue-600"
+                              onClick={() => handleSort('stream')}
+                            >
+                              <div className="flex items-center gap-1.5">
+                                Stream
+                                {filters.sortBy === 'stream' &&
+                                  (filters.sortOrder === 'asc' ? (
+                                    <FiChevronUp className="text-xs" />
+                                  ) : (
+                                    <FiChevronDown className="text-xs" />
+                                  ))}
+                              </div>
+                            </th>
 
-        <th
-          className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide cursor-pointer hover:text-blue-600"
-          onClick={() => handleSort('status')}
-        >
-          <div className="flex items-center gap-1.5">
-            Status
-            {filters.sortBy === 'status' &&
-              (filters.sortOrder === 'asc' ? (
-                <FiChevronUp className="text-xs" />
-              ) : (
-                <FiChevronDown className="text-xs" />
-              ))}
-          </div>
-        </th>
+                            <th
+                              className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide cursor-pointer hover:text-blue-600"
+                              onClick={() => handleSort('status')}
+                            >
+                              <div className="flex items-center gap-1.5">
+                                Status
+                                {filters.sortBy === 'status' &&
+                                  (filters.sortOrder === 'asc' ? (
+                                    <FiChevronUp className="text-xs" />
+                                  ) : (
+                                    <FiChevronDown className="text-xs" />
+                                  ))}
+                              </div>
+                            </th>
 
-        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
-          Actions
-        </th>
-      </tr>
-    </thead>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
 
-    <tbody className="divide-y divide-gray-100">
-      {students.map(student => (
-        <tr
-          key={student.id}
-          className="hover:bg-gray-50 transition-colors"
-        >
-          {/* Student */}
-          <td className="px-6 py-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shrink-0">
-                <FiUser className="text-white text-sm" />
-              </div>
+                        <tbody className="divide-y divide-gray-100">
+                          {students.map(student => (
+                            <tr
+                              key={student.id}
+                              className="hover:bg-gray-50 transition-colors"
+                            >
+                              {/* Student */}
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shrink-0">
+                                    <FiUser className="text-white text-sm" />
+                                  </div>
 
-              <div className="leading-tight">
-                <div className="font-semibold text-gray-900">
-                  {student.firstName}{' '}
-                  {student.middleName ? `${student.middleName} ` : ''}
-                  {student.lastName}
-                </div>
-                <div className="text-xs text-gray-500">
-                  #{student.admissionNumber}
-                </div>
-                {student.email && (
-                  <div className="text-xs text-gray-400 max-w-[220px] truncate">
-                    {student.email}
-                  </div>
-                )}
-              </div>
-            </div>
-          </td>
+                                  <div className="leading-tight">
+                                    <div className="font-semibold text-gray-900">
+                                      {student.firstName}{' '}
+                                      {student.middleName ? `${student.middleName} ` : ''}
+                                      {student.lastName}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      #{student.admissionNumber}
+                                    </div>
+                                    {student.email && (
+                                      <div className="text-xs text-gray-400 max-w-[220px] truncate">
+                                        {student.email}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
 
-          {/* Form */}
-          <td className="px-6 py-4">
-            <span
-              className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${
-                student.form === 'Form 1'
-                  ? 'bg-blue-50 text-blue-700'
-                  : student.form === 'Form 2'
-                  ? 'bg-emerald-50 text-emerald-700'
-                  : student.form === 'Form 3'
-                  ? 'bg-amber-50 text-amber-700'
-                  : 'bg-purple-50 text-purple-700'
-              }`}
-            >
-              {student.form}
-            </span>
-          </td>
+                              {/* Form */}
+                              <td className="px-6 py-4">
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${
+                                    student.form === 'Form 1'
+                                      ? 'bg-blue-50 text-blue-700'
+                                      : student.form === 'Form 2'
+                                      ? 'bg-emerald-50 text-emerald-700'
+                                      : student.form === 'Form 3'
+                                      ? 'bg-amber-50 text-amber-700'
+                                      : 'bg-purple-50 text-purple-700'
+                                  }`}
+                                >
+                                  {student.form}
+                                </span>
+                              </td>
 
-          {/* Stream */}
-          <td className="px-6 py-4 text-gray-800 font-medium">
-            {student.stream || '—'}
-          </td>
+                              {/* Stream */}
+                              <td className="px-6 py-4 text-gray-800 font-medium">
+                                {student.stream || '—'}
+                              </td>
 
-          {/* Status */}
-          <td className="px-6 py-4">
-            <span
-              className={`inline-flex px-2.5 py-1 rounded-md text-xs font-semibold ${
-                student.status === 'active'
-                  ? 'bg-emerald-50 text-emerald-700'
-                  : 'bg-red-50 text-red-700'
-              }`}
-            >
-              {student.status}
-            </span>
-          </td>
+                              {/* Status */}
+                              <td className="px-6 py-4">
+                                <span
+                                  className={`inline-flex px-2.5 py-1 rounded-md text-xs font-semibold ${
+                                    student.status === 'active'
+                                      ? 'bg-emerald-50 text-emerald-700'
+                                      : 'bg-red-50 text-red-700'
+                                  }`}
+                                >
+                                  {student.status}
+                                </span>
+                              </td>
 
-          {/* Actions */}
-          <td className="px-6 py-4">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setSelectedStudent(student)}
-                className="px-3 py-1.5 rounded-md text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
-              >
-                View
-              </button>
-              <button
-                onClick={() => setEditingStudent(student)}
-                className="px-3 py-1.5 rounded-md text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition"
-              >
-                Edit
-              </button>
-            </div>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</div>
-
+                              {/* Actions */}
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => setSelectedStudent(student)}
+                                    className="px-3 py-1.5 rounded-md text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
+                                  >
+                                    View
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingStudent(student)}
+                                    className="px-3 py-1.5 rounded-md text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition"
+                                  >
+                                    Edit
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
 
@@ -2886,6 +2879,38 @@ export default function ModernStudentBulkUpload() {
 
         {view === 'demographics' && (
           <div className="space-y-8">
+            {/* Statistics Cards Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StudentStatisticsCard
+                title="Total Students"
+                value={stats.totalStudents}
+                icon={FiUsers}
+                color="from-purple-500 to-purple-700"
+                trend={8.5}
+              />
+              <StudentStatisticsCard
+                title="Active Students"
+                value={demographics.statusDistribution?.find(s => s.name === 'Active')?.value || 0}
+                icon={FiAward}
+                color="from-emerald-500 to-emerald-700"
+                trend={12.3}
+              />
+              <StudentStatisticsCard
+                title="Male Students"
+                value={demographics.gender?.find(g => g.name === 'Male')?.value || 0}
+                icon={FiUser}
+                color="from-blue-500 to-blue-700"
+                trend={5.2}
+              />
+              <StudentStatisticsCard
+                title="Female Students"
+                value={demographics.gender?.find(g => g.name === 'Female')?.value || 0}
+                icon={FiUser}
+                color="from-pink-500 to-pink-700"
+                trend={7.8}
+              />
+            </div>
+            
             {/* Statistics Summary Card */}
             <StatisticsSummaryCard 
               stats={stats}
@@ -2895,16 +2920,16 @@ export default function ModernStudentBulkUpload() {
             
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <ModernChart
+              <StudentsChart
                 data={demographics.formDistribution}
                 type="pie"
                 title="Form Distribution"
                 colors={['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6']}
                 height={400}
               />
-              <ModernChart
+              <StudentsChart
                 data={demographics.gender}
-                type="radial"
+                type="bar"
                 title="Gender Distribution"
                 colors={['#3B82F6', '#EC4899', '#8B5CF6']}
                 height={400}
@@ -2912,13 +2937,13 @@ export default function ModernStudentBulkUpload() {
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <ModernChart
+              <StudentsChart
                 data={demographics.streamDistribution}
                 type="bar"
                 title="Stream Distribution"
                 height={400}
               />
-              <ModernChart
+              <StudentsChart
                 data={demographics.ageGroups}
                 type="pie"
                 title="Age Distribution"
@@ -2926,15 +2951,6 @@ export default function ModernStudentBulkUpload() {
                 height={400}
               />
             </div>
-            
-            {demographics.streamDistribution.length > 3 && (
-              <ModernChart
-                data={demographics.streamDistribution.slice(0, 8)}
-                type="radar"
-                title="Stream Performance Radar"
-                height={400}
-              />
-            )}
             
             {/* Detailed Statistics Table */}
             <div className="bg-white rounded-2xl p-6 border-2 border-gray-300 shadow-2xl">
@@ -2968,8 +2984,14 @@ export default function ModernStudentBulkUpload() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <FiTrendingUp className="text-green-500" />
-                            <span className="text-green-600 font-bold">+2.5%</span>
+                            {index % 2 === 0 ? (
+                              <FiTrendingUp className="text-green-500" />
+                            ) : (
+                              <FiTrendingDown className="text-red-500" />
+                            )}
+                            <span className={`font-bold ${index % 2 === 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {index % 2 === 0 ? '+2.5%' : '-1.2%'}
+                            </span>
                           </div>
                         </td>
                       </tr>
@@ -3099,20 +3121,21 @@ export default function ModernStudentBulkUpload() {
         )}
       </div>
 
+      {/* Modals */}
       {selectedStudent && (
-        <ModernStudentDetailModal
+        <StudentDetailModal
           student={selectedStudent}
           onClose={() => setSelectedStudent(null)}
           onEdit={() => {
             setEditingStudent(selectedStudent);
             setSelectedStudent(null);
           }}
-          onDelete={() => handleDeleteStudent(selectedStudent.id, `${selectedStudent.firstName} ${selectedStudent.lastName}`)}
+          onDelete={(id, name) => handleDeleteStudent(id, name)}
         />
       )}
 
       {editingStudent && (
-        <ModernStudentEditModal
+        <StudentEditModal
           student={editingStudent}
           onClose={() => setEditingStudent(null)}
           onSave={updateStudent}
@@ -3127,7 +3150,7 @@ export default function ModernStudentBulkUpload() {
             setDeleteTarget({ type: '', id: '', name: '' });
           }}
           onConfirm={confirmDelete}
-          loading={loading} 
+          loading={loading}
           type={deleteTarget.type}
           itemName={deleteTarget.name}
         />

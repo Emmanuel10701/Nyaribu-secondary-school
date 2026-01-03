@@ -651,21 +651,26 @@ model FeeBalance {
 }
 
 model ResultUpload {
-  id            String          @id @default(cuid())
-  fileName      String
-  fileType      String
-  status        String          @default("pending")
-  uploadedBy    String
-  uploadDate    DateTime        @default(now())
-  processedDate DateTime?
-  totalRows     Int             @default(0)
-  validRows     Int             @default(0)
-  skippedRows   Int             @default(0)
-  errorRows     Int             @default(0)
-  errorLog      Json?
-  term          String?
-  academicYear  String?
-  results       StudentResult[] // Remove @relation("UploadToResults") here
+  id               String          @id @default(cuid())
+  fileName         String
+  fileType         String
+  status           String          @default("pending")
+  uploadedBy       String
+  uploadDate       DateTime        @default(now())
+  processedDate    DateTime?
+  totalRows        Int             @default(0)
+  validRows        Int             @default(0)
+  skippedRows      Int             @default(0)
+  errorRows        Int             @default(0)
+  errorLog         Json?
+  term             String?
+  academicYear     String?
+  uploadMode       String?         @default("create")
+  newRecords       Int?            @default(0) // Add this
+  updatedRecords   Int?            @default(0) // Add this
+  duplicateRecords Int?            @default(0) // Add this
+  warningLog       Json? // Add this
+  results          StudentResult[]
 
   @@map("results_uploads")
 }

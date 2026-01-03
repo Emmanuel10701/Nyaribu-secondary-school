@@ -72,7 +72,7 @@ export default function NavigationSidebar({
               </h3>
               <div className="flex items-center gap-2 mt-1">
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">
-                  Form {student?.form} {student?.stream}
+                   {student?.form} {student?.stream}
                 </span>
               </div>
               <p className="text-sm text-gray-500 mt-2">
@@ -106,23 +106,36 @@ export default function NavigationSidebar({
           </div>
         </nav>
 
-        {/* Footer Actions - Flex Mode */}
-        <div className="p-6 border-t border-gray-200">
-          <div className="flex gap-3">
-            <button
-              onClick={onRefresh}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-blue-600 bg-blue-50 rounded-lg font-semibold"
-            >
-              <FiRefreshCw /> Refresh
-            </button>
-            <button
-              onClick={onLogout}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-red-600 bg-red-50 rounded-lg font-semibold"
-            >
-              <FiLogOut /> Logout
-            </button>
-          </div>
-        </div>
+      {/* Footer Actions - Flex Mode */}
+<div className="p-4 sm:p-6 bg-white/50 backdrop-blur-sm border-t border-gray-100">
+  <div className="flex flex-row items-center gap-3 w-full">
+    
+    {/* Refresh Button */}
+    <button
+      onClick={onRefresh}
+      className="group flex-1 flex items-center justify-center gap-2.5 px-4 py-3.5 
+      bg-white border border-blue-100 text-blue-600 rounded-2xl 
+      text-sm sm:text-base font-bold tracking-tight shadow-[0_4px_12px_rgba(59,130,246,0.08)] 
+      active:bg-blue-50 active:shadow-none transition-all duration-200"
+    >
+      <FiRefreshCw className="text-lg" />
+      <span>Refresh</span>
+    </button>
+
+    {/* Logout Button */}
+    <button
+      onClick={onLogout}
+      className="flex-1 flex items-center justify-center gap-2.5 px-4 py-3.5 
+      bg-rose-50/50 border border-rose-100 text-rose-600 rounded-2xl 
+      text-sm sm:text-base font-bold tracking-tight shadow-[0_4px_12px_rgba(225,29,72,0.08)] 
+      active:bg-rose-100 active:shadow-none transition-all duration-200"
+    >
+      <FiLogOut className="text-lg" />
+      <span>Logout</span>
+    </button>
+    
+  </div>
+</div>
       </div>
     </aside>
   );
