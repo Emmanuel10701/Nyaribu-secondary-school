@@ -38,46 +38,57 @@ import {
 import { Modal, Box, CircularProgress } from '@mui/material';
 
 // Modern Loading Spinner Component
-function ModernLoadingSpinner({ message = "Loading...", size = "medium" }) {
-  const sizes = {
-    small: { outer: 60, inner: 24 },
-    medium: { outer: 100, inner: 40 },
-    large: { outer: 120, inner: 48 }
-  }
-
-  const { outer, inner } = sizes[size]
-
+const Spinner = ({ size = 40, color = 'inherit', thickness = 3.6, variant = 'indeterminate', value = 0 }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
-      <div className="text-center">
-        <div className="relative inline-block">
-          <div className="relative">
-            <CircularProgress 
-              size={outer} 
-              thickness={4}
-              className="text-purple-600"
+    <div className="inline-flex items-center justify-center">
+      <svg 
+        className={`animate-spin ${variant === 'indeterminate' ? '' : ''}`} 
+        width={size} 
+        height={size} 
+        viewBox="0 0 44 44"
+      >
+        {variant === 'determinate' ? (
+          <>
+            <circle 
+              className="text-gray-200" 
+              stroke="currentColor" 
+              strokeWidth={thickness} 
+              fill="none" 
+              cx="22" 
+              cy="22" 
+              r="20"
             />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className={`bg-gradient-to-r from-purple-500 to-pink-600 rounded-full opacity-20`}
-                   style={{ width: inner, height: inner }}></div>
-            </div>
-          </div>
-        </div>
-        <div className="mt-8 space-y-2">
-          <span className="block text-xl font-semibold text-gray-700 bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
-            {message}
-          </span>
-          <div className="flex justify-center space-x-2">
-            {[0, 1, 2].map(i => (
-              <div key={i} className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" 
-                   style={{ animationDelay: `${i * 0.2}s` }}></div>
-            ))}
-          </div>
-        </div>
-      </div>
+            <circle 
+              className="text-blue-600" 
+              stroke="currentColor" 
+              strokeWidth={thickness} 
+              strokeLinecap="round" 
+              fill="none" 
+              cx="22" 
+              cy="22" 
+              r="20" 
+              strokeDasharray="125.6" 
+              strokeDashoffset={125.6 - (125.6 * value) / 100}
+              transform="rotate(-90 22 22)"
+            />
+          </>
+        ) : (
+          <circle 
+            className="text-blue-600" 
+            stroke="currentColor" 
+            strokeWidth={thickness} 
+            strokeLinecap="round" 
+            fill="none" 
+            cx="22" 
+            cy="22" 
+            r="20" 
+            strokeDasharray="30 100"
+          />
+        )}
+      </svg>
     </div>
-  )
-}
+  );
+};
 
 // Delete Confirmation Modal (Matching Staff Style)
 function DeleteConfirmationModal({ 
@@ -1443,9 +1454,22 @@ export default function NewsEventsManager() {
     </div>
   );
 
-  if (loading && news.length === 0 && events.length === 0) {
-    return <ModernLoadingSpinner message={`Loading ${activeSection === 'news' ? 'News' : 'Events'}...`} />;
+   if (loading && news.length === 0 && events.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+        <div className="text-center">
+          <Spinner size={48} />
+          <p className="text-gray-700 text-lg mt-4 font-medium">
+            Loading Events and News
+          </p>
+          <p className="text-gray-400 text-sm mt-1">
+            Please wait while we fetch school Events and News articles.
+          </p>
+        </div>
+      </div>
+    );
   }
+
 
   return (
     <div className="space-y-6 p-4 min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50">

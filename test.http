@@ -1,48 +1,269 @@
-POST http://localhost:3001/api/staff
-Content-Type: multipart/form-data; boundary=----SupportStaffBoundary
+### =========================
+### NEWS 1
+### =========================
+POST http://localhost:3001/api/news
+Content-Type: multipart/form-data; boundary=---NEWS001
 
-------SupportStaffBoundary
-Content-Disposition: form-data; name="name"
+-----NEWS001
+Content-Disposition: form-data; name="title"
 
-Samuel 
-------SupportStaffBoundary
-Content-Disposition: form-data; name="role"
+School Achieves Excellent KCSE Results
+-----NEWS001
+Content-Disposition: form-data; name="excerpt"
 
-Support Staff
-------SupportStaffBoundary
-Content-Disposition: form-data; name="position"
+Our school recorded outstanding KCSE performance this year.
+-----NEWS001
+Content-Disposition: form-data; name="fullContent"
 
-Accounts Clerk
-------SupportStaffBoundary
-Content-Disposition: form-data; name="department"
+The school community celebrates remarkable KCSE results achieved through dedication, teamwork, disciplined learning, and strong collaboration between teachers, students, and parents.
+-----NEWS001
+Content-Disposition: form-data; name="date"
 
-Finance Office
-------SupportStaffBoundary
-Content-Disposition: form-data; name="email"
+2025-10-15
+-----NEWS001
+Content-Disposition: form-data; name="category"
 
-samuel.kilonzhuhuo@katwanyaa.ac.ke
-------SupportStaffBoundary
-Content-Disposition: form-data; name="phone"
+Academics
+-----NEWS001
+Content-Disposition: form-data; name="author"
 
-+254722556677
-------SupportStaffBoundary
-Content-Disposition: form-data; name="bio"
+Principal
+-----NEWS001
+Content-Disposition: form-data; name="image"; filename="news1.jpg"
+Content-Type: image/jpeg
 
-Samuel Kilonzo manages fee records, financial documentation, and supports the finance office in ensuring accurate and transparent accounting.
-------SupportStaffBoundary
-Content-Disposition: form-data; name="quote"
+< ./images/news1.jpg
+-----NEWS001--
 
-Accuracy and accountability build trust.
-------SupportStaffBoundary
-Content-Disposition: form-data; name="responsibilities"
+### =========================
+### NEWS 2
+### =========================
+POST http://localhost:3001/api/news
+Content-Type: multipart/form-data; boundary=---NEWS002
 
-["Fee record management","Financial reporting","Office support"]
-------SupportStaffBoundary
-Content-Disposition: form-data; name="expertise"
+-----NEWS002
+Content-Disposition: form-data; name="title"
 
-["Accounting","Financial record keeping"]
-------SupportStaffBoundary
-Content-Disposition: form-data; name="achievements"
+New Science Laboratory Commissioned
+-----NEWS002
+Content-Disposition: form-data; name="excerpt"
 
-["Digitized fee records","Improved financial reporting accuracy"]
-------SupportStaffBoundary--
+A fully equipped science laboratory has been officially opened.
+-----NEWS002
+Content-Disposition: form-data; name="fullContent"
+
+The newly commissioned science laboratory is designed to support practical learning in Physics, Chemistry, and Biology, improving student engagement and examination performance.
+-----NEWS002
+Content-Disposition: form-data; name="date"
+
+2025-09-28
+-----NEWS002
+Content-Disposition: form-data; name="category"
+
+Infrastructure
+-----NEWS002
+Content-Disposition: form-data; name="author"
+
+Board of Management
+-----NEWS002
+Content-Disposition: form-data; name="image"; filename="news2.jpg"
+Content-Type: image/jpeg
+
+< ./images/news2.jpg
+-----NEWS002--
+
+### =========================
+### NEWS 3
+### =========================
+POST http://localhost:3001/api/news
+Content-Type: multipart/form-data; boundary=---NEWS003
+
+-----NEWS003
+Content-Disposition: form-data; name="title"
+
+Students Excel in Regional Sports
+-----NEWS003
+Content-Disposition: form-data; name="excerpt"
+
+Our students emerged champions in regional sports competitions.
+-----NEWS003
+Content-Disposition: form-data; name="fullContent"
+
+Through discipline, teamwork, and consistent training, our students performed exceptionally in regional sports competitions, earning trophies and advancing to national level.
+-----NEWS003
+Content-Disposition: form-data; name="date"
+
+2025-08-20
+-----NEWS003
+Content-Disposition: form-data; name="category"
+
+Sports
+-----NEWS003
+Content-Disposition: form-data; name="author"
+
+Games Department
+-----NEWS003
+Content-Disposition: form-data; name="image"; filename="news3.jpg"
+Content-Type: image/jpeg
+
+< ./images/news3.jpg
+-----NEWS003--
+
+### =========================
+### EVENT 1
+### =========================
+POST http://localhost:3001/api/events
+Content-Type: multipart/form-data; boundary=---EVENT001
+
+-----EVENT001
+Content-Disposition: form-data; name="title"
+
+Annual Prize Giving Day
+-----EVENT001
+Content-Disposition: form-data; name="category"
+
+Academic
+-----EVENT001
+Content-Disposition: form-data; name="description"
+
+The annual prize giving ceremony recognizes excellence in academics, leadership, discipline, and co-curricular achievements.
+-----EVENT001
+Content-Disposition: form-data; name="date"
+
+2025-11-10
+-----EVENT001
+Content-Disposition: form-data; name="time"
+
+09:00 AM
+-----EVENT001
+Content-Disposition: form-data; name="type"
+
+Physical
+-----EVENT001
+Content-Disposition: form-data; name="location"
+
+School Main Hall
+-----EVENT001
+Content-Disposition: form-data; name="featured"
+
+true
+-----EVENT001
+Content-Disposition: form-data; name="attendees"
+
+student
+-----EVENT001
+Content-Disposition: form-data; name="speaker"
+
+Chief Guest – County Director of Education
+-----EVENT001
+Content-Disposition: form-data; name="image"; filename="event1.jpg"
+Content-Type: image/jpeg
+
+< ./images/event1.jpg
+-----EVENT001--
+
+### =========================
+### EVENT 2
+### =========================
+POST http://localhost:3001/api/events
+Content-Type: multipart/form-data; boundary=---EVENT002
+
+-----EVENT002
+Content-Disposition: form-data; name="title"
+
+Career Guidance Seminar
+-----EVENT002
+Content-Disposition: form-data; name="category"
+
+Guidance
+-----EVENT002
+Content-Disposition: form-data; name="description"
+
+A career guidance session aimed at helping students understand career paths, subject choices, and future opportunities.
+-----EVENT002
+Content-Disposition: form-data; name="date"
+
+2025-10-05
+-----EVENT002
+Content-Disposition: form-data; name="time"
+
+10:30 AM
+-----EVENT002
+Content-Disposition: form-data; name="type"
+
+Physical
+-----EVENT002
+Content-Disposition: form-data; name="location"
+
+School Hall
+-----EVENT002
+Content-Disposition: form-data; name="featured"
+
+false
+-----EVENT002
+Content-Disposition: form-data; name="attendees"
+
+student
+-----EVENT002
+Content-Disposition: form-data; name="speaker"
+
+University Career Counselor
+-----EVENT002
+Content-Disposition: form-data; name="image"; filename="event2.jpg"
+Content-Type: image/jpeg
+
+< ./images/event2.jpg
+-----EVENT002--
+
+### =========================
+### EVENT 3
+### =========================
+POST http://localhost:3001/api/events
+Content-Type: multipart/form-data; boundary=---EVENT003
+
+-----EVENT003
+Content-Disposition: form-data; name="title"
+
+Staff Professional Development Workshop
+-----EVENT003
+Content-Disposition: form-data; name="category"
+
+Training
+-----EVENT003
+Content-Disposition: form-data; name="description"
+
+A professional development workshop focused on modern teaching strategies, curriculum delivery, and student-centered learning.
+-----EVENT003
+Content-Disposition: form-data; name="date"
+
+2025-09-12
+-----EVENT003
+Content-Disposition: form-data; name="time"
+
+02:00 PM
+-----EVENT003
+Content-Disposition: form-data; name="type"
+
+Physical
+-----EVENT003
+Content-Disposition: form-data; name="location"
+
+ICT Resource Center
+-----EVENT003
+Content-Disposition: form-data; name="featured"
+
+false
+-----EVENT003
+Content-Disposition: form-data; name="attendees"
+
+staff
+-----EVENT003
+Content-Disposition: form-data; name="speaker"
+
+Education Technology Consultant
+-----EVENT003
+Content-Disposition: form-data; name="image"; filename="event3.jpg"
+Content-Type: image/jpeg
+
+< ./images/event3.jpg
+-----EVENT003--

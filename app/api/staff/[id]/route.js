@@ -10,6 +10,42 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// Helper: remove image safely
+const removeImage = (imagePath) => {
+  if (!imagePath) return;
+  const fullPath = path.join(process.cwd(), "public", imagePath);
+  if (fs.existsSync(fullPath)) {
+    fs.unlinkSync(fullPath);
+  }
+};
+
+// 🔹 Check principal/deputy principal limits
+async function checkRoleLimits(role, staffId = null) {
+  if (role === "Principal") {
+    const existingPrincipal = await prisma.staff.findFirst({
+      where: { 
+        role: "Principal",
+        ...(staffId && { id: { not: staffId } }) // Exclude current staff if updating
+      }
+    });
+    
+    if (existingPrincipal) {
+      throw new Error("A principal already exists. There can only be one principal.");
+    }
+  } else if (role === "Deputy Principal") {
+    const existingDeputies = await prisma.staff.findMany({
+      where: { 
+        role: "Deputy Principal",
+        ...(staffId && { id: { not: staffId } }) // Exclude current staff if updating
+      }
+    });
+    
+    if (existingDeputies.length >= 3) {
+      throw new Error("Maximum of three deputy principals allowed. Current count: " + existingDeputies.length);
+    }
+  }
+}
+
 // 🔹 GET single staff by ID
 export async function GET(req, { params }) {
   try {
@@ -37,10 +73,30 @@ export async function GET(req, { params }) {
 // 🔹 UPDATE staff by ID
 export async function PUT(req, { params }) {
   try {
+    const id = Number(params.id);
     const formData = await req.formData();
     const data = {};
 
-    // Basic fields
+    // Fetch existing staff (for image cleanup)
+    const existingStaff = await prisma.staff.findUnique({
+      where: { id },
+    });
+
+    if (!existingStaff) {
+      return NextResponse.json(
+        { success: false, error: "Staff not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if role is being changed
+    const newRole = formData.get("role");
+    if (newRole && newRole !== existingStaff.role) {
+      // Validate role limits BEFORE processing other data
+      await checkRoleLimits(newRole, id);
+    }
+
+    // Include ALL fields from your Prisma schema
     if (formData.get("name")) data.name = formData.get("name");
     if (formData.get("role")) data.role = formData.get("role");
     if (formData.get("position")) data.position = formData.get("position");
@@ -49,41 +105,80 @@ export async function PUT(req, { params }) {
     if (formData.get("phone")) data.phone = formData.get("phone");
     if (formData.get("bio")) data.bio = formData.get("bio");
     if (formData.get("quote")) data.quote = formData.get("quote");
+    if (formData.get("education")) data.education = formData.get("education");
+    if (formData.get("experience")) data.experience = formData.get("experience");
+    if (formData.get("gender")) data.gender = formData.get("gender");
+    if (formData.get("status")) data.status = formData.get("status");
+    if (formData.get("joinDate")) data.joinDate = formData.get("joinDate");
 
     // JSON fields (safe parsing)
-    const responsibilities = formData.get("responsibilities");
-    if (responsibilities) {
-      data.responsibilities = JSON.parse(responsibilities);
+    if (formData.get("responsibilities")) {
+      try {
+        data.responsibilities = JSON.parse(formData.get("responsibilities"));
+      } catch (e) {
+        console.error("Error parsing responsibilities:", e);
+      }
     }
 
-    const expertise = formData.get("expertise");
-    if (expertise) {
-      data.expertise = JSON.parse(expertise);
+    if (formData.get("expertise")) {
+      try {
+        data.expertise = JSON.parse(formData.get("expertise"));
+      } catch (e) {
+        console.error("Error parsing expertise:", e);
+      }
     }
 
-    const achievements = formData.get("achievements");
-    if (achievements) {
-      data.achievements = JSON.parse(achievements);
+    if (formData.get("achievements")) {
+      try {
+        data.achievements = JSON.parse(formData.get("achievements"));
+      } catch (e) {
+        console.error("Error parsing achievements:", e);
+      }
     }
 
-    // Optional image upload
+    // Optional image upload (replace old one)
     const file = formData.get("image");
-    if (file && file.size > 0) {
+    
+    // Check if it's an actual file upload
+    if (file && typeof file !== "string" && file.size > 0) {
+      // Remove old image if it exists
+      if (existingStaff.image) {
+        removeImage(existingStaff.image);
+      }
+
       const buffer = Buffer.from(await file.arrayBuffer());
-      const fileName = `${randomUUID()}-${file.name}`;
+      const ext = path.extname(file.name) || ".png";
+      const fileName = `${randomUUID()}${ext}`;
       const filePath = path.join(uploadDir, fileName);
+
       fs.writeFileSync(filePath, buffer);
       data.image = `/staff/${fileName}`;
+    } else if (typeof file === "string" && file.trim() !== "") {
+      // It's a string (either existing path or default)
+      data.image = file;
     }
+    // If file is null/undefined, keep existing image
 
     const updatedStaff = await prisma.staff.update({
-      where: { id: Number(params.id) },
+      where: { id },
       data,
     });
 
     return NextResponse.json({ success: true, staff: updatedStaff });
   } catch (error) {
     console.error("❌ PUT Staff Error:", error);
+    
+    // Handle role limit errors
+    if (error.message.includes("principal") || error.message.includes("deputy")) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.message,
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }
@@ -94,8 +189,26 @@ export async function PUT(req, { params }) {
 // 🔹 DELETE staff by ID
 export async function DELETE(req, { params }) {
   try {
+    const id = Number(params.id);
+
+    const staff = await prisma.staff.findUnique({
+      where: { id },
+    });
+
+    if (!staff) {
+      return NextResponse.json(
+        { success: false, error: "Staff not found" },
+        { status: 404 }
+      );
+    }
+
+    // Remove image from disk
+    if (staff.image) {
+      removeImage(staff.image);
+    }
+
     await prisma.staff.delete({
-      where: { id: Number(params.id) },
+      where: { id },
     });
 
     return NextResponse.json({

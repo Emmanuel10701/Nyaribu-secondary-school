@@ -157,10 +157,15 @@ model Staff {
   role             String
   position         String?
   department       String?
+  education        String?  @db.Text
+  experience       String?  @db.Text
   email            String?
   phone            String?
   bio              String?  @db.Text
   quote            String?  @db.Text
+  gender           String?  @default("male") // ← ADD THIS
+  status           String?  @default("active") // ← ADD THIS
+  joinDate         String? // ← ADD THIS
   responsibilities Json?
   expertise        Json?
   achievements     Json?

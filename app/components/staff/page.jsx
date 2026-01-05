@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   FiPlus, 
   FiSearch, 
@@ -26,64 +26,196 @@ import {
   FiCheckCircle,
   FiInfo,
   FiAlertTriangle,
-  FiAlertCircle
+  FiAlertCircle,
+  FiTag
 } from 'react-icons/fi';
+import { 
+  FaEdit, 
+  FaUserPlus, 
+  FaTimes, 
+  FaCheck, 
+  FaUser, 
+  FaEnvelope, 
+  FaUserCircle, 
+  FaInfoCircle, 
+  FaPhoneAlt, 
+  FaUserTie, 
+  FaBriefcase, 
+  FaBuilding, 
+  FaCalendarAlt, 
+  FaUserCheck, 
+  FaQuoteLeft, 
+  FaQuoteRight, 
+  FaStar, 
+  FaTrophy, 
+  FaClipboardCheck, 
+  FaSave,
+  FaMale,
+  FaFemale,
+  FaUpload,
+  FaGraduationCap,
+  FaCrown,
+  FaShieldAlt,
+  FaUsers,
+  FaBook,
+  FaCheckCircle,
+  FaCalendar,
+  FaTimesCircle,
+  FaHandsHelping,
+  FaChalkboardTeacher
+} from 'react-icons/fa';
 import { 
   IoPeopleCircle,
   IoRocketOutline,
   IoSchoolOutline
 } from 'react-icons/io5';
-import { Modal, Box, Typography, CircularProgress, Alert, Snackbar } from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
 
-// Modern Loading Spinner Component
+// Custom Spinner Component using Material-UI CircularProgress
+const Spinner = ({ size = 40, color = 'inherit', thickness = 3.6, variant = 'indeterminate', value = 0 }) => {
+  return (
+    <div className="inline-flex items-center justify-center">
+      <svg 
+        className={`animate-spin ${variant === 'indeterminate' ? '' : ''}`} 
+        width={size} 
+        height={size} 
+        viewBox="0 0 44 44"
+      >
+        {variant === 'determinate' ? (
+          <>
+            <circle 
+              className="text-gray-200" 
+              stroke="currentColor" 
+              strokeWidth={thickness} 
+              fill="none" 
+              cx="22" 
+              cy="22" 
+              r="20"
+            />
+            <circle 
+              className="text-blue-600" 
+              stroke="currentColor" 
+              strokeWidth={thickness} 
+              strokeLinecap="round" 
+              fill="none" 
+              cx="22" 
+              cy="22" 
+              r="20" 
+              strokeDasharray="125.6" 
+              strokeDashoffset={125.6 - (125.6 * value) / 100}
+              transform="rotate(-90 22 22)"
+            />
+          </>
+        ) : (
+          <circle 
+            className="text-blue-600" 
+            stroke="currentColor" 
+            strokeWidth={thickness} 
+            strokeLinecap="round" 
+            fill="none" 
+            cx="22" 
+            cy="22" 
+            r="20" 
+            strokeDasharray="30 100"
+          />
+        )}
+      </svg>
+    </div>
+  );
+};
 
-function ModernLoadingSpinner({
-  message = "Loading staff from the database…",
-  size = "medium",
-}) {
-  const sizes = {
-    small: 28,
-    medium: 36,
-    large: 48,
+// Item Input Component for array fields
+const ItemInput = ({ 
+  label, 
+  value = [], 
+  onChange, 
+  placeholder = "Add item...",
+  type = "text",
+  icon: Icon = FiTag,
+  disabled = false
+}) => {
+  const [inputValue, setInputValue] = useState('');
+  const inputRef = useRef(null);
+
+  const handleAddItem = () => {
+    if (!inputValue.trim()) return;
+    
+    const trimmedValue = inputValue.trim();
+    if (!value.includes(trimmedValue)) {
+      onChange([...value, trimmedValue]);
+      setInputValue('');
+    }
+  };
+
+  const handleRemoveItem = (index) => {
+    onChange(value.filter((_, i) => i !== index));
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddItem();
+    }
+    if (e.key === 'Backspace' && !inputValue && value.length > 0) {
+      handleRemoveItem(value.length - 1);
+    }
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "10px",
-        }}
-      >
-        <CircularProgress size={sizes[size]} thickness={4} />
-
-        <div
-          style={{
-            fontSize: "18px",
-            color: "#6b7280",
-            fontWeight: 500,
-            textAlign: "center",
-            maxWidth: "260px",
-          }}
-        >
-          {message}
+    <div className="space-y-3">
+      <label className="block text-sm font-bold text-gray-800 mb-2">
+        {label} ({value.length} items)
+      </label>
+      
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+            <Icon className="text-gray-400" />
+          </div>
+          <input
+            ref={inputRef}
+            type={type}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            disabled={disabled}
+            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 disabled:opacity-50"
+          />
         </div>
+        <button
+          type="button"
+          onClick={handleAddItem}
+          disabled={!inputValue.trim() || disabled}
+          className="px-4 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap"
+        >
+          Add
+        </button>
       </div>
+
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200 min-h-[60px]">
+          {value.map((item, index) => (
+            <div
+              key={index}
+              className="group flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2 hover:border-red-300 transition-colors"
+            >
+              <span className="text-gray-800 font-medium">{item}</span>
+              <button
+                type="button"
+                onClick={() => handleRemoveItem(index)}
+                disabled={disabled}
+                className="text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
+              >
+                <FiX className="text-sm" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
-}
-
-
+};
 
 // Delete Confirmation Modal
 function DeleteConfirmationModal({ 
@@ -95,16 +227,11 @@ function DeleteConfirmationModal({
   staffName = '',
   loading = false 
 }) {
+  if (!open) return null;
+
   return (
-    <Modal open={open} onClose={loading ? undefined : onClose}>
-      <Box sx={{
-        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-        width: '90%',
-        maxWidth: '500px',
-        bgcolor: 'background.paper',
-        borderRadius: 3, boxShadow: 24, overflow: 'hidden',
-        background: 'linear-gradient(135deg, #f8fafc 0%, #fef3f7 100%)'
-      }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-red-600 to-orange-600 p-6 text-white">
           <div className="flex items-center justify-between">
@@ -175,8 +302,8 @@ function DeleteConfirmationModal({
             >
               {loading ? (
                 <>
-                  <CircularProgress size={16} className="text-white" />
-                  Deleting...
+                  <Spinner size={16} color="white" />
+                  <span>Deleting...</span>
                 </>
               ) : (
                 <>
@@ -187,9 +314,9 @@ function DeleteConfirmationModal({
             </button>
           </div>
         </div>
-      </Box>
-    </Modal>
-  )
+      </div>
+    </div>
+  );
 }
 
 // Notification Component
@@ -313,50 +440,34 @@ function Notification({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Modern Staff Detail Modal
 function ModernStaffDetailModal({ staff, onClose, onEdit }) {
   if (!staff) return null;
-
-  const getImageUrl = (imagePath) => {
-    if (!imagePath || typeof imagePath !== 'string') {
-      // default based on staff gender (female => female.png, otherwise male.png)
-      return staff?.gender === 'female' ? '/female.png' : '/male.png';
-    }
-    
-    // If it's already a full URL or starts with /, return as is
-    if (imagePath.startsWith('http') || imagePath.startsWith('/')) {
-      return imagePath;
-    }
-    
-    // If it's a base64 string (from file upload), return as is
-    if (imagePath.startsWith('data:image')) {
-      return imagePath;
-    }
-    
-    // If it's a path from API (without leading slash), add it
-    if (imagePath.startsWith('staff/')) {
-      return `/${imagePath}`;
-    }
-    
-    // Default fallback
+const getImageUrl = (imagePath) => {
+  if (!imagePath || typeof imagePath !== 'string') {
     return staff?.gender === 'female' ? '/female.png' : '/male.png';
-  };
-
+  }
+  
+  // Handle different image path formats
+  if (imagePath.startsWith('http') || imagePath.startsWith('/')) {
+    return imagePath;
+  }
+  
+  if (imagePath.startsWith('data:image')) {
+    return imagePath;
+  }
+  
+  // Assume it's a relative path without leading slash
+  return `/${imagePath}`;
+};
   const imageUrl = getImageUrl(staff.image);
 
   return (
-    <Modal open={true} onClose={onClose}>
-      <Box sx={{
-        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-        width: '90%',
-        maxWidth: '800px',
-        maxHeight: '95vh', bgcolor: 'background.paper',
-        borderRadius: 3, boxShadow: 24, overflow: 'hidden',
-        background: 'linear-gradient(135deg, #f8fafc 0%, #fef3f7 100%)'
-      }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+      <div className="w-full max-w-4xl max-h-[95vh] bg-white rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-600 via-red-600 to-pink-700 p-6 text-white">
           <div className="flex items-center justify-between">
@@ -374,13 +485,7 @@ function ModernStaffDetailModal({ staff, onClose, onEdit }) {
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
-              <button 
-                onClick={() => onEdit(staff)} 
-                className="flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-bold shadow-lg cursor-pointer whitespace-nowrap"
-              >
-                <FiEdit className="text-xs sm:text-sm" /> 
-                <span>Edit Staff</span>
-              </button>
+           
               <button 
                 onClick={onClose} 
                 className="p-2 bg-white/10 text-white rounded-full cursor-pointer flex-shrink-0"
@@ -392,7 +497,7 @@ function ModernStaffDetailModal({ staff, onClose, onEdit }) {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(95vh-200px)]">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <div className="flex items-center gap-4">
@@ -429,27 +534,21 @@ function ModernStaffDetailModal({ staff, onClose, onEdit }) {
                 Contact Information
               </h3>
 
-              {/* Grid layout for structured mapping */}
               <div className="grid grid-cols-1 gap-4 text-[13px]">
-                
-                {/* Department */}
                 <div className="flex flex-col">
                   <span className="text-gray-400 text-[10px] uppercase tracking-wide">Department</span>
                   <span className="text-gray-700 font-medium">{staff.department}</span>
                 </div>
 
-                {/* Email */}
                 <div className="flex flex-col">
                   <span className="text-gray-400 text-[10px] uppercase tracking-wide">Email Address</span>
                   <span className="text-gray-700 font-medium break-all leading-tight">{staff.email}</span>
                 </div>
 
-                {/* Phone */}
                 <div className="flex flex-col">
                   <span className="text-gray-400 text-[10px] uppercase tracking-wide">Phone Number</span>
                   <span className="text-gray-700 font-medium">{staff.phone}</span>
                 </div>
-
               </div>
             </div>
           </div>
@@ -527,54 +626,49 @@ function ModernStaffDetailModal({ staff, onClose, onEdit }) {
             </div>
           )}
         </div>
-
-        <div className="p-6 border-t border-gray-200 flex justify-between items-center">
-          <button 
-            onClick={onClose} 
-            className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-8 py-3 rounded-2xl font-bold shadow-lg cursor-pointer"
-          >
-            Close
-          </button>
-          <button 
-            onClick={() => onEdit(staff)} 
-            className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 text-white px-8 py-3 rounded-2xl font-bold shadow-lg cursor-pointer"
-          >
-            <FiEdit /> Edit Staff
-          </button>
-        </div>
-      </Box>
-    </Modal>
+<div className="p-6 border-t border-gray-200 flex justify-between items-center">
+  <button 
+    onClick={onClose} 
+    className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-8 py-3 rounded-2xl font-bold shadow-lg cursor-pointer"
+  >
+    Close
+  </button>
+  <button 
+    onClick={() => {
+      onClose(); 
+      onEdit(staff); // Then call edit function
+    }} 
+    className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 text-white px-8 py-3 rounded-2xl font-bold shadow-lg cursor-pointer"
+  >
+    <FiEdit /> Edit Staff
+  </button>
+</div>
+      </div>
+    </div>
   );
 }
 
-// Modern Staff Card Component
+// Modern Staff Card Component - Complete Updated Version
 function ModernStaffCard({ staff, onEdit, onDelete, onView, selected, onSelect, actionLoading }) {
   const [imageError, setImageError] = useState(false);
 
-  const getImageUrl = (imagePath) => {
-    if (!imagePath || typeof imagePath !== 'string') {
-      // default based on staff gender (female => female.png, otherwise male.png)
-      return staff?.gender === 'female' ? '/female.png' : '/male.png';
-    }
-    
-    // If it's already a full URL or starts with /, return as is
-    if (imagePath.startsWith('http') || imagePath.startsWith('/')) {
-      return imagePath;
-    }
-    
-    // If it's a base64 string (from file upload), return as is
-    if (imagePath.startsWith('data:image')) {
-      return imagePath;
-    }
-    
-    // If it's a path from API (without leading slash), add it
-    if (imagePath.startsWith('staff/')) {
-      return `/${imagePath}`;
-    }
-    
-    // Default fallback
+const getImageUrl = (imagePath) => {
+  if (!imagePath || typeof imagePath !== 'string') {
     return staff?.gender === 'female' ? '/female.png' : '/male.png';
-  };
+  }
+  
+  // Handle different image path formats
+  if (imagePath.startsWith('http') || imagePath.startsWith('/')) {
+    return imagePath;
+  }
+  
+  if (imagePath.startsWith('data:image')) {
+    return imagePath;
+  }
+  
+  // Assume it's a relative path without leading slash
+  return `/${imagePath}`;
+};
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -585,30 +679,39 @@ function ModernStaffCard({ staff, onEdit, onDelete, onView, selected, onSelect, 
   };
 
   const imageUrl = getImageUrl(staff.image);
+  const isDefaultImage = !staff.image || staff.image === '';
 
   return (
     <div className={`bg-white rounded-[2rem] shadow-xl border ${
       selected ? 'border-orange-500 ring-2 ring-orange-500/20' : 'border-gray-100'
     } w-full max-w-md overflow-hidden transition-none`}>
       
-      {/* Image Section - Kept exactly as provided */}
+      {/* Image Section */}
       <div className="relative h-64 w-full bg-gray-50 overflow-hidden">
-        {!imageError ? (
-          <img 
-            src={imageUrl} 
-            alt={staff.name} 
-            onClick={() => onView(staff)}
-            className="w-full h-full object-cover object-top cursor-pointer"
-            onError={() => setImageError(true)} 
-          />
-        ) : (
-          <div 
-            onClick={() => onView(staff)} 
-            className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-300 cursor-pointer"
-          >
-            <FiUser className="text-5xl" />
-          </div>
-        )}
+        <div className="relative h-full w-full">
+          {!imageError ? (
+            <img 
+              src={imageUrl} 
+              alt={staff.name} 
+              onClick={() => onView(staff)}
+              className="w-full h-full object-cover object-top cursor-pointer"
+              onError={() => setImageError(true)} 
+            />
+          ) : (
+            <div 
+              onClick={() => onView(staff)} 
+              className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-300 cursor-pointer"
+            >
+              <FiUser className="text-5xl" />
+              <span className="text-xs mt-2">No image</span>
+            </div>
+          )}
+          {isDefaultImage && !imageError && (
+            <div className="absolute inset-0 bg-gray-50 flex items-center justify-center">
+              <FiUser className="text-gray-300 text-4xl" />
+            </div>
+          )}
+        </div>
 
         {/* Overlay: Selection & Status */}
         <div className="absolute top-4 left-4 right-4 flex justify-between items-center pointer-events-none">
@@ -627,7 +730,7 @@ function ModernStaffCard({ staff, onEdit, onDelete, onView, selected, onSelect, 
         </div>
       </div>
 
-      {/* Information Section - Modernized Mapping */}
+      {/* Information Section */}
       <div className="p-6">
         <div className="mb-6">
           <h3 
@@ -636,13 +739,13 @@ function ModernStaffCard({ staff, onEdit, onDelete, onView, selected, onSelect, 
           >
             {staff.name}
           </h3>
-          {/* Email Mapping: Subtle and clean */}
+          {/* Email Mapping */}
           <p className="text-sm font-medium text-slate-400 mt-1 truncate">
             {staff.email || 'no-email@company.com'}
           </p>
         </div>
         
-        {/* Grid Info Mapping: Optimized for mobile viewing */}
+        {/* Grid Info Mapping */}
         <div className="grid grid-cols-2 gap-y-6 gap-x-4 mb-8">
           {/* Department Mapping */}
           <div className="space-y-1">
@@ -659,7 +762,7 @@ function ModernStaffCard({ staff, onEdit, onDelete, onView, selected, onSelect, 
             <span className="text-xs font-bold text-slate-700 truncate block">{staff.role}</span>
           </div>
 
-          {/* Position Mapping: Full width modern box */}
+          {/* Phone Mapping */}
           <div className="col-span-2 p-3 bg-slate-50 rounded-2xl flex items-center justify-between border border-slate-100/50">
             <div className="flex flex-col min-w-0">
               <span className="text-[9px] text-slate-400 font-black uppercase tracking-[0.1em]">Phone Number</span>
@@ -667,9 +770,31 @@ function ModernStaffCard({ staff, onEdit, onDelete, onView, selected, onSelect, 
             </div>
             <FiBriefcase className="text-slate-300 text-lg shrink-0 ml-2" />
           </div>
+          
+          {/* Expertise Preview (if available) */}
+          {staff.expertise && staff.expertise.length > 0 && (
+            <div className="col-span-2 space-y-1">
+              <span className="block text-[9px] text-slate-400 font-black uppercase tracking-[0.1em]">Expertise</span>
+              <div className="flex flex-wrap gap-1">
+                {staff.expertise.slice(0, 2).map((exp, index) => (
+                  <span 
+                    key={index} 
+                    className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-2 py-1 rounded-lg text-xs font-bold"
+                  >
+                    {exp}
+                  </span>
+                ))}
+                {staff.expertise.length > 2 && (
+                  <span className="bg-gray-500 text-white px-2 py-1 rounded-lg text-xs font-bold">
+                    +{staff.expertise.length - 2} more
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Modern Action Bar: No-hover, mobile-ready buttons */}
+        {/* Modern Action Bar */}
         <div className="flex items-center gap-3">
           <button 
             onClick={() => onView(staff)} 
@@ -698,9 +823,8 @@ function ModernStaffCard({ staff, onEdit, onDelete, onView, selected, onSelect, 
     </div>
   );
 }
-
-
 function ModernStaffModal({ onClose, onSave, staff, loading }) {
+  const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     name: staff?.name || '',
     role: staff?.role || 'Teacher',
@@ -708,151 +832,772 @@ function ModernStaffModal({ onClose, onSave, staff, loading }) {
     department: staff?.department || 'Sciences',
     email: staff?.email || '',
     phone: staff?.phone || '',
-    image: staff?.image || '', // Changed from '/male.png' to empty
-    gender: staff?.gender || 'male', // Add gender field
+    image: staff?.image || '',
+    gender: staff?.gender || 'male',
     bio: staff?.bio || '',
     responsibilities: Array.isArray(staff?.responsibilities) ? staff.responsibilities : [],
     expertise: Array.isArray(staff?.expertise) ? staff.expertise : [],
     achievements: Array.isArray(staff?.achievements) ? staff.achievements : [],
     status: staff?.status || 'active',
-    quote: staff?.quote ?? staff?.Quote ?? ''
+    quote: staff?.quote || '',
+    joinDate: staff?.joinDate || new Date().toISOString().split('T')[0],
+    education: staff?.education || '',
+    experience: staff?.experience || ''
   });
 
   const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(
-    staff?.image || (staff?.gender === 'female' ? '/female.png' : '/male.png')
-  );
+  const [imagePreview, setImagePreview] = useState(staff?.image || '');
+  const [imageError, setImageError] = useState('');
 
-  // Handle gender change
+
+  const steps = [
+    { id: 'basic', label: 'Basic Info', icon: FaUser, description: 'Personal details & role' },
+    { id: 'contact', label: 'Contact', icon: FaEnvelope, description: 'Contact information' },
+    { id: 'profile', label: 'Profile', icon: FaUserCircle, description: 'Image & bio' },
+    { id: 'details', label: 'Details', icon: FaInfoCircle, description: 'Additional information' }
+  ];
+
+  const ROLES = [
+    { value: 'Teacher', label: 'Teacher', icon: FaChalkboardTeacher, color: 'text-blue-500' },
+    { value: 'Principal', label: 'Principal', icon: FaCrown, color: 'text-purple-500' },
+    { value: 'Deputy Principal', label: 'Deputy Principal', icon: FaUserTie, color: 'text-green-500' },
+    { value: 'BOM Member', label: 'BOM Member', icon: FaShieldAlt, color: 'text-red-500' },
+    { value: 'Support Staff', label: 'Support Staff', icon: FaUsers, color: 'text-yellow-500' },
+    { value: 'Librarian', label: 'Librarian', icon: FaBook, color: 'text-indigo-500' },
+    { value: 'Counselor', label: 'Counselor', icon: FaHandsHelping, color: 'text-pink-500' }
+  ];
+
+  const DEPARTMENTS = [
+    'Sciences', 'Mathematics', 'Languages', 'Humanities', 
+    'Administration', 'Sports', 'Guidance', 'Arts', 'Technology'
+  ];
+
+  const STATUS_OPTIONS = [
+    { value: 'active', label: 'Active', icon: FaCheckCircle, color: 'text-green-600' },
+    { value: 'on-leave', label: 'On Leave', icon: FaCalendar, color: 'text-yellow-600' },
+    { value: 'inactive', label: 'Inactive', icon: FaTimesCircle, color: 'text-red-600' }
+  ];
+
+  useEffect(() => {
+    if (staff?.image && typeof staff.image === 'string') {
+      const formattedImage = staff.image.startsWith('/') ? staff.image : `/${staff.image}`;
+      setImagePreview(formattedImage);
+    }
+  }, [staff]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (currentStep < steps.length - 1) {
+      return;
+    }
+
+    // Validate image is uploaded
+    if (!imageFile && !staff?.image && !imagePreview) {
+      setImageError('Staff image is required. Please upload an image.');
+      setCurrentStep(2); // Go to profile step
+      return;
+    }
+
+    try {
+      const formDataToSend = new FormData();
+      
+      // Append all form data INCLUDING gender, education, experience
+      Object.keys(formData).forEach(key => {
+        if (formData[key] !== null && formData[key] !== undefined) {
+          if (Array.isArray(formData[key])) {
+            formDataToSend.append(key, JSON.stringify(formData[key]));
+          } else if (key !== 'image') { // Don't append image as string
+            formDataToSend.append(key, formData[key].toString());
+          }
+        }
+      });
+      
+      // 🔹 IMAGE HANDLING: Image upload is REQUIRED
+      // Send imageFile if exists, otherwise send empty string (backend will handle validation)
+      if (imageFile) {
+        // If a new file was uploaded, send it
+        formDataToSend.append('image', imageFile);
+      } else if (staff?.image && typeof staff.image === 'string' && staff.image.trim() !== '') {
+        // If editing and image exists, send the image path
+        formDataToSend.append('image', staff.image);
+      } else {
+        // For new staff, send empty string - backend will validate
+        formDataToSend.append('image', '');
+      }
+      
+      await onSave(formDataToSend, staff?.id);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleNextStep = (e) => {
+    e.preventDefault();
+    if (currentStep < steps.length - 1 && isStepValid()) {
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const handlePrevStep = (e) => {
+    e.preventDefault();
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
+
+  const handleImageChange = (file) => {
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setImageError('Please upload an image file (JPEG, PNG, etc.)');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setImageError('Image size should be less than 5MB');
+        return;
+      }
+      
+      setImageFile(file);
+      setImageError('');
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setImagePreview(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageRemove = () => {
+    setImageFile(null);
+    setImagePreview('');
+    setImageError('');
+  };
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleArrayChange = (field, items) => {
+    setFormData(prev => ({ ...prev, [field]: items }));
+  };
+
   const handleGenderChange = (gender) => {
     setFormData(prev => ({ 
       ...prev, 
       gender 
     }));
-    
-    // If no custom image is uploaded and using default avatar, update preview
-    if (!imageFile && !staff?.image) {
-      setImagePreview(gender === 'female' ? '/female.png' : '/male.png');
-      setFormData(prev => ({ 
-        ...prev, 
-        image: gender === 'female' ? '/female.png' : '/male.png' 
-      }));
+  };
+
+  const isStepValid = () => {
+    switch (currentStep) {
+      case 0:
+        return formData.name.trim() && formData.role.trim();
+      case 1:
+        return formData.email.trim() && formData.phone.trim();
+      case 2:
+        // Image is required - check if we have imageFile or existing image
+        return (imageFile || staff?.image || imagePreview) && !imageError;
+      case 3:
+        return true;
+      default:
+        return true;
     }
   };
 
-  // In the image upload section, add gender selection:
   return (
-    <Modal open={true} onClose={onClose}>
-      <Box sx={{/* ... */}}>
-        {/* ... */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column */}
-            <div className="space-y-6">
-              {/* Image Upload with Gender Selection */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+      <div className="w-full max-w-4xl max-h-[95vh] bg-white rounded-2xl shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-orange-600 via-red-600 to-pink-700 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-white bg-opacity-20 rounded-2xl backdrop-blur-sm">
+                {staff ? <FaEdit className="text-xl" /> : <FaUserPlus className="text-xl" />}
+              </div>
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-orange-50 to-red-50 p-3 rounded-xl border border-orange-200">
-                  <FiUpload className="text-orange-600 text-lg" /> 
-                  Profile Image & Gender
-                </label>
-                
-                {/* Gender Selection */}
-                <div className="mb-4">
-                  <p className="text-sm font-medium text-gray-700 mb-3">Select Gender:</p>
-                  <div className="flex gap-4">
-                    <button
-                      type="button"
-                      onClick={() => handleGenderChange('male')}
-                      className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 ${
-                        formData.gender === 'male'
-                          ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-200 bg-gray-50'
-                      } hover:border-blue-300 transition-colors`}
-                    >
-                      <div className={`p-3 rounded-full ${
-                        formData.gender === 'male' ? 'bg-blue-100' : 'bg-gray-100'
-                      }`}>
-                        <FiUser className={`text-lg ${
-                          formData.gender === 'male' ? 'text-blue-600' : 'text-gray-400'
-                        }`} />
-                      </div>
-                      <span className={`text-sm font-bold ${
-                        formData.gender === 'male' ? 'text-blue-700' : 'text-gray-600'
-                      }`}>
-                        Male
-                      </span>
-                    </button>
+                <h2 className="text-2xl font-bold">{staff ? 'Edit Staff Member' : 'Add New Staff Member'}</h2>
+                <p className="text-orange-100 opacity-90 mt-1">
+                  Step {currentStep + 1} of {steps.length}: {steps[currentStep].description}
+                </p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-xl transition-all duration-200 cursor-pointer">
+              <FaTimes className="text-xl" />
+            </button>
+          </div>
+        </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleGenderChange('female')}
-                      className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 ${
-                        formData.gender === 'female'
-                          ? 'border-pink-500 bg-pink-50' 
-                          : 'border-gray-200 bg-gray-50'
-                      } hover:border-pink-300 transition-colors`}
-                    >
-                      <div className={`p-3 rounded-full ${
-                        formData.gender === 'female' ? 'bg-pink-100' : 'bg-gray-100'
-                      }`}>
-                        <FiUser className={`text-lg ${
-                          formData.gender === 'female' ? 'text-pink-600' : 'text-gray-400'
-                        }`} />
-                      </div>
-                      <span className={`text-sm font-bold ${
-                        formData.gender === 'female' ? 'text-pink-700' : 'text-gray-600'
-                      }`}>
-                        Female
-                      </span>
-                    </button>
-                  </div>
+        {/* Progress Steps */}
+        <div className="bg-white border-b border-gray-200 p-4">
+          <div className="flex justify-between items-center overflow-x-auto">
+            {steps.map((step, index) => (
+              <div key={step.id} className="flex items-center gap-3 flex-shrink-0">
+                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 font-bold text-sm transition-all duration-300 ${
+                  index === currentStep 
+                    ? 'bg-orange-500 border-orange-500 text-white shadow-lg' 
+                    : index < currentStep
+                    ? 'bg-green-500 border-green-500 text-white'
+                    : 'bg-gray-100 border-gray-300 text-gray-500'
+                }`}>
+                  {index < currentStep ? <FaCheck className="text-xs" /> : <step.icon className="text-xs" />}
                 </div>
+                <div className="hidden sm:block">
+                  <div className="text-sm font-semibold text-gray-900">{step.label}</div>
+                  <div className="text-xs text-gray-500">{step.description}</div>
+                </div>
+                {index < steps.length - 1 && (
+                  <div className={`w-8 h-0.5 mx-2 ${
+                    index < currentStep ? 'bg-green-500' : 'bg-gray-300'
+                  }`} />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
 
-                {/* Image Upload */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-shrink-0">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-20 h-20 rounded-2xl object-cover shadow-lg"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = formData.gender === 'female' ? '/female.png' : '/male.png';
-                        }}
+        <div className="max-h-[calc(95vh-200px)] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Step 1: Basic Information */}
+            {currentStep === 0 && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-orange-50 to-red-50 p-3 rounded-xl border border-orange-200">
+                        <FaUser className="text-orange-600 text-lg" /> 
+                        Full Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => handleChange('name', e.target.value)}
+                        placeholder="Enter full name..."
+                        required
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50"
                       />
                     </div>
-                    <div className="flex-1">
-                      <label className="block">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="hidden"
-                        />
-                        <div className="px-4 py-3 border-2 border-gray-200 rounded-xl cursor-pointer flex items-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors">
-                          <FiUpload className="text-orange-500" />
-                          <span className="text-sm font-bold text-gray-700">
-                            {imageFile ? 'Change Image' : 'Upload Custom Image'}
-                          </span>
-                        </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-purple-50 to-pink-50 p-3 rounded-xl border border-purple-200">
+                        <FaUserTie className="text-purple-600 text-lg" /> 
+                        Role <span className="text-red-500">*</span>
                       </label>
-                      <p className="text-xs text-gray-500 mt-2">
-                        Leave empty to use default {formData.gender} avatar
-                      </p>
+                      <div className="grid grid-cols-2 gap-3">
+                        {ROLES.map((role) => (
+                          <div 
+                            key={role.value} 
+                            onClick={() => handleChange('role', role.value)}
+                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                              formData.role === role.value 
+                                ? 'border-blue-500 bg-blue-50 shadow-md' 
+                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <role.icon className={`text-lg ${role.color}`} />
+                              <span className="font-bold text-gray-900 text-sm">{role.label}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-xl border border-green-200">
+                        <FaBriefcase className="text-green-600 text-lg" /> 
+                        Position
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.position}
+                        onChange={(e) => handleChange('position', e.target.value)}
+                        placeholder="e.g., Head of Department, Class Teacher..."
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 p-3 rounded-xl border border-blue-200">
+                        <FaBuilding className="text-blue-600 text-lg" /> 
+                        Department <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={formData.department}
+                        onChange={(e) => handleChange('department', e.target.value)}
+                        required
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 cursor-pointer"
+                      >
+                        {DEPARTMENTS.map(dept => (
+                          <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 p-3 rounded-xl border border-yellow-200">
+                        <FaCalendarAlt className="text-yellow-600 text-lg" /> 
+                        Join Date
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.joinDate}
+                        onChange={(e) => handleChange('joinDate', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 bg-gradient-to-r from-pink-50 to-rose-50 p-3 rounded-xl border border-pink-200">
+                        <FaUserCheck className="text-pink-600 text-lg" /> 
+                        Status
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {STATUS_OPTIONS.map((status) => (
+                          <div 
+                            key={status.value} 
+                            onClick={() => handleChange('status', status.value)}
+                            className={`p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                              formData.status === status.value 
+                                ? 'border-blue-500 bg-blue-50 shadow-md' 
+                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex flex-col items-center gap-1">
+                              <status.icon className={`text-lg ${status.color}`} />
+                              <span className="text-xs font-bold text-gray-900">{status.label}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-              {/* ... rest of form fields ... */}
+            )}
+
+            {/* Step 2: Contact Information - WITH EDUCATION & EXPERIENCE */}
+            {currentStep === 1 && (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <FaPhoneAlt className="text-blue-600" />
+                    Contact Information
+                  </h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-800 mb-3">Email Address <span className="text-red-500">*</span></label>
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleChange('email', e.target.value)}
+                        placeholder="staff@school.edu"
+                        required
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-800 mb-3">Phone Number <span className="text-red-500">*</span></label>
+                      <input
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => handleChange('phone', e.target.value)}
+                        placeholder="+254 700 000 000"
+                        required
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Education and Experience fields - ADDED BACK */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-2xl p-6 border border-gray-200">
+                    <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <FaGraduationCap className="text-purple-600" />
+                      Education
+                    </h4>
+                    <textarea
+                      value={formData.education}
+                      onChange={(e) => handleChange('education', e.target.value)}
+                      placeholder="Educational background, degrees, certifications..."
+                      rows="4"
+                      className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none bg-gray-50 font-medium"
+                    />
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-6 border border-gray-200">
+                    <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <FaBriefcase className="text-green-600" />
+                      Experience
+                    </h4>
+                    <textarea
+                      value={formData.experience}
+                      onChange={(e) => handleChange('experience', e.target.value)}
+                      placeholder="Previous experience, years of service, special achievements..."
+                      rows="4"
+                      className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none bg-gray-50 font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Profile & Bio - SIMPLIFIED WITHOUT GENDER IMAGES */}
+            {currentStep === 2 && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                  <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <FaUserCircle className="text-orange-600" />
+                    Profile Image & Information
+                  </h3>
+                  
+                  {/* Gender Selection - SIMPLIFIED WITHOUT IMAGE DEPENDENCY */}
+                  <div className="mb-6">
+                    <p className="text-sm font-medium text-gray-700 mb-3">Select Gender:</p>
+                    <div className="flex gap-4">
+                      <button
+                        type="button"
+                        onClick={() => handleGenderChange('male')}
+                        className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 ${
+                          formData.gender === 'male'
+                            ? 'border-blue-500 bg-blue-50 shadow-md' 
+                            : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                        } transition-colors`}
+                      >
+                        <div className={`p-3 rounded-full ${
+                          formData.gender === 'male' ? 'bg-blue-100' : 'bg-gray-100'
+                        }`}>
+                          <FaMale className={`text-lg ${
+                            formData.gender === 'male' ? 'text-blue-600' : 'text-gray-400'
+                          }`} />
+                        </div>
+                        <span className={`text-sm font-bold ${
+                          formData.gender === 'male' ? 'text-blue-700' : 'text-gray-600'
+                        }`}>
+                          Male
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleGenderChange('female')}
+                        className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 ${
+                          formData.gender === 'female'
+                            ? 'border-pink-500 bg-pink-50 shadow-md' 
+                            : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                        } transition-colors`}
+                      >
+                        <div className={`p-3 rounded-full ${
+                          formData.gender === 'female' ? 'bg-pink-100' : 'bg-gray-100'
+                        }`}>
+                          <FaFemale className={`text-lg ${
+                            formData.gender === 'female' ? 'text-pink-600' : 'text-gray-400'
+                          }`} />
+                        </div>
+                        <span className={`text-sm font-bold ${
+                          formData.gender === 'female' ? 'text-pink-700' : 'text-gray-600'
+                        }`}>
+                          Female
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Image Upload - REQUIRED */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-shrink-0">
+                        {imagePreview ? (
+                          <div className="relative">
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              className="w-24 h-24 rounded-2xl object-cover shadow-lg border-2 border-gray-200"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = '';
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={handleImageRemove}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors"
+                            >
+                              <FiX className="text-sm" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center bg-gray-50">
+                            <FiUser className="text-gray-400 text-2xl" />
+                            <span className="text-xs text-gray-500 mt-1">Upload image</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <label className="block">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleImageChange(e.target.files[0])}
+                            className="hidden"
+                            id="staff-image-upload"
+                            required={!staff?.image}
+                          />
+                          <div className="px-4 py-3 border-2 border-gray-200 rounded-xl cursor-pointer flex items-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <FaUpload className="text-orange-500" />
+                            <span className="text-sm font-bold text-gray-700">
+                              {imagePreview ? 'Change Image' : 'Upload Staff Image'}
+                            </span>
+                          </div>
+                        </label>
+                        <p className="text-xs text-gray-500 mt-2">
+                          <span className="text-red-500 font-bold">* Required:</span> Upload a clear photo of the staff member (JPEG, PNG, max 5MB)
+                        </p>
+                        {imageError && (
+                          <p className="text-xs text-red-600 mt-2 font-medium">
+                            {imageError}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bio and Quote */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-2xl p-6 border border-gray-200">
+                    <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <FaQuoteLeft className="text-blue-600" />
+                      Biography
+                    </h4>
+                    <textarea
+                      value={formData.bio}
+                      onChange={(e) => handleChange('bio', e.target.value)}
+                      placeholder="Write a brief biography about the staff member..."
+                      rows="6"
+                      className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none bg-gray-50 font-medium"
+                    />
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-6 border border-gray-200">
+                    <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <FaQuoteRight className="text-purple-600" />
+                      Quote
+                    </h4>
+                    <textarea
+                      value={formData.quote}
+                      onChange={(e) => handleChange('quote', e.target.value)}
+                      placeholder="Inspirational quote or motto..."
+                      rows="3"
+                      className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none bg-gray-50 font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Additional Details */}
+            {currentStep === 3 && (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <FaStar className="text-orange-600" />
+                    Expertise & Achievements
+                  </h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                      <ItemInput
+                        label="Expertise"
+                        value={formData.expertise}
+                        onChange={(items) => handleArrayChange('expertise', items)}
+                        placeholder="Add expertise area..."
+                        icon={FiStar}
+                        disabled={loading}
+                      />
+                    </div>
+
+                    <div>
+                      <ItemInput
+                        label="Responsibilities"
+                        value={formData.responsibilities}
+                        onChange={(items) => handleArrayChange('responsibilities', items)}
+                        placeholder="Add responsibility..."
+                        icon={FiBriefcase}
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl p-6 border border-gray-200">
+                  <ItemInput
+                    label="Achievements"
+                    value={formData.achievements}
+                    onChange={(items) => handleArrayChange('achievements', items)}
+                    placeholder="Add achievement..."
+                    icon={FaTrophy}
+                    disabled={loading}
+                  />
+                </div>
+
+                {/* Summary Preview */}
+                <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-200">
+                  <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <FaClipboardCheck className="text-green-600" />
+                    Staff Summary
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Name:</span>
+                        <span className="font-bold text-gray-900 truncate">{formData.name}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Role:</span>
+                        <span className="font-bold text-gray-900">{formData.role}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Department:</span>
+                        <span className="font-bold text-gray-900">{formData.department}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Email:</span>
+                        <span className="font-bold text-gray-900 truncate">{formData.email}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Phone:</span>
+                        <span className="font-bold text-gray-900">{formData.phone}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Gender:</span>
+                        <span className="font-bold text-gray-900 capitalize">{formData.gender}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Status:</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          formData.status === 'active' ? 'bg-green-100 text-green-800' : 
+                          formData.status === 'on-leave' ? 'bg-yellow-100 text-yellow-800' : 
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {formData.status}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Join Date:</span>
+                        <span className="font-bold text-gray-900">{formData.joinDate}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Image:</span>
+                        <span className={`font-bold ${imageFile || imagePreview || staff?.image ? 'text-green-600' : 'text-red-600'}`}>
+                          {imageFile || imagePreview || staff?.image ? '✓ Uploaded' : '✗ Required'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {formData.expertise.length > 0 && (
+                    <div className="mt-4">
+                      <span className="text-sm text-gray-600">Expertise: </span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {formData.expertise.slice(0, 3).map((exp, index) => (
+                          <span 
+                            key={index} 
+                            className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-2 py-1 rounded-lg text-xs font-bold"
+                          >
+                            {exp}
+                          </span>
+                        ))}
+                        {formData.expertise.length > 3 && (
+                          <span className="bg-gray-500 text-white px-2 py-1 rounded-lg text-xs font-bold">
+                            +{formData.expertise.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+              <div className="flex items-center gap-3 text-sm text-gray-600 font-medium">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    formData.status === 'active' ? 'bg-green-500' : 
+                    formData.status === 'on-leave' ? 'bg-yellow-500' : 'bg-red-500'
+                  }`}></div>
+                  <span className="capitalize font-semibold">{formData.status}</span>
+                </div>
+                {currentStep === steps.length - 1 && (
+                  <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${
+                    (imageFile || staff?.image || imagePreview) 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {(imageFile || staff?.image || imagePreview) ? <FaCheck className="text-xs" /> : <FaTimes className="text-xs" />}
+                    {(imageFile || staff?.image || imagePreview) ? 'Ready to Save' : 'Image Required'}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                {currentStep > 0 && (
+                  <button 
+                    type="button"
+                    onClick={handlePrevStep}
+                    className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition duration-200 font-bold disabled:opacity-50 cursor-pointer"
+                  >
+                    ← Previous
+                  </button>
+                )}
+                
+                {currentStep < steps.length - 1 ? (
+                  <button 
+                    type="button"
+                    onClick={handleNextStep}
+                    disabled={!isStepValid()}
+                    className="px-8 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl hover:from-orange-700 hover:to-red-700 transition duration-200 font-bold shadow-lg disabled:opacity-50 cursor-pointer flex items-center gap-2"
+                  >
+                    Continue →
+                  </button>
+                ) : (
+                  <button 
+                    type="submit"
+                    disabled={loading || !isStepValid()}
+                    className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition duration-200 font-bold shadow-lg disabled:opacity-50 cursor-pointer flex items-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <Spinner size={16} color="white" />
+                        {staff ? 'Updating...' : 'Saving...'}
+                      </>
+                    ) : (
+                      <>
+                        <FaSave />
+                        {staff ? 'Update Staff' : 'Save Staff'}
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        </form>
-      </Box>
-    </Modal>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }
-
 // Main Staff Manager Component
 export default function StaffManager() {
   const [staff, setStaff] = useState([]);
@@ -871,10 +1616,11 @@ export default function StaffManager() {
   const [selectedPosts, setSelectedPosts] = useState(new Set());
   const [stats, setStats] = useState(null);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+ const [refreshing, setRefreshing] = useState(false);
+
   
-  // New states for delete confirmation and notification
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteType, setDeleteType] = useState('single'); // 'single' or 'bulk'
+  const [deleteType, setDeleteType] = useState('single');
   const [staffToDelete, setStaffToDelete] = useState(null);
   const [notification, setNotification] = useState({
     open: false,
@@ -885,38 +1631,44 @@ export default function StaffManager() {
 
   const roles = ['Principal', 'Deputy Principal', 'Teacher', 'BOM Member', 'Support Staff', 'Librarian', 'Counselor'];
   const departments = ['Sciences', 'Mathematics', 'Languages', 'Humanities', 'Administration', 'Sports', 'Guidance'];
-
-  // Fetch staff from API
-  const fetchStaff = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/staff');
-      const data = await response.json();
-      
-      if (data.success) {
-        setStaff(data.staff || []);
-        setFilteredStaff(data.staff || []);
-      } else {
-        console.error('Failed to fetch staff:', data.error);
-        setStaff([]);
-        setFilteredStaff([]);
-        showNotification('error', 'Fetch Failed', 'Failed to fetch staff data');
-      }
-    } catch (error) {
-      console.error('Error fetching staff:', error);
+const fetchStaff = async (isRefresh = false) => {
+  try {
+    if (isRefresh) {
+      setRefreshing(true); // Set refreshing to true for button spinner
+    } else {
+      setLoading(true); // Set loading to true for initial load
+    }
+    
+    const response = await fetch('/api/staff');
+    const data = await response.json();
+    
+    if (data.success) {
+      setStaff(data.staff || []);
+      setFilteredStaff(data.staff || []);
+    } else {
+      console.error('Failed to fetch staff:', data.error);
       setStaff([]);
       setFilteredStaff([]);
-      showNotification('error', 'Error', 'Error fetching staff data');
-    } finally {
-      setLoading(false);
+      showNotification('error', 'Fetch Failed', 'Failed to fetch staff data');
     }
-  };
+  } catch (error) {
+    console.error('Error fetching staff:', error);
+    setStaff([]);
+    setFilteredStaff([]);
+    showNotification('error', 'Error', 'Error fetching staff data');
+  } finally {
+    if (isRefresh) {
+      setRefreshing(false); // Turn off refreshing spinner
+    } else {
+      setLoading(false); // Turn off loading spinner
+    }
+  }
+};
 
   useEffect(() => {
     fetchStaff();
   }, []);
 
-  // Filtering and pagination
   useEffect(() => {
     let filtered = staff;
 
@@ -947,7 +1699,6 @@ export default function StaffManager() {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Notification handler
   const showNotification = (type, title, message) => {
     setNotification({
       open: true,
@@ -957,7 +1708,6 @@ export default function StaffManager() {
     });
   };
 
-  // CRUD Operations
   const handleCreate = () => {
     setEditingStaff(null);
     setShowModal(true);
@@ -973,14 +1723,12 @@ export default function StaffManager() {
     setShowDetailModal(true);
   };
 
-  // Single delete handler
   const handleDelete = (staffMember) => {
     setStaffToDelete(staffMember);
     setDeleteType('single');
     setShowDeleteModal(true);
   };
 
-  // Bulk delete handler
   const handleBulkDelete = () => {
     if (selectedPosts.size === 0) {
       showNotification('warning', 'No Selection', 'No staff members selected for deletion');
@@ -990,7 +1738,6 @@ export default function StaffManager() {
     setShowDeleteModal(true);
   };
 
-  // Confirm delete (for both single and bulk)
   const confirmDelete = async () => {
     try {
       if (deleteType === 'single' && staffToDelete) {
@@ -1012,7 +1759,6 @@ export default function StaffManager() {
         const deletedIds = [];
         const failedIds = [];
         
-        // Delete each selected staff member
         for (const staffId of selectedPosts) {
           try {
             const response = await fetch(`/api/staff/${staffId}`, {
@@ -1033,13 +1779,9 @@ export default function StaffManager() {
           }
         }
         
-        // Refresh the staff list
         await fetchStaff();
-        
-        // Clear selection
         setSelectedPosts(new Set());
         
-        // Show appropriate notification
         if (deletedIds.length > 0 && failedIds.length === 0) {
           showNotification('success', 'Bulk Delete Successful', `Successfully deleted ${deletedIds.length} staff member(s)`);
         } else if (deletedIds.length > 0 && failedIds.length > 0) {
@@ -1065,39 +1807,46 @@ export default function StaffManager() {
       return newSet; 
     });
   };
-
-  const handleSubmit = async (formData, id) => {
-    setSaving(true);
-    try {
-      let response;
-      if (id) {
-        response = await fetch(`/api/staff/${id}`, {
-          method: 'PUT',
-          body: formData,
-        });
-      } else {
-        response = await fetch('/api/staff', {
-          method: 'POST',
-          body: formData,
-        });
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        await fetchStaff();
-        setShowModal(false);
-        showNotification('success', id ? 'Updated' : 'Created', `Staff member ${id ? 'updated' : 'created'} successfully!`);
-      } else {
-        showNotification('error', 'Save Failed', result.error || `Failed to ${id ? 'update' : 'create'} staff member`);
-      }
-    } catch (error) {
-      console.error('Error saving staff member:', error);
-      showNotification('error', 'Error', 'Error saving staff member');
-    } finally {
-      setSaving(false);
+const handleSubmit = async (formData, id) => {
+  setSaving(true);
+  try {
+    let response;
+    if (id) {
+      response = await fetch(`/api/staff/${id}`, {
+        method: 'PUT',
+        body: formData,
+      });
+    } else {
+      response = await fetch('/api/staff', {
+        method: 'POST',
+        body: formData,
+      });
     }
-  };
+
+    const result = await response.json();
+
+    if (result.success) {
+      await fetchStaff();
+      setShowModal(false);
+      showNotification('success', id ? 'Updated' : 'Created', 
+        `Staff member ${id ? 'updated' : 'created'} successfully!`);
+    } else {
+      // Handle specific error for missing image
+      if (result.error?.includes('image') || result.error?.includes('Image')) {
+        showNotification('error', 'Image Required', 
+          'Staff image is required. Please upload an image.');
+      } else {
+        showNotification('error', 'Save Failed', 
+          result.error || `Failed to ${id ? 'update' : 'create'} staff member`);
+      }
+    }
+  } catch (error) {
+    console.error('Error saving staff member:', error);
+    showNotification('error', 'Error', 'Error saving staff member');
+  } finally {
+    setSaving(false);
+  }
+};
 
   useEffect(() => {
     const calculatedStats = {
@@ -1165,12 +1914,10 @@ export default function StaffManager() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
         <div className="text-center">
-          <CircularProgress size={48} />
-
+          <Spinner size={48} />
           <p className="text-gray-700 text-lg mt-4 font-medium">
             Loading Staff…
           </p>
-
           <p className="text-gray-400 text-sm mt-1">
             Please wait while we fetch staff data
           </p>
@@ -1181,7 +1928,6 @@ export default function StaffManager() {
 
   return (
     <div className="space-y-6 p-4 min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-red-50">
-      {/* Custom Notification */}
       <Notification
         open={notification.open}
         onClose={() => setNotification({ ...notification, open: false })}
@@ -1190,7 +1936,6 @@ export default function StaffManager() {
         message={notification.message}
       />
 
-      {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         open={showDeleteModal}
         onClose={() => !bulkDeleting && setShowDeleteModal(false)}
@@ -1209,9 +1954,24 @@ export default function StaffManager() {
             <p className="text-gray-600 text-sm lg:text-base">Manage teaching staff, administration, and board members</p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
-            <button onClick={fetchStaff} className="flex items-center gap-2 bg-gray-600 text-white px-4 lg:px-6 py-2 lg:py-3 rounded-2xl font-bold shadow-lg cursor-pointer text-sm">
-              <FiRotateCw className={`text-xs ${loading ? 'animate-spin' : ''}`} /> Refresh
-            </button>
+<button 
+  onClick={() => fetchStaff(true)} 
+  disabled={refreshing}
+  className="flex items-center gap-2 bg-gray-600 text-white px-4 lg:px-6 py-2 lg:py-3 rounded-2xl font-bold shadow-lg disabled:opacity-70 cursor-pointer text-sm"
+>
+  {refreshing ? (
+    <>
+      <div className="w-4 h-4">
+        <CircularProgress size={16} color="inherit" />
+      </div>
+      Refreshing...
+    </>
+  ) : (
+    <>
+      <FiRotateCw className="text-xs" /> Refresh
+    </>
+  )}
+</button>
             <button onClick={handleCreate} className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 text-white px-4 lg:px-6 py-2 lg:py-3 rounded-2xl font-bold shadow-lg cursor-pointer text-sm">
               <FiPlus className="text-xs" /> Add Staff
             </button>
@@ -1334,7 +2094,7 @@ export default function StaffManager() {
         </div>
       </div>
 
-      {/* Bulk Actions - Only shows when items are selected */}
+      {/* Bulk Actions */}
       {selectedPosts.size > 0 && (
         <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-2xl p-4 shadow-lg">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -1365,7 +2125,7 @@ export default function StaffManager() {
               >
                 {bulkDeleting ? (
                   <>
-                    <CircularProgress size={16} className="text-white" />
+                    <Spinner size={16} color="white" />
                     Deleting...
                   </>
                 ) : (

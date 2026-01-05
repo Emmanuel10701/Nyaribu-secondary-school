@@ -99,6 +99,9 @@ export default function ModernHero() {
     guidanceEvents: []
   });
   const [isAnimating, setIsAnimating] = useState(false);
+  const [schoolData, setSchoolData] = useState(null);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState(null);
   const router = useRouter();
 
   // Modern Marketing Descriptions with Enhanced Content
@@ -368,7 +371,6 @@ export default function ModernHero() {
         
         const endpoints = [
           { key: 'events', url: '/api/events' },
-          { key: 'staff', url: '/api/staff' },
           { key: 'school', url: '/api/school' }
         ];
 
@@ -455,6 +457,90 @@ export default function ModernHero() {
       setIsAnimating(false);
     }, 500);
   };
+
+
+const fetchSchoolVideo = async () => {
+  try {
+    setLoading(true);
+    const response = await fetch('/api/school');
+    
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    
+    const data = await response.json();
+    
+    if (data.success && data.school) {
+      setSchoolData(data.school);
+      setError(null);
+    } else {
+      throw new Error(data.message || 'No school data found');
+    }
+  } catch (err) {
+    console.error('Error fetching school video:', err);
+    setError(err.message);
+    setSchoolData(null);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+// Usage example:
+const getSchoolVideo = async () => {
+  const result = await fetchSchoolVideo();
+  
+  if (result.success) {
+    const videoData = result.data;
+    
+    // Check video type and handle accordingly
+    if (videoData.videoType === 'youtube') {
+      console.log('YouTube Video:', videoData.youtubeEmbedUrl);
+      // Use in iframe: <iframe src={videoData.youtubeEmbedUrl} />
+    } else if (videoData.videoType === 'file') {
+      console.log('Local Video:', videoData.localVideoPath);
+      // Use in video tag: <video src={videoData.localVideoPath} />
+    }
+    
+    return videoData;
+  } else {
+    console.error('Failed to fetch video:', result.error);
+    return null;
+  }
+};
+
+// React Hook version for useState/useEffect:
+const useSchoolVideo = () => {
+  const [videoData, setVideoData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  useEffect(() => {
+    const fetchVideo = async () => {
+      try {
+        setLoading(true);
+        const result = await fetchSchoolVideo();
+        
+        if (result.success) {
+          setVideoData(result.data);
+          setError(null);
+        } else {
+          setError(result.error);
+          setVideoData(null);
+        }
+      } catch (err) {
+        setError(err.message);
+        setVideoData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchVideo();
+  }, []);
+  
+  return { videoData, loading, error, refetch: fetchSchoolVideo };
+};
+
 
   // Navigation handlers
   const handleAcademicsClick = () => router.push('/pages/academics');
@@ -1243,6 +1329,8 @@ export default function ModernHero() {
   </div>
 </section>
 
+      <ModernLeadershipSection  />
+
       {/* External Components */}
       <EnhancedEventsSection 
         events={apiData.events}
@@ -1250,65 +1338,100 @@ export default function ModernHero() {
         schoolInfo={apiData.schoolInfo}
       />
 
-      <ModernLeadershipSection 
-        staff={apiData.staff}
-        onViewAll={handleStaffClick}
-        schoolInfo={apiData.schoolInfo}
-      />
 
-      {/* Video Modal */}
-      {showVideoModal && (
-        <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
-          <div className="relative w-full max-w-6xl rounded-3xl overflow-hidden shadow-2xl">
-            {/* Modal Header */}
-            <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-r from-black/80 to-transparent p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
-                  <FiPlay className="text-white" />
-                </div>
-                <div>
-                  <h4 className="text-white font-bold">Virtual Campus Tour</h4>
-                  <p className="text-white/60 text-sm">Nyaribu Secondary School</p>
-                </div>
-              </div>
-              <button
-                onClick={closeVideoModal}
-                className="w-10 h-10 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors flex items-center justify-center"
-                aria-label="Close video"
-              >
-                <IoClose className="w-6 h-6" />
-              </button>
-            </div>
-            
-            {/* Video Container */}
-            <div className="relative bg-black aspect-video">
-              <iframe
-                src="https://www.youtube.com/embed/iWHpv3ihfDQ?autoplay=1&rel=0&modestbranding=1"
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title="Nyaribu Secondary School Virtual Tour"
-              />
-            </div>
-            
-            {/* Modal Footer */}
-            <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-r from-transparent to-black/80 p-4">
-              <div className="flex items-center justify-between">
-                <div className="text-white/80 text-sm">
-                  Experience our campus from anywhere
-                </div>
-                <button
-                  onClick={handleContactClick}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
-                >
-                  Schedule Visit
-                </button>
-              </div>
-            </div>
+     {/* Video Modal */}
+{showVideoModal && (
+  <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
+    <div className="relative w-full max-w-6xl rounded-3xl overflow-hidden shadow-2xl">
+      {/* Modal Header */}
+      <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-r from-black/80 to-transparent p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
+            <FiPlay className="text-white" />
+          </div>
+          <div>
+            <h4 className="text-white font-bold">Virtual Campus Tour</h4>
+            <p className="text-white/60 text-sm">
+              {schoolData?.name || 'Nyaribu Secondary School'}
+            </p>
           </div>
         </div>
-      )}
-
+        <button
+          onClick={closeVideoModal}
+          className="w-10 h-10 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors flex items-center justify-center"
+          aria-label="Close video"
+        >
+          <IoClose className="w-6 h-6" />
+        </button>
+      </div>
+      
+      {/* Video Container */}
+      <div className="relative bg-black aspect-video">
+        {loading ? (
+          // Loading state
+          <div className="w-full h-full flex items-center justify-center">
+            <FiLoader className="animate-spin text-4xl text-white" />
+          </div>
+        ) : error ? (
+          // Error state
+          <div className="w-full h-full flex flex-col items-center justify-center p-8">
+            <FiAlertCircle className="text-5xl text-red-500 mb-4" />
+            <p className="text-white text-center mb-4">Unable to load video tour</p>
+            <button
+              onClick={fetchSchoolVideo}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        ) : schoolData?.videoType === 'youtube' && schoolData?.videoTour ? (
+          // YouTube Video
+          <iframe
+            src={`https://www.youtube.com/embed/${extractYouTubeId(schoolData.videoTour)}?autoplay=1&rel=0&modestbranding=1`}
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title={`${schoolData?.name || 'School'} Virtual Tour`}
+          />
+        ) : schoolData?.videoType === 'file' && schoolData?.videoTour ? (
+          // Local MP4 Video
+          <video
+            src={schoolData.videoTour.startsWith('/') ? schoolData.videoTour : `/${schoolData.videoTour}`}
+            className="w-full h-full"
+            autoPlay
+            controls
+            title={`${schoolData?.name || 'School'} Virtual Tour`}
+            poster={schoolData?.videoThumbnail}
+          />
+        ) : (
+          // Fallback to default video
+          <iframe
+            src="https://www.youtube.com/embed/iWHpv3ihfDQ?autoplay=1&rel=0&modestbranding=1"
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title="School Virtual Tour"
+          />
+        )}
+      </div>
+      
+      {/* Modal Footer */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-r from-transparent to-black/80 p-4">
+        <div className="flex items-center justify-between">
+          <div className="text-white/80 text-sm">
+            {schoolData?.description || 'Experience our campus from anywhere'}
+          </div>
+          <button
+            onClick={handleContactClick}
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
+          >
+            Schedule Visit
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
       <ChatBot />
 
       {/* Custom Animations */}
