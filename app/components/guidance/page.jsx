@@ -449,7 +449,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Enhanced Edit Dialog with Dual-Source Image Selection
+// Enhanced Edit Dialog - Only Custom Image Selection
 const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     counselor: '',
@@ -460,7 +460,6 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
     time: '09:00',
     type: 'Guidance',
     priority: 'Medium',
-    imageSource: 'preset' // 'preset' or 'upload'
   });
   
   const [isSaving, setIsSaving] = useState(false);
@@ -505,33 +504,14 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
         time: event.time || '09:00',
         type: event.type || 'Guidance',
         priority: event.priority || 'Medium',
-        imageSource: event.image ? 'upload' : 'preset'
       });
       
+      // Set image preview if exists
       if (event.image) {
         setImagePreview(event.image);
-        setFormData(prev => ({ ...prev, imageSource: 'upload' }));
-      } else {
-        // Set preset image based on category
-        const presetImage = CATEGORY_CONFIG[event.category]?.presetImage || '/default.png';
-        setImagePreview(presetImage);
-        setFormData(prev => ({ ...prev, imageSource: 'preset' }));
       }
-    } else {
-      // New event - set default preset image
-      const presetImage = CATEGORY_CONFIG[formData.category]?.presetImage || '/default.png';
-      setImagePreview(presetImage);
     }
   }, [event]);
-
-  // Update image preview when category changes
-  useEffect(() => {
-    if (formData.imageSource === 'preset') {
-      const presetImage = CATEGORY_CONFIG[formData.category]?.presetImage || '/default.png';
-      setImagePreview(presetImage);
-      setUploadedFile(null);
-    }
-  }, [formData.category, formData.imageSource]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -548,7 +528,6 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
     }
 
     setUploadedFile(file);
-    setFormData(prev => ({ ...prev, imageSource: 'upload' }));
     
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -556,23 +535,13 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
     };
     reader.readAsDataURL(file);
     
-    toast.success('Custom image selected');
+    toast.success('Image uploaded successfully!');
   };
 
   const removeUploadedFile = () => {
     setUploadedFile(null);
-    setFormData(prev => ({ ...prev, imageSource: 'preset' }));
-    const presetImage = CATEGORY_CONFIG[formData.category]?.presetImage || '/default.png';
-    setImagePreview(presetImage);
-    toast.info('Using preset image');
-  };
-
-  const switchToPresetImage = () => {
-    setFormData(prev => ({ ...prev, imageSource: 'preset' }));
-    setUploadedFile(null);
-    const presetImage = CATEGORY_CONFIG[formData.category]?.presetImage || '/default.png';
-    setImagePreview(presetImage);
-    toast.info('Switched to preset image');
+    setImagePreview('');
+    toast.info('Image removed');
   };
 
   const handleCategorySelect = (category) => {
@@ -605,14 +574,10 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
       submitData.append('time', formData.time);
       submitData.append('type', formData.type);
       submitData.append('priority', formData.priority);
-      submitData.append('imageSource', formData.imageSource);
 
-      if (formData.imageSource === 'upload' && uploadedFile) {
+      // Only append image if uploaded
+      if (uploadedFile) {
         submitData.append('image', uploadedFile);
-      } else {
-        // Send preset image path
-        const presetImage = CATEGORY_CONFIG[formData.category]?.presetImage || '/default.png';
-        submitData.append('presetImage', presetImage);
       }
 
       let url = '/api/guidance';
@@ -661,6 +626,7 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
             </div>
             <div>
               <h2 className="text-xl font-bold">{event ? 'Edit' : 'Create'} Counseling Session</h2>
+              <p className="text-sm opacity-90">Upload a custom image for this session</p>
             </div>
           </div>
           <button 
@@ -676,64 +642,56 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
       {/* Content */}
       <div className="overflow-y-auto max-h-[calc(94vh-150px)]">
         <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="p-6 space-y-6">
-          {/* Dual-Source Image Selection Section - Enhanced */}
+          {/* Image Upload Section */}
           <div className="space-y-4">
             <label className="block text-base font-bold text-gray-900 mb-3">
-              Session Image
+              Session Image (Optional)
             </label>
             
-            {/* Image Preview - Larger */}
+            {/* Image Preview */}
             <div className="flex justify-center">
-              <div className="w-48 h-48 rounded-2xl border-3 border-gray-300 overflow-hidden bg-gray-50 shadow-sm">
-                {imagePreview ? (
+              {imagePreview ? (
+                <div className="relative w-48 h-48 rounded-2xl overflow-hidden border-2 border-gray-300 shadow-lg">
                   <img
                     src={imagePreview}
                     alt="Preview"
                     className="w-full h-full object-cover"
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <FiImage className="text-gray-400 text-3xl" />
-                  </div>
-                )}
-              </div>
+                  <button
+                    type="button"
+                    onClick={removeUploadedFile}
+                    className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600"
+                    disabled={isSaving}
+                  >
+                    <FiX className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-48 h-48 rounded-2xl border-3 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-400 hover:bg-gray-100 transition-colors"
+                >
+                  <FiUpload className="text-gray-400 text-4xl mb-3" />
+                  <p className="text-sm font-medium text-gray-600">Click to upload</p>
+                  <p className="text-xs text-gray-500 mt-1">PNG, JPG, JPEG (max 5MB)</p>
+                </div>
+              )}
             </div>
 
-            {/* Image Source Selection - Larger */}
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={switchToPresetImage}
-                className={`flex-1 border-2 rounded-xl p-4 text-center ${
-                  formData.imageSource === 'preset'
-                    ? 'border-indigo-500 bg-indigo-50 text-indigo-800'
-                    : 'border-gray-300 text-gray-700'
-                }`}
-                disabled={isSaving}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <FiImage className="w-5 h-5" />
-                  <span className="text-sm font-bold">Preset Image</span>
-                  <span className="text-xs text-gray-600 mt-1">Auto-assigned by category</span>
-                </div>
-              </button>
-              
+            {/* Upload Button */}
+            <div className="text-center">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className={`flex-1 border-2 rounded-xl p-4 text-center ${
-                  formData.imageSource === 'upload'
-                    ? 'border-indigo-500 bg-indigo-50 text-indigo-800'
-                    : 'border-gray-300 text-gray-700'
-                }`}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-5 py-2.5 rounded-xl font-medium hover:opacity-90"
                 disabled={isSaving}
               >
-                <div className="flex flex-col items-center gap-2">
-                  <FiUpload className="w-5 h-5" />
-                  <span className="text-sm font-bold">Upload Custom</span>
-                  <span className="text-xs text-gray-600 mt-1">Upload your own image</span>
-                </div>
+                <FiUpload className="w-4 h-4" />
+                {imagePreview ? 'Change Image' : 'Upload Image'}
               </button>
+              <p className="text-xs text-gray-500 mt-2">
+                Upload a custom image for this session. Leave empty if no image needed.
+              </p>
             </div>
 
             <input
@@ -743,47 +701,11 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
               onChange={handleFileUpload}
               className="hidden"
             />
-
-            {/* File Info - Enhanced */}
-            {formData.imageSource === 'upload' && uploadedFile && (
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="flex items-center gap-3">
-                  <FiImage className="text-indigo-600" />
-                  <div>
-                    <p className="text-sm font-bold text-gray-800 truncate">
-                      {uploadedFile.name}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      {(uploadedFile.size / 1024).toFixed(1)} KB
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={removeUploadedFile}
-                  className="text-sm font-bold text-rose-600 px-3 py-1"
-                  disabled={isSaving}
-                >
-                  Remove
-                </button>
-              </div>
-            )}
-            
-            {formData.imageSource === 'preset' && (
-              <div className="text-center">
-                <div className="text-sm font-bold text-gray-700 inline-block px-3 py-1 bg-indigo-100 rounded-full">
-                  Using preset image for <span className="text-indigo-800">{formData.category}</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Category: {CATEGORY_CONFIG[formData.category]?.label}
-                </p>
-              </div>
-            )}
           </div>
 
-          {/* Form Fields - Enhanced Visibility */}
+          {/* Form Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Counselor Name - Larger Input */}
+            {/* Counselor Name */}
             <div className="md:col-span-2">
               <label className="block text-base font-bold text-gray-900 mb-3">
                 Counselor Name *
@@ -799,7 +721,7 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
               />
             </div>
 
-            {/* Category - Enhanced Dropdown */}
+            {/* Category */}
             <div>
               <label className="block text-base font-bold text-gray-900 mb-3">
                 Category *
@@ -853,7 +775,7 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
               </div>
             </div>
 
-            {/* Type - Enhanced Select */}
+            {/* Type */}
             <div>
               <label className="block text-base font-bold text-gray-900 mb-3">
                 Session Type *
@@ -871,7 +793,7 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
               </select>
             </div>
 
-            {/* Date - Larger Input */}
+            {/* Date */}
             <div>
               <label className="block text-base font-bold text-gray-900 mb-3">
                 Session Date *
@@ -886,7 +808,7 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
               />
             </div>
 
-            {/* Time - Larger Input */}
+            {/* Time */}
             <div>
               <label className="block text-base font-bold text-gray-900 mb-3">
                 Session Time *
@@ -901,7 +823,7 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
               />
             </div>
 
-            {/* Priority - Enhanced Select */}
+            {/* Priority */}
             <div>
               <label className="block text-base font-bold text-gray-900 mb-3">
                 Priority Level *
@@ -919,7 +841,7 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
               </select>
             </div>
 
-            {/* Description - Larger Textarea */}
+            {/* Description */}
             <div className="md:col-span-2">
               <label className="block text-base font-bold text-gray-900 mb-3">
                 Session Description *
@@ -935,7 +857,7 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
               />
             </div>
 
-            {/* Notes - Larger Textarea */}
+            {/* Notes */}
             <div className="md:col-span-2">
               <label className="block text-base font-bold text-gray-900 mb-3">
                 Additional Notes & Observations
@@ -957,24 +879,24 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
               type="button"
               onClick={onCancel}
               disabled={isSaving}
-              className="flex-1 border-2 border-gray-300 text-gray-700 py-3.5 rounded-full font-bold text-base disabled:opacity-50"
+              className="flex-1 border-2 border-gray-300 text-gray-700 py-3.5 rounded-full font-bold text-base disabled:opacity-50 hover:bg-gray-50"
             >
-              Cancel Session
+              Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-3.5 rounded-full font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+              className="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-3.5 rounded-full font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 flex items-center justify-center gap-3"
             >
               {isSaving ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Processing...</span>
+                  <span>Saving...</span>
                 </>
               ) : (
                 <>
                   <FiSave className="w-5 h-5" />
-                  <span>{event ? 'Update Session' : 'Create New Session'}</span>
+                  <span>{event ? 'Update Session' : 'Create Session'}</span>
                 </>
               )}
             </button>

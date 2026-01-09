@@ -196,6 +196,7 @@ function ModernDeleteModal({
         </div>
       </div>
     </div>
+
   )
 }
 
@@ -1064,22 +1065,8 @@ function EnhancedFilterPanel({
 
 // Upload Strategy Modal
 function UploadStrategyModal({ open, onClose, onConfirm, loading }) {
-  const [uploadType, setUploadType] = useState('new');
-  const [selectedForm, setSelectedForm] = useState('');
 
-  const handleConfirm = () => {
-    if (!selectedForm) {
-      sonnerToast.error('Please select a form');
-      return;
-    }
-    
-    onConfirm({
-      uploadType,
-      selectedForm
-    });
-  };
 
-  // Form color function defined here to avoid scope issues
   const getFormColor = (form) => {
     switch (form) {
       case 'Form 1': return 'from-blue-500 to-blue-700';
@@ -1089,6 +1076,46 @@ function UploadStrategyModal({ open, onClose, onConfirm, loading }) {
       default: return 'from-gray-500 to-gray-700';
     }
   };
+  const [uploadType, setUploadType] = useState('new');
+  const [selectedForm, setSelectedForm] = useState('');
+  const [term, setTerm] = useState('');
+  const [academicYear, setAcademicYear] = useState('');
+
+
+
+
+  
+  const handleConfirm = () => {
+    if (!selectedForm) {
+      sonnerToast.error('Please select a form');
+      return;
+    }
+    
+    if (uploadType === 'update' && (!term || !academicYear)) {
+      sonnerToast.error('For update uploads, please specify term and academic year');
+      return;
+    }
+    
+    onConfirm({
+      uploadType,
+      selectedForm,
+      term: uploadType === 'update' ? term : undefined,
+      academicYear: uploadType === 'update' ? academicYear : undefined
+    });
+  };
+
+  // Get current term/year for defaults
+  useEffect(() => {
+    if (uploadType === 'update' && open) {
+      const month = new Date().getMonth();
+      if (month <= 3) setTerm('Term 1');
+      else if (month <= 7) setTerm('Term 2');
+      else setTerm('Term 3');
+      
+      const currentYear = new Date().getFullYear();
+      setAcademicYear(`${currentYear}/${currentYear + 1}`);
+    }
+  }, [uploadType, open]);
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -1135,7 +1162,7 @@ function UploadStrategyModal({ open, onClose, onConfirm, loading }) {
           </div>
         </div>
 
-        {/* Scrollable Content Area */}
+        {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Upload Type Selection */}
@@ -1162,7 +1189,7 @@ function UploadStrategyModal({ open, onClose, onConfirm, loading }) {
                   {uploadType === 'new' && (
                     <div className="mt-2 text-xs sm:text-sm text-blue-700">
                       <FiCheckCircle className="inline mr-1" />
-                      Prevents duplicates by admission number
+                      Term and academic year extracted from file
                     </div>
                   )}
                 </div>
@@ -1186,7 +1213,7 @@ function UploadStrategyModal({ open, onClose, onConfirm, loading }) {
                   {uploadType === 'update' && (
                     <div className="mt-2 text-xs sm:text-sm text-blue-700">
                       <FiAlertCircle className="inline mr-1" />
-                      <strong>Will check for duplicates</strong> - Shows duplicate modal before replacing
+                      <strong>Term and academic year required</strong>
                     </div>
                   )}
                 </div>
@@ -1226,32 +1253,54 @@ function UploadStrategyModal({ open, onClose, onConfirm, loading }) {
               </div>
             </div>
 
-            {/* Strategy Details */}
-            {selectedForm && (
-              <div className="bg-blue-50 rounded-xl p-3 sm:p-4 border border-blue-200">
-                <div className="flex items-start gap-2">
-                  <FiInfo className="text-blue-600 mt-0.5 text-sm sm:text-base" />
+            {/* Term/Year Selection for Update Uploads */}
+            {uploadType === 'update' && (
+              <div className="space-y-4">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900">Specify Update Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-xs sm:text-sm text-blue-800 font-bold mb-1.5 sm:mb-2">{uploadType === 'new' ? 'New Upload Strategy:' : 'Update Upload Strategy:'}</p>
-                    <ul className="text-xs text-blue-700 space-y-0.5 sm:space-y-1">
-                      {uploadType === 'new' ? (
-                        <>
-                          <li>• Admission number must exist in the selected form</li>
-                          <li>• Prevents duplicate fee entries for same term/year</li>
-                          <li>• Skips existing fees (or replaces based on selection)</li>
-                          <li>• Only processes fees for selected form</li>
-                        </>
-                      ) : (
-                        <>
-                          <li>• Replaces all fees in selected form</li>
-                          <li>• Updates existing fees by admission number</li>
-                          <li>• Creates new fees if not exists</li>
-                          <li>• Marks missing fees as inactive</li>
-                          <li>• Preserves data relationships</li>
-                        </>
-                      )}
-                    </ul>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Term *
+                    </label>
+                    <select
+                      value={term}
+                      onChange={(e) => setTerm(e.target.value)}
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                    >
+                      <option value="">Select Term</option>
+                      <option value="Term 1">Term 1</option>
+                      <option value="Term 2">Term 2</option>
+                      <option value="Term 3">Term 3</option>
+                    </select>
                   </div>
+              <div>
+  <label className="block text-sm font-bold text-gray-700 mb-2">
+    Academic Year *
+  </label>
+  <select
+    value={academicYear}
+    onChange={(e) => setAcademicYear(e.target.value)}
+    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+  >
+    <option value="">Select Year</option>
+    {/* Generates range: 3 years ago to 3 years in the future */}
+    {Array.from({ length: 7 }, (_, i) => {
+      const startYear = new Date().getFullYear() - 3 + i;
+      const displayFormat = `${startYear}`;
+      return (
+        <option key={displayFormat} value={displayFormat}>
+          {displayFormat}
+        </option>
+      );
+    })}
+  </select>
+</div>
+
+                </div>
+                <div className="bg-amber-50 rounded-xl p-3 sm:p-4 border border-amber-200">
+                  <p className="text-xs sm:text-sm text-amber-800">
+                    <strong>Note:</strong> This will update/replace all fees for {selectedForm || 'selected form'} - {term || 'Term'} {academicYear || 'Year'}
+                  </p>
                 </div>
               </div>
             )}
@@ -1269,7 +1318,7 @@ function UploadStrategyModal({ open, onClose, onConfirm, loading }) {
             </button>
             <button
               onClick={handleConfirm}
-              disabled={loading || !selectedForm}
+              disabled={loading || !selectedForm || (uploadType === 'update' && (!term || !academicYear))}
               className="flex-1 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-50 hover:shadow-lg transition-all text-sm sm:text-base"
             >
               {loading ? (
@@ -1280,7 +1329,9 @@ function UploadStrategyModal({ open, onClose, onConfirm, loading }) {
               ) : (
                 <>
                   <FiCheckCircle className="text-sm sm:text-base" />
-                  <span className="text-sm sm:text-base">Continue to File Upload</span>
+                  <span className="text-sm sm:text-base">
+                    {uploadType === 'new' ? 'Continue to Upload' : `Update ${selectedForm}`}
+                  </span>
                 </>
               )}
             </button>
@@ -1292,7 +1343,7 @@ function UploadStrategyModal({ open, onClose, onConfirm, loading }) {
 }
 
 // Duplicate Validation Modal
-function DuplicateValidationModal({ open, onClose, duplicates, onProceed, loading, uploadType, selectedForm }) {
+function DuplicateValidationModal({ open, onClose, duplicates, onProceed, loading, uploadType, selectedForm, term, academicYear }) {
   const [action, setAction] = useState('skip');
 
   if (!open) return null;
@@ -1350,7 +1401,7 @@ function DuplicateValidationModal({ open, onClose, duplicates, onProceed, loadin
                 <div className="w-2 h-2 sm:w-3 sm:h-3 bg-amber-500 rounded-full"></div>
                 <h3 className="text-base sm:text-lg font-bold text-gray-900">
                   {uploadType === 'update' 
-                    ? `Updating ${selectedForm}: ${duplicates.length} existing fees will be updated`
+                    ? `Updating ${selectedForm} (${term} ${academicYear}): ${duplicates.length} existing fees will be updated`
                     : `${duplicates.length} students already exist in ${selectedForm}`
                   }
                 </h3>
@@ -1373,7 +1424,9 @@ function DuplicateValidationModal({ open, onClose, duplicates, onProceed, loadin
                       <tr>
                         <th className="px-3 sm:px-4 py-2 text-left text-xs sm:text-sm font-bold text-gray-700">Row #</th>
                         <th className="px-3 sm:px-4 py-2 text-left text-xs sm:text-sm font-bold text-gray-700">Admission Number</th>
-                        <th className="px-3 sm:px-4 py-2 text-left text-xs sm:text-sm font-bold text-gray-700">Name</th>
+                        <th className="px-3 sm:px-4 py-2 text-left text-xs sm:text-sm font-bold text-gray-700">Form</th>
+                        <th className="px-3 sm:px-4 py-2 text-left text-xs sm:text-sm font-bold text-gray-700">Term</th>
+                        <th className="px-3 sm:px-4 py-2 text-left text-xs sm:text-sm font-bold text-gray-700">Academic Year</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -1385,7 +1438,9 @@ function DuplicateValidationModal({ open, onClose, duplicates, onProceed, loadin
                               {dup.admissionNumber}
                             </span>
                           </td>
-                          <td className="px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-900">{dup.name}</td>
+                          <td className="px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-900">{dup.form}</td>
+                          <td className="px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-900">{dup.term}</td>
+                          <td className="px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-900">{dup.academicYear}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1454,12 +1509,16 @@ function DuplicateValidationModal({ open, onClose, duplicates, onProceed, loadin
                       <span>Updating form: {selectedForm}</span>
                     </li>
                     <li className="flex items-center gap-1.5 sm:gap-2">
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full"></div>
+                      <span>Term: {term}, Year: {academicYear}</span>
+                    </li>
+                    <li className="flex items-center gap-1.5 sm:gap-2">
                       <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full"></div>
                       <span>Fees to update: {duplicates.length}</span>
                     </li>
                     <li className="flex items-center gap-1.5 sm:gap-2">
                       <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-purple-500 rounded-full"></div>
-                      <span>Existing fees not in file will be marked inactive</span>
+                      <span>Existing fees not in file will be removed</span>
                     </li>
                   </>
                 )}
@@ -1620,7 +1679,7 @@ export default function ModernSchoolFeesManagement() {
       if (!res.ok) throw new Error(data.error || 'Failed to load school fees');
       
       if (data.success) {
-        setSchoolFees(data.data?.schoolFees || []);
+        setSchoolFees(data.data?.schoolFees || data.data?.feeBalances || []);
         setPagination(data.data?.pagination || {
           page: page,
           limit: pagination.limit,
@@ -1645,7 +1704,7 @@ export default function ModernSchoolFeesManagement() {
       const data = await res.json();
       
       if (data.success) {
-        setStats(data.stats || {
+        setStats(data.stats || data.data?.stats || {
           totalAmount: 0,
           totalPaid: 0,
           totalBalance: 0,
@@ -1657,7 +1716,7 @@ export default function ModernSchoolFeesManagement() {
         const feesData = await feesRes.json();
         
         if (feesData.success) {
-          const fees = feesData.data?.schoolFees || [];
+          const fees = feesData.data?.schoolFees || feesData.data?.feeBalances || [];
           
           // Calculate distributions
           const formDistribution = {};
@@ -1716,7 +1775,7 @@ export default function ModernSchoolFeesManagement() {
       const res = await fetch(`/api/feebalances?action=uploads&page=${page}&limit=5`);
       const data = await res.json();
       if (data.success) {
-        setUploadHistory(data.uploads || []);
+        setUploadHistory(data.uploads || data.data?.uploads || []);
       } else {
         showNotification('Failed to load upload history', 'error');
       }
@@ -1768,144 +1827,125 @@ export default function ModernSchoolFeesManagement() {
     loadSchoolFees(1);
   };
 
-// In your frontend component
-const handleUploadWithStrategy = async () => {
-  if (!uploadStrategy) {
-    setShowStrategyModal(true);
-    return;
-  }
-  
-  if (!file) {
-    showNotification('Please select a file first', 'warning');
-    return;
-  }
-  
-  // Strategy 1: Update Upload - Check duplicates first
-  if (uploadStrategy.uploadType === 'update') {
-    await checkDuplicates(); // This will show modal if duplicates exist
-    return;
-  }
-  
-  // Strategy 2: New Upload - Direct upload without duplicate check
-  if (uploadStrategy.uploadType === 'new') {
+  // Upload handling functions
+  const handleUploadWithStrategy = async () => {
+    if (!uploadStrategy) {
+      setShowStrategyModal(true);
+      return;
+    }
+    
+    if (!file) {
+      showNotification('Please select a file first', 'warning');
+      return;
+    }
+    
+    // Always check duplicates first for both new and update uploads
+    await checkDuplicates();
+  };
+
+  const checkDuplicates = async () => {
+    if (!file || !uploadStrategy) return;
+    
+    setValidationLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('checkDuplicates', 'true');
+      formData.append('uploadType', uploadStrategy.uploadType);
+      formData.append('selectedForm', uploadStrategy.selectedForm);
+      
+      // For update uploads, send term and academic year
+      if (uploadStrategy.uploadType === 'update') {
+        if (!uploadStrategy.term || !uploadStrategy.academicYear) {
+          showNotification('For update uploads, please specify term and academic year', 'error');
+          setValidationLoading(false);
+          setShowStrategyModal(true); // Reopen strategy modal to get missing info
+          return;
+        }
+        formData.append('term', uploadStrategy.term);
+        formData.append('academicYear', uploadStrategy.academicYear);
+      }
+
+      const response = await fetch('/api/feebalances', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        if (data.duplicates && data.duplicates.length > 0) {
+          setDuplicates(data.duplicates);
+          setShowValidationModal(true);
+        } else {
+          // No duplicates, proceed directly to upload
+          proceedWithUpload();
+        }
+      } else {
+        showNotification(data.error || 'Check failed', 'error');
+      }
+    } catch (error) {
+      showNotification('Check failed', 'error');
+    } finally {
+      setValidationLoading(false);
+    }
+  };
+
+  const proceedWithUpload = async (duplicateAction = 'skip') => {
+    if (!file || !uploadStrategy) return;
+    
     setUploading(true);
-    await proceedWithUpload('skip'); // Skip duplicates automatically
-    return;
-  }
-};
-
-const checkDuplicates = async () => {
-  if (!file || !uploadStrategy) {
-    showNotification('Please select a file and upload strategy first', 'warning');
-    return;
-  }
-
-  setValidationLoading(true);
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('checkDuplicates', 'true');
-    formData.append('uploadType', uploadStrategy.uploadType);
-    formData.append('selectedForm', uploadStrategy.selectedForm);
-
-    const response = await fetch('/api/feebalances', {
-      method: 'POST',
-      body: formData
-    });
-
-    const data = await response.json();
-    
-    if (data.success) {
-      if (data.duplicates && data.duplicates.length > 0) {
-        setDuplicates(data.duplicates);
-        setShowValidationModal(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('uploadType', uploadStrategy.uploadType);
+      formData.append('selectedForm', uploadStrategy.selectedForm);
+      
+      // For update uploads, send term and academic year
+      if (uploadStrategy.uploadType === 'update') {
+        if (!uploadStrategy.term || !uploadStrategy.academicYear) {
+          showNotification('Term and academic year are required for update uploads', 'error');
+          setUploading(false);
+          return;
+        }
+        formData.append('term', uploadStrategy.term);
+        formData.append('academicYear', uploadStrategy.academicYear);
+      }
+      // For new uploads, don't send term/year - let backend extract from file
+      
+      const response = await fetch('/api/feebalances', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        showNotification(data.message, 'success');
+        // Refresh data
+        loadSchoolFees();
+        loadStatistics();
+        loadUploadHistory();
+        setFile(null);
+        // Clear upload strategy after successful upload
+        setUploadStrategy(null);
       } else {
-        // No duplicates found, proceed with upload
-        proceedWithUpload('replace'); // For update, we always replace
+        showNotification(data.error || 'Upload failed', 'error');
       }
-    } else {
-      showNotification(data.error || 'Failed to check for duplicates', 'error');
+    } catch (error) {
+      showNotification('Upload failed', 'error');
+    } finally {
+      setUploading(false);
+      setShowValidationModal(false);
     }
-  } catch (error) {
-    console.error('Validation error:', error);
-    showNotification('Failed to validate file', 'error');
-  } finally {
-    setValidationLoading(false);
-  }
-};
+  };
 
-
-
-// Proceed with upload after duplicate check
-const proceedWithUpload = async (action = 'skip') => {
-  setUploading(true);
-  setShowValidationModal(false);
-  
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('uploadType', uploadStrategy.uploadType);
-  formData.append('selectedForm', uploadStrategy.selectedForm);
-
-  // For update uploads, we always replace
-  // For new uploads, we use the action parameter (should always be 'skip')
-  if (uploadStrategy.uploadType === 'update') {
-    formData.append('action', 'replace'); // Always replace for updates
-  } else {
-    formData.append('action', action); // Use the provided action for new uploads
-  }
-
-  try {
-    const response = await fetch('/api/feebalances', {
-      method: 'POST',
-      body: formData
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.error || 'Upload failed');
-    }
-    
-    setResult(data);
-    
-    if (data.success) {
-      let successMessage = '';
-      if (uploadStrategy.uploadType === 'new') {
-        successMessage = `✅ New upload successful! ${data.processingStats?.validRows || 0} fee records added to ${uploadStrategy.selectedForm}.`;
-      } else {
-        successMessage = `✅ Update successful! Form ${uploadStrategy.selectedForm} updated: ${data.processingStats?.updatedRows || 0} updated, ${data.processingStats?.createdRows || 0} created.`;
-      }
-      
-      showNotification(successMessage, 'success');
-      
-      if (data.errors && data.errors.length > 0) {
-        data.errors.slice(0, 3).forEach(error => {
-          showNotification(error, 'error');
-        });
-      }
-      
-      await Promise.all([loadSchoolFees(1), loadUploadHistory(1), loadStatistics()]);
-      setFile(null);
-      setUploadStrategy(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    } else {
-      showNotification(data.error || 'Upload failed', 'error');
-    }
-  } catch (error) {
-    console.error('Upload error:', error);
-    showNotification(error.message || 'Upload failed. Please try again.', 'error');
-  } finally {
-    setUploading(false);
-  }
-};
-
-  // Handle upload strategy confirmation
   const handleStrategyConfirm = (strategy) => {
     setUploadStrategy(strategy);
     setShowStrategyModal(false);
-    showNotification(`Strategy set: ${strategy.uploadType === 'new' ? 'New Upload' : 'Update Upload'} for ${strategy.selectedForm}`, 'success');
+    showNotification(`Strategy set: ${strategy.uploadType === 'new' 
+      ? 'New Upload' 
+      : 'Update Upload'} for ${strategy.selectedForm}`, 'success');
   };
 
   // Handle delete
@@ -2282,7 +2322,7 @@ const proceedWithUpload = async (action = 'skip') => {
                       <span className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm">
                         {uploadStrategy.uploadType === 'new' 
                           ? `New Upload for ${uploadStrategy.selectedForm}`
-                          : `Update Upload for ${uploadStrategy.selectedForm}`
+                          : `Update Upload for ${uploadStrategy.selectedForm} ${uploadStrategy.term} ${uploadStrategy.academicYear}`
                         }
                       </span>
                     )}
@@ -2333,6 +2373,26 @@ const proceedWithUpload = async (action = 'skip') => {
                         </div>
                       </div>
                       
+                      {uploadStrategy.uploadType === 'update' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-white rounded-xl p-4 border border-blue-200">
+                            <h4 className="font-bold text-gray-900 mb-2">Term</h4>
+                            <div className="flex items-center gap-2">
+                              <FiCalendar className="text-blue-600" />
+                              <span className="font-bold text-gray-900">{uploadStrategy.term}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-white rounded-xl p-4 border border-blue-200">
+                            <h4 className="font-bold text-gray-900 mb-2">Academic Year</h4>
+                            <div className="flex items-center gap-2">
+                              <FiCalendar className="text-blue-600" />
+                              <span className="font-bold text-gray-900">{uploadStrategy.academicYear}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="bg-white rounded-xl p-4 border border-blue-200">
                         <h4 className="font-bold text-gray-900 mb-2">Strategy Details</h4>
                         <ul className="text-sm text-gray-700 space-y-1">
@@ -2350,12 +2410,20 @@ const proceedWithUpload = async (action = 'skip') => {
                                 <FiCheckCircle className="text-green-500" />
                                 <span>Only processes selected form</span>
                               </li>
+                              <li className="flex items-center gap-2">
+                                <FiCheckCircle className="text-green-500" />
+                                <span>Term and year extracted from file</span>
+                              </li>
                             </>
                           ) : (
                             <>
                               <li className="flex items-center gap-2">
                                 <FiCheckCircle className="text-green-500" />
                                 <span>Replaces entire form batch safely</span>
+                              </li>
+                              <li className="flex items-center gap-2">
+                                <FiCheckCircle className="text-green-500" />
+                                <span>Updates fees for {uploadStrategy.term} {uploadStrategy.academicYear}</span>
                               </li>
                               <li className="flex items-center gap-2">
                                 <FiCheckCircle className="text-green-500" />
@@ -2498,7 +2566,7 @@ const proceedWithUpload = async (action = 'skip') => {
                       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                         <span className="text-blue-700 font-bold text-base">3</span>
                       </div>
-                      <span className="text-blue-800 font-semibold text-base">For updates, only fees in selected form will be processed</span>
+                      <span className="text-blue-800 font-semibold text-base">For updates, term and year must be specified</span>
                     </li>
                     <li className="flex items-start gap-4">
                       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -2871,7 +2939,8 @@ const proceedWithUpload = async (action = 'skip') => {
                                 </div>
                                 <div className="text-gray-600 mt-2 space-y-1">
                                   <div className="text-sm font-semibold">
-                                    {upload.form} • {upload.uploadType === 'new' ? 'New Upload' : 'Update Upload'}
+                                    {upload.targetForm || upload.form} • {upload.uploadType === 'new' ? 'New Upload' : 'Update Upload'}
+                                    {upload.term && upload.academicYear && ` • ${upload.term} ${upload.academicYear}`}
                                   </div>
                                   <div className="text-sm">
                                     {new Date(upload.uploadDate).toLocaleDateString('en-US', {
@@ -2992,6 +3061,8 @@ const proceedWithUpload = async (action = 'skip') => {
         loading={uploading}
         uploadType={uploadStrategy?.uploadType}
         selectedForm={uploadStrategy?.selectedForm}
+        term={uploadStrategy?.term}
+        academicYear={uploadStrategy?.academicYear}
       />
     </div>
   );

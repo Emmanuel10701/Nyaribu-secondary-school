@@ -293,6 +293,8 @@ const buildWhereClause = (params) => {
 // ========== CALCULATE STATISTICS ==========
 const calculateStatistics = async (whereClause = {}) => {
   try {
+    console.log('Calculating statistics with where:', whereClause);
+    
     // Get all results for calculations
     const allResults = await prisma.studentResult.findMany({
       where: whereClause,
@@ -304,6 +306,46 @@ const calculateStatistics = async (whereClause = {}) => {
         admissionNumber: true
       }
     });
+
+    console.log(`Found ${allResults.length} results for statistics`);
+
+    // If no results, return empty but valid stats
+    if (allResults.length === 0) {
+      const emptyStats = {
+        totalResults: 0,
+        totalStudents: 0,
+        averageScore: 0,
+        topScore: 0,
+        formDistribution: {
+          'Form 1': 0,
+          'Form 2': 0,
+          'Form 3': 0,
+          'Form 4': 0
+        },
+        termDistribution: {
+          'Term 1': 0,
+          'Term 2': 0,
+          'Term 3': 0
+        },
+        gradeDistribution: {
+          'A': 0, 'A-': 0, 'B+': 0, 'B': 0, 'B-': 0,
+          'C+': 0, 'C': 0, 'C-': 0, 'D+': 0, 'D': 0, 'E': 0
+        },
+        subjectPerformance: {},
+        updatedAt: new Date()
+      };
+      
+      console.log('Returning empty stats (no results found)');
+      return {
+        stats: emptyStats,
+        validation: {
+          isValid: true,
+          totalResults: 0,
+          uniqueStudents: 0,
+          calculatedScore: 0
+        }
+      };
+    }
 
     let totalScore = 0;
     let resultCount = 0;
@@ -332,73 +374,87 @@ const calculateStatistics = async (whereClause = {}) => {
     
     // Process each result
     allResults.forEach(result => {
-      uniqueStudents.add(result.admissionNumber);
-      
-      // Update form distribution
-      if (result.form) {
-        const formKey = result.form.includes('Form ') ? result.form : `Form ${result.form}`;
-        if (formDistribution[formKey] !== undefined) {
-          formDistribution[formKey] = (formDistribution[formKey] || 0) + 1;
-        }
-      }
-      
-      // Update term distribution
-      if (result.term) {
-        const termKey = result.term.includes('Term ') ? result.term : `Term ${result.term}`;
-        if (termDistribution[termKey] !== undefined) {
-          termDistribution[termKey] = (termDistribution[termKey] || 0) + 1;
-        }
-      }
-      
-      // Parse subjects
-      let subjects = [];
       try {
-        if (typeof result.subjects === 'string') {
-          subjects = JSON.parse(result.subjects);
-        } else if (Array.isArray(result.subjects)) {
-          subjects = result.subjects;
+        uniqueStudents.add(result.admissionNumber);
+        
+        // Update form distribution
+        if (result.form) {
+          const formKey = result.form.includes('Form ') ? result.form : `Form ${result.form}`;
+          if (formDistribution[formKey] !== undefined) {
+            formDistribution[formKey] = (formDistribution[formKey] || 0) + 1;
+          }
         }
-      } catch (e) {
-        console.error('Error parsing subjects:', e);
-        return;
-      }
-      
-      // Calculate average score for this result
-      if (subjects.length > 0) {
-        const resultTotal = subjects.reduce((sum, s) => sum + (parseFloat(s.score) || 0), 0);
-        const avg = resultTotal / subjects.length;
         
-        totalScore += avg;
-        resultCount++;
-        
-        if (avg > topScore) topScore = avg;
-        
-        // Process each subject
-        subjects.forEach(subject => {
-          const score = parseFloat(subject.score) || 0;
-          const subjectName = subject.subject || 'Unknown';
-          const grade = subject.grade || calculateGrade(score, subjectName);
-          
-          // Update subject performance
-          if (!subjectPerformance[subjectName]) {
-            subjectPerformance[subjectName] = {
-              totalScore: 0,
-              count: 0,
-              average: 0
-            };
+        // Update term distribution
+        if (result.term) {
+          const termKey = result.term.includes('Term ') ? result.term : `Term ${result.term}`;
+          if (termDistribution[termKey] !== undefined) {
+            termDistribution[termKey] = (termDistribution[termKey] || 0) + 1;
           }
-          subjectPerformance[subjectName].totalScore += score;
-          subjectPerformance[subjectName].count++;
-          subjectPerformance[subjectName].average = 
-            subjectPerformance[subjectName].totalScore / subjectPerformance[subjectName].count;
-          
-          // Update grade distribution
-          if (gradeDistribution[grade] !== undefined) {
-            gradeDistribution[grade]++;
-          } else {
-            gradeDistribution[grade] = 1;
+        }
+        
+        // Parse subjects
+        let subjects = [];
+        try {
+          if (typeof result.subjects === 'string') {
+            subjects = JSON.parse(result.subjects);
+          } else if (Array.isArray(result.subjects)) {
+            subjects = result.subjects;
           }
-        });
+        } catch (e) {
+          console.warn('Error parsing subjects for result', result.id, e);
+          return; // Skip this result if subjects can't be parsed
+        }
+        
+        // Calculate average score for this result
+        if (subjects.length > 0) {
+          let validSubjectCount = 0;
+          let resultTotal = 0;
+          
+          subjects.forEach(subject => {
+            const score = parseFloat(subject.score);
+            const subjectName = subject.subject || 'Unknown';
+            
+            // Only process valid scores
+            if (!isNaN(score) && score >= 0 && score <= 100) {
+              validSubjectCount++;
+              resultTotal += score;
+              
+              // Calculate grade
+              const grade = calculateGrade(score, subjectName);
+              
+              // Update subject performance
+              if (!subjectPerformance[subjectName]) {
+                subjectPerformance[subjectName] = {
+                  totalScore: 0,
+                  count: 0,
+                  average: 0
+                };
+              }
+              subjectPerformance[subjectName].totalScore += score;
+              subjectPerformance[subjectName].count++;
+              subjectPerformance[subjectName].average = 
+                subjectPerformance[subjectName].totalScore / subjectPerformance[subjectName].count;
+              
+              // Update grade distribution (only if grade is valid)
+              if (grade !== 'N/A' && gradeDistribution[grade] !== undefined) {
+                gradeDistribution[grade]++;
+              }
+            }
+          });
+          
+          // Only calculate if we have valid subjects
+          if (validSubjectCount > 0) {
+            const avg = resultTotal / validSubjectCount;
+            totalScore += avg;
+            resultCount++;
+            
+            if (avg > topScore) topScore = avg;
+          }
+        }
+      } catch (error) {
+        console.warn('Error processing result', result.id, error);
+        // Continue with next result
       }
     });
 
@@ -426,6 +482,12 @@ const calculateStatistics = async (whereClause = {}) => {
       updatedAt: new Date()
     };
 
+    console.log('Statistics calculated successfully:', {
+      totalResults: stats.totalResults,
+      totalStudents: stats.totalStudents,
+      averageScore: stats.averageScore
+    });
+
     return {
       stats,
       validation: {
@@ -437,7 +499,41 @@ const calculateStatistics = async (whereClause = {}) => {
     };
   } catch (error) {
     console.error('Error calculating statistics:', error);
-    throw error;
+    // Return empty stats instead of throwing
+    const errorStats = {
+      totalResults: 0,
+      totalStudents: 0,
+      averageScore: 0,
+      topScore: 0,
+      formDistribution: {
+        'Form 1': 0,
+        'Form 2': 0,
+        'Form 3': 0,
+        'Form 4': 0
+      },
+      termDistribution: {
+        'Term 1': 0,
+        'Term 2': 0,
+        'Term 3': 0
+      },
+      gradeDistribution: {
+        'A': 0, 'A-': 0, 'B+': 0, 'B': 0, 'B-': 0,
+        'C+': 0, 'C': 0, 'C-': 0, 'D+': 0, 'D': 0, 'E': 0
+      },
+      subjectPerformance: {},
+      updatedAt: new Date()
+    };
+    
+    return {
+      stats: errorStats,
+      validation: {
+        isValid: false,
+        totalResults: 0,
+        uniqueStudents: 0,
+        calculatedScore: 0,
+        error: error.message
+      }
+    };
   }
 };
 
@@ -1698,29 +1794,53 @@ export async function GET(request) {
       });
     }
 
-    if (action === 'stats') {
-      // Build filters for stats
-      const filters = { form, term, academicYear, search };
-      const where = buildWhereClause(filters);
-      
-      // Calculate fresh statistics with filters
-      const statsResult = await calculateStatistics(where);
-      
-      // Update cache for consistency
-      if (Object.keys(where).length === 0) {
-        await updateCachedStats(statsResult.stats);
-      }
-      
-      return NextResponse.json({
-        success: true,
-        data: {
-          stats: statsResult.stats,
-          filters,
-          validation: statsResult.validation,
-          timestamp: new Date().toISOString()
-        }
-      });
+if (action === 'stats') {
+  try {
+    // Build filters for stats
+    const where = {};
+    if (form) where.form = form;
+    if (term) where.term = term;
+    if (academicYear) where.academicYear = academicYear;
+    if (search) {
+      where.OR = [
+        { admissionNumber: { contains: search, mode: 'insensitive' } }
+      ];
     }
+    
+    console.log('Stats API called with filters:', { form, term, academicYear, search });
+    
+    // Calculate fresh statistics with filters
+    const statsResult = await calculateStatistics(where);
+    
+    // Update cache for consistency (only if no filters)
+    if (Object.keys(where).length === 0) {
+      try {
+        await updateCachedStats(statsResult.stats);
+      } catch (cacheError) {
+        console.warn('Failed to update cache:', cacheError);
+        // Don't fail the request if cache update fails
+      }
+    }
+    
+    return NextResponse.json({
+      success: true,
+      data: {
+        stats: statsResult.stats,
+        filters: { form, term, academicYear, search },
+        validation: statsResult.validation,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Stats endpoint error:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to load statistics',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
+  }
+}
 
     if (action === 'student-report' && admissionNumber) {
       const results = await prisma.studentResult.findMany({
