@@ -2,33 +2,388 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { toast, Toaster } from 'sonner';
-import { 
-  FiPlus, 
-  FiSearch, 
-  FiFilter,
-  FiEdit3,
-  FiTrash2,
-  FiBook,
-  FiBarChart2,
-  FiUser,
-  FiUsers,
-  FiAlertTriangle,
-  FiMessageCircle,
-  FiClock,
-  FiCalendar,
-  FiSave,
-  FiX,
-  FiImage,
-  FiUpload,
-  FiRotateCw,
-  FiEye,
-  FiChevronRight,
-  FiCheck,
-  FiChevronDown,
-  FiChevronUp,
-  FiAlertCircle
-} from 'react-icons/fi';
+import { FiPlus, FiSearch, FiFilter, FiEdit3, FiTrash2, FiBook, FiBarChart2, FiUser, FiUsers, FiAlertTriangle, FiMessageCircle, FiClock, FiCalendar, FiSave, FiX, FiImage, FiUpload, FiRotateCw, FiEye, FiChevronRight, FiCheck, FiChevronDown, FiChevronUp, FiAlertCircle, FiUserPlus, FiUserCheck, FiBriefcase, FiAward, FiMail, FiPhone, FiShield, FiArrowLeft } from 'react-icons/fi';
 import CircularProgress from "@mui/material/CircularProgress";
+
+// ============= MODERN MODAL COMPONENTS =============
+
+// Modern Team Detail Modal Component
+const ModernTeamDetailModal = ({ team, onClose, onEdit }) => {
+  if (!team) return null;
+
+  // Member card component for the modal
+const MemberCard = ({ member, type, assistant = null }) => {
+  if (!member) return null;
+
+  const getTypeConfig = (type) => {
+    const configs = {
+      patron: {
+        bgGradient: 'from-purple-50/50 to-white',
+        borderColor: 'border-purple-100/60',
+        textColor: 'text-purple-600',
+        badgeColor: 'bg-purple-100/80 text-purple-700',
+        icon: <FiAward className="w-3 h-3" />,
+        label: 'Patron'
+      },
+      matron: {
+        bgGradient: 'from-pink-50/50 to-white',
+        borderColor: 'border-pink-100/60',
+        textColor: 'text-pink-600',
+        badgeColor: 'bg-pink-100/80 text-pink-700',
+        icon: <FiUserCheck className="w-3 h-3" />,
+        label: 'Matron'
+      },
+      teacher: {
+        bgGradient: 'from-blue-50/50 to-white',
+        borderColor: 'border-blue-100/60',
+        textColor: 'text-blue-600',
+        badgeColor: 'bg-blue-100/80 text-blue-700',
+        icon: <FiBriefcase className="w-3 h-3" />,
+        label: 'Guidance Teacher'
+      }
+    };
+    return configs[type] || configs.teacher;
+  };
+
+  const config = getTypeConfig(type);
+
+  return (
+    <div className={`relative rounded-[2rem] border ${config.borderColor} bg-gradient-to-br ${config.bgGradient} p-6 transition-all duration-300 hover:shadow-lg`}>
+      <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-6">
+        
+        {/* Image Section - Scaled Down slightly */}
+        <div className="relative shrink-0">
+          <div className="relative w-28 h-28 rounded-3xl overflow-hidden border-2 border-white shadow-xl">
+            {member.image ? (
+              <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-slate-200">
+                <FiUser className="text-slate-400 w-10 h-10" />
+              </div>
+            )}
+          </div>
+          <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-emerald-500 border-2 border-white rounded-full flex items-center justify-center shadow-md">
+            <FiCheck className="text-white w-3 h-3" />
+          </div>
+        </div>
+
+        {/* Details Section */}
+        <div className="flex-1 text-center sm:text-left min-w-0">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-3">
+            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${config.badgeColor} flex items-center gap-1.5`}>
+              {config.icon} {config.label}
+            </span>
+            {member.title && (
+              <span className="px-2.5 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider rounded-full">
+                {member.title}
+              </span>
+            )}
+          </div>
+
+          <h3 className="text-lg md:text-xl font-bold text-slate-900 mb-1 tracking-tight">
+            {member.name}
+          </h3>
+
+          {/* Bio - Muted and smaller */}
+          {member.bio && (
+            <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 mb-4">
+              {member.bio}
+            </p>
+          )}
+
+          {/* Contact Buttons - Replaced plain icons */}
+          <div className="flex items-center justify-center sm:justify-start gap-2">
+            {member.phone && (
+              <a href={`tel:${member.phone}`} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-600 hover:border-emerald-200 hover:text-emerald-600 transition-all shadow-sm">
+                <FiPhone className="w-3 h-3" /> Call
+              </a>
+            )}
+            {member.email && (
+              <a href={`mailto:${member.email}`} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-600 hover:border-blue-200 hover:text-blue-600 transition-all shadow-sm">
+                <FiMail className="w-3 h-3" /> Email
+              </a>
+            )}
+          </div>
+
+          {/* Assistant Sub-Card - Compacted */}
+          {assistant && (
+            <div className="mt-5 pt-5 border-t border-slate-100">
+              <div className="flex items-center gap-3 p-3 bg-white/50 rounded-2xl border border-slate-100">
+                <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-white shadow-sm">
+                  {assistant.image ? (
+                    <img src={assistant.image} alt={assistant.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                      <FiUser className="text-slate-400 w-4 h-4" />
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-bold text-slate-800 truncate">{assistant.name}</p>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Assistant Teacher</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+ return (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    {/* Modal Container - Reduced width to 2xl and padding */}
+    <div className="relative w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      
+      {/* Close Button - Smaller & more subtle */}
+      <button 
+        onClick={onClose}
+        className="absolute top-4 right-4 z-50 p-1.5 bg-white/20 backdrop-blur-md text-white rounded-full border border-white/30 transition-all active:scale-90 hover:bg-white/40"
+      >
+        <FiX size={18} />
+      </button>
+
+      {/* 1. Header - Reduced height and font sizes */}
+      <div className="relative h-32 sm:h-40 w-full shrink-0">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-violet-600" />
+        <div className="relative h-full flex flex-col justify-end p-6">
+          <div className="flex items-end justify-between">
+            <div className="space-y-1">
+              <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                Guidance Team
+              </h2>
+              <p className="text-white/70 text-xs">
+                Official project oversight team
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+              <FiShield className="text-white w-3 h-3" />
+              <span className="text-white text-[10px] font-bold uppercase tracking-wider">Official</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Content Area - Compact padding */}
+      <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-white">
+        <div className="space-y-6">
+          
+          {/* Summary Stats - More compact grid */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Patron', color: 'purple', icon: FiAward, val: team.patron },
+              { label: 'Matron', color: 'pink', icon: FiUserCheck, val: team.matron },
+              { label: 'Teacher', color: 'blue', icon: FiBriefcase, val: team.teacher }
+            ].map((item) => (
+              <div key={item.label} className={`p-3 bg-gradient-to-b from-${item.color}-50/50 to-white rounded-2xl border border-${item.color}-100/50 text-center`}>
+                <item.icon className={`text-${item.color}-500 w-4 h-4 mx-auto mb-1`} />
+                <p className={`text-[9px] font-bold text-${item.color}-600 uppercase tracking-tighter`}>{item.label}</p>
+                <p className="text-xs font-bold text-slate-900 truncate">
+                  {item.val ? item.val.name.split(' ')[0] : 'None'}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Team Members List */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-50 pb-2">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight">Profile Details</h3>
+            </div>
+            
+            <div className="space-y-4">
+              {team.patron && <MemberCard member={team.patron} type="patron" />}
+              {team.matron && <MemberCard member={team.matron} type="matron" />}
+              {team.teacher && <MemberCard member={team.teacher} type="teacher" assistant={team.teacher?.assistant} />}
+              
+              {!team.patron && !team.matron && !team.teacher && (
+                <div className="p-8 text-center border-2 border-dashed border-slate-100 rounded-[2rem]">
+                  <FiUsers className="text-slate-200 w-10 h-10 mx-auto mb-3" />
+                  <p className="text-sm font-bold text-slate-400">No members assigned</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Timestamps - Smaller font */}
+          <div className="flex items-center justify-between text-[10px] text-slate-400 pt-4">
+            <div className="flex items-center gap-1">
+              <FiClock className="w-3 h-3" />
+              <span>Updated {new Date(team.updatedAt).toLocaleDateString()}</span>
+            </div>
+            <span>Created {new Date(team.createdAt).toLocaleDateString()}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Action Footer - Smaller button height */}
+      <div className="shrink-0 p-4 bg-slate-50 border-t border-slate-100">
+        <div className="flex gap-2">
+          <button
+            onClick={onClose}
+            className="flex-[1.5] h-11 bg-slate-900 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all"
+          >
+            <FiArrowLeft size={14} /> Close
+          </button>
+          
+          {onEdit && (
+            <button
+              onClick={() => { onClose(); onEdit(); }}
+              className="flex-1 h-11 bg-white border border-slate-200 text-slate-900 rounded-xl font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all"
+            >
+              <FiEdit3 size={14} /> Edit
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+};
+
+const ModernSessionDetailModal = ({ event, onClose, onEdit }) => {
+  if (!event) return null;
+
+  const categoryConfig = CATEGORY_CONFIG[event?.category];
+
+  const getPriorityColor = (priority) => {
+    const colors = {
+      High: 'bg-rose-500',
+      Medium: 'bg-amber-500',
+      Low: 'bg-emerald-500'
+    };
+    return colors[priority] || 'bg-gray-500';
+  };
+
+  const formatFullDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+      });
+    } catch { return dateString || 'Date not set'; }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+      <div className="relative w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        
+        {/* Compact Close Button */}
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 z-50 p-1.5 bg-white/20 backdrop-blur-md text-white rounded-full border border-white/30 transition-all active:scale-90 hover:bg-white/40"
+        >
+          <FiX size={18} />
+        </button>
+
+        {/* 1. Hero Image - Reduced Height */}
+        <div className="relative h-48 sm:h-56 w-full shrink-0">
+          <img
+            src={event.image || (categoryConfig?.presetImage || '/default-event.jpg')}
+            alt="Session"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/10" />
+          
+          <div className="absolute bottom-4 left-6 flex gap-1.5">
+            <span className="px-3 py-1 bg-white/90 backdrop-blur shadow-sm rounded-full text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+              {event.category || 'Guidance'}
+            </span>
+            <span className={`px-3 py-1 text-white rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 ${getPriorityColor(event.priority)}`}>
+              <FiAlertCircle size={10} /> {event.priority}
+            </span>
+          </div>
+        </div>
+
+        {/* 2. Content Area */}
+        <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar bg-white">
+          <div className="space-y-6">
+            
+            {/* Title & Metadata - Scaled Down Fonts */}
+            <section className="space-y-2">
+              <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+                Counseling Session
+              </h2>
+              
+              <div className="flex flex-wrap gap-y-2 gap-x-4 text-xs font-medium text-slate-500">
+                <div className="flex items-center gap-1.5">
+                  <FiCalendar className="text-blue-500" />
+                  {formatFullDate(event.date)}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <FiClock className="text-amber-500" />
+                  {event.time}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <FiUser className="text-purple-500" />
+                  {event.counselor || 'Unassigned'}
+                </div>
+              </div>
+            </section>
+
+            {/* Description - Reduced font size and line height */}
+            <section className="space-y-2">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Session Details</h3>
+              <p className="text-slate-600 leading-relaxed text-sm">
+                {event.description || 'No description available.'}
+              </p>
+            </section>
+
+            {/* Stats Grid - More Compact */}
+            <section className="grid grid-cols-3 gap-3">
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[9px] uppercase font-bold text-slate-400 mb-1">Category</p>
+                <p className="text-xs font-bold text-slate-900 truncate">{event.category || 'General'}</p>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[9px] uppercase font-bold text-slate-400 mb-1">Type</p>
+                <p className="text-xs font-bold text-slate-900 truncate">{event.type || 'Guidance'}</p>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[9px] uppercase font-bold text-slate-400 mb-1">Priority</p>
+                <p className="text-xs font-bold text-slate-900">{event.priority || 'Medium'}</p>
+              </div>
+            </section>
+
+            {/* Notes Section - Compacted */}
+            {event.notes && (
+              <section className="space-y-2">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Additional Notes</h3>
+                <div className="bg-slate-50 rounded-2xl border border-slate-100 p-4">
+                  <p className="text-slate-600 text-xs leading-relaxed">{event.notes}</p>
+                </div>
+              </section>
+            )}
+          </div>
+        </div>
+
+        {/* 3. Action Footer - Smaller Buttons */}
+        <div className="shrink-0 p-4 bg-slate-50 border-t border-slate-100">
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="flex-[1.5] h-11 bg-slate-900 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-slate-800"
+            >
+              <FiArrowLeft size={14} />
+              Close
+            </button>
+            
+            <button
+              onClick={() => { onClose(); onEdit(); }}
+              className="flex-1 h-11 bg-white border border-slate-200 text-slate-900 rounded-xl font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all hover:border-indigo-200"
+            >
+              <FiEdit3 size={14} />
+              Edit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============= UTILITY COMPONENTS =============
 
 // Delete Confirmation Modal Component
 const DeleteConfirmationModal = ({ 
@@ -291,134 +646,134 @@ const CounselingEventCard = ({ event, onEdit, onDelete, onView, index }) => {
   const categoryConfig = CATEGORY_CONFIG[event?.category];
 
   return (
-   <div className="bg-white rounded-[1.5rem] shadow-lg border border-gray-100 overflow-hidden transition-none">
-  {/* Image Section - Modernized */}
-  {event?.image && !imageError ? (
-    <div className="relative h-48 overflow-hidden">
-      <img
-        src={event.image}
-        alt={`Counseling session with ${event.counselor}`}
-        className="w-full h-full object-cover object-center"
-        onError={() => setImageError(true)}
-      />
-      {/* Modern Priority Badge */}
-      <div className="absolute top-4 right-4">
-        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-sm shadow-sm ${getPriorityColor(event.priority)}`}>
-          {event.priority}
-        </span>
-      </div>
-    </div>
-  ) : (
-    <div className="relative h-32 bg-gradient-to-br from-blue-500/10 to-cyan-500/10">
-      {/* Modern Gradient Fallback */}
-      <div className="absolute top-4 right-4">
-        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-sm shadow-sm ${getPriorityColor(event?.priority)}`}>
-          {event?.priority || 'MEDIUM'}
-        </span>
-      </div>
-      <div className="absolute bottom-4 left-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/20 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-            <FiUser className="text-blue-600" />
-          </div>
-          <div>
-            <span className="block text-[9px] text-gray-500 font-black uppercase tracking-[0.1em]">Counselor</span>
-            <h3 className="font-black text-base text-gray-900">{event?.counselor || 'Unassigned'}</h3>
+    <div className="bg-white rounded-[1.5rem] shadow-lg border border-gray-100 overflow-hidden transition-none">
+      {/* Image Section - Modernized */}
+      {event?.image && !imageError ? (
+        <div className="relative h-48 overflow-hidden">
+          <img
+            src={event.image}
+            alt={`Counseling session with ${event.counselor}`}
+            className="w-full h-full object-cover object-center"
+            onError={() => setImageError(true)}
+          />
+          {/* Modern Priority Badge */}
+          <div className="absolute top-4 right-4">
+            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-sm shadow-sm ${getPriorityColor(event.priority)}`}>
+              {event.priority}
+            </span>
           </div>
         </div>
+      ) : (
+        <div className="relative h-32 bg-gradient-to-br from-blue-500/10 to-cyan-500/10">
+          {/* Modern Gradient Fallback */}
+          <div className="absolute top-4 right-4">
+            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-sm shadow-sm ${getPriorityColor(event?.priority)}`}>
+              {event?.priority || 'MEDIUM'}
+            </span>
+          </div>
+          <div className="absolute bottom-4 left-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/20 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+                <FiUser className="text-blue-600" />
+              </div>
+              <div>
+                <span className="block text-[9px] text-gray-500 font-black uppercase tracking-[0.1em]">Counselor</span>
+                <h3 className="font-black text-base text-gray-900">{event?.counselor || 'Unassigned'}</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Content - Modernized */}
+      <div className="p-5">
+        {/* Modern Category Badge */}
+        <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-black uppercase tracking-wider border mb-4 ${getCategoryColor(event?.category)}`}>
+          {categoryConfig?.icon || <FiMessageCircle className="text-gray-500" />}
+          <span>{event?.category || 'General'}</span>
+        </div>
+
+        {/* Description - Modern Typography */}
+        <p className="text-gray-800 mb-4 text-sm font-medium leading-relaxed line-clamp-2">
+          {event?.description || 'No description provided'}
+        </p>
+
+        {/* Details - Modern Layout */}
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center gap-3 text-xs">
+            <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0">
+              <FiCalendar className="text-gray-500" />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[10px] text-gray-400 font-black uppercase tracking-[0.1em]">Date</span>
+              <span className="text-sm font-bold text-gray-700 truncate">
+                {event?.date ? new Date(event.date).toLocaleDateString('en-US', { 
+                  month: 'short', 
+                  day: 'numeric',
+                  year: 'numeric'
+                }) : 'No date'}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs">
+            <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0">
+              <FiClock className="text-gray-500" />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[10px] text-gray-400 font-black uppercase tracking-[0.1em]">Time</span>
+              <span className="text-sm font-bold text-gray-700">{event?.time || 'No time'}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs">
+            <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0">
+              <FiUser className="text-gray-500" />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[10px] text-gray-400 font-black uppercase tracking-[0.1em]">Counselor</span>
+              <span className="text-sm font-bold text-gray-700 truncate">{event?.counselor || 'Not specified'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Modern Action Buttons */}
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onView();
+            }}
+            className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl text-xs font-black uppercase tracking-widest transition-none active:bg-gray-200 flex items-center justify-center gap-2"
+          >
+            <FiEye size={14} />
+            View
+          </button>
+          
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            className="flex-1 py-3 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-none active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            <FiEdit3 size={14} />
+            Edit
+          </button>
+          
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="p-3 bg-red-50 text-red-500 rounded-xl border border-red-100 transition-none active:bg-red-100"
+            title="Delete"
+          >
+            <FiTrash2 size={16} />
+          </button>
+        </div>
       </div>
     </div>
-  )}
-
-  {/* Content - Modernized */}
-  <div className="p-5">
-    {/* Modern Category Badge */}
-    <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-black uppercase tracking-wider border mb-4 ${getCategoryColor(event?.category)}`}>
-      {categoryConfig?.icon || <FiMessageCircle className="text-gray-500" />}
-      <span>{event?.category || 'General'}</span>
-    </div>
-
-    {/* Description - Modern Typography */}
-    <p className="text-gray-800 mb-4 text-sm font-medium leading-relaxed line-clamp-2">
-      {event?.description || 'No description provided'}
-    </p>
-
-    {/* Details - Modern Layout */}
-    <div className="space-y-3 mb-6">
-      <div className="flex items-center gap-3 text-xs">
-        <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0">
-          <FiCalendar className="text-gray-500" />
-        </div>
-        <div className="min-w-0">
-          <span className="block text-[10px] text-gray-400 font-black uppercase tracking-[0.1em]">Date</span>
-          <span className="text-sm font-bold text-gray-700 truncate">
-            {event?.date ? new Date(event.date).toLocaleDateString('en-US', { 
-              month: 'short', 
-              day: 'numeric',
-              year: 'numeric'
-            }) : 'No date'}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 text-xs">
-        <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0">
-          <FiClock className="text-gray-500" />
-        </div>
-        <div className="min-w-0">
-          <span className="block text-[10px] text-gray-400 font-black uppercase tracking-[0.1em]">Time</span>
-          <span className="text-sm font-bold text-gray-700">{event?.time || 'No time'}</span>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 text-xs">
-        <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0">
-          <FiUser className="text-gray-500" />
-        </div>
-        <div className="min-w-0">
-          <span className="block text-[10px] text-gray-400 font-black uppercase tracking-[0.1em]">Counselor</span>
-          <span className="text-sm font-bold text-gray-700 truncate">{event?.counselor || 'Not specified'}</span>
-        </div>
-      </div>
-    </div>
-
-    {/* Modern Action Buttons */}
-    <div className="flex gap-2">
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onView();
-        }}
-        className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl text-xs font-black uppercase tracking-widest transition-none active:bg-gray-200 flex items-center justify-center gap-2"
-      >
-        <FiEye size={14} />
-        View
-      </button>
-      
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onEdit();
-        }}
-        className="flex-1 py-3 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-none active:scale-[0.98] flex items-center justify-center gap-2"
-      >
-        <FiEdit3 size={14} />
-        Edit
-      </button>
-      
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete();
-        }}
-        className="p-3 bg-red-50 text-red-500 rounded-xl border border-red-100 transition-none active:bg-red-100"
-        title="Delete"
-      >
-        <FiTrash2 size={16} />
-      </button>
-    </div>
-  </div>
-</div>
   );
 };
 
@@ -907,157 +1262,1078 @@ const GuidanceEditDialog = ({ event, onSave, onCancel }) => {
   );
 };
 
-// View Modal Component
-const ViewEventModal = ({ event, onClose, onEdit }) => {
-  if (!event) return null;
-
-  const categoryConfig = CATEGORY_CONFIG[event?.category];
-
-  const getPriorityColor = (priority) => {
-    const colors = {
-      High: 'bg-gradient-to-r from-red-500 to-rose-500',
-      Medium: 'bg-gradient-to-r from-amber-500 to-orange-500',
-      Low: 'bg-gradient-to-r from-emerald-500 to-green-500'
-    };
-    return colors[priority] || 'bg-gradient-to-r from-gray-500 to-gray-600';
-  };
-
+// Team Card Component
+const GuidanceTeamCard = ({ team, onView, onEdit, onDelete }) => {
   return (
-    <ModernModal open={true} onClose={onClose}>
-      {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-violet-600 p-4 text-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-white/20 rounded-xl">
-              <FiUser className="w-5 h-5" />
+    <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h3 className="font-bold text-gray-900 text-sm">Guidance Team</h3>
+          <p className="text-gray-500 text-xs">Updated recently</p>
+        </div>
+<div className="flex items-center gap-1 sm:gap-2">
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      onView();
+    }}
+    title="View Team"
+    className="px-2.5 py-1 text-xs sm:text-sm font-medium rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all whitespace-nowrap"
+  >
+    View
+  </button>
+
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      onEdit();
+    }}
+    title="Edit Team"
+    className="px-2.5 py-1 text-xs sm:text-sm font-medium rounded-md text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-all whitespace-nowrap"
+  >
+    Edit
+  </button>
+
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      onDelete();
+    }}
+    title="Delete Team"
+    className="px-2.5 py-1 text-xs sm:text-sm font-medium rounded-md text-red-600 hover:text-red-700 hover:bg-red-50 transition-all whitespace-nowrap"
+  >
+    Delete
+  </button>
+</div>
+
+      </div>
+      
+      {/* Team Members Preview - Modern Design with Images */}
+      <div className="space-y-3 md:space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-semibold text-indigo-900 uppercase tracking-[0.15em]">
+              Team Members
+            </h3>
+            <span className="h-1 w-1 rounded-full bg-gray-300" />
+          </div>
+          
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded-full border border-slate-200/60">
+            <FiShield className="w-3 h-3 text-emerald-500" />
+            <span className="text-xs font-medium text-slate-600">Verified</span>
+          </div>
+        </div>
+
+<div className="flex flex-col gap-6 w-full py-8">
+
+  {/* --- 1. PATRON SECTION --- */}
+  {team.patron && (
+    <div className="relative w-full max-w-md mx-auto group">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-[2rem] blur-xl opacity-50" />
+      <div className="relative flex items-center gap-5 p-4 bg-white/80 backdrop-blur-xl rounded-[1.75rem] border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+        <div className="relative shrink-0">
+          <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-slate-50/50 shadow-inner">
+            {team.patron.image ? (
+              <img src={team.patron.image} alt={team.patron.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+                <FiAward className="text-slate-400 w-7 h-7" />
+              </div>
+            )}
+          </div>
+          <span className="absolute -top-1 -right-1 flex h-4 w-4">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20"></span>
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-white shadow-sm"></span>
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-500/80 mb-1">Official Patron</span>
+            <h4 className="text-base font-bold text-slate-900 truncate tracking-tight">{team.patron.name}</h4>
+            <p className="text-[11px] font-medium text-slate-400 truncate mb-3">{team.patron.title || "Project Lead"}</p>
+            <div className="flex items-center gap-2">
+              <a href={`tel:${team.patron.phone}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm shadow-indigo-200 active:scale-95 transition-all">
+                <FiPhone size={11} /><span className="text-[10px] font-bold">{team.patron.phone}</span>
+              </a>
+              <a href={`mailto:${team.patron.email}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 active:bg-slate-50 transition-all">
+                <FiMail size={11} /><span className="text-[10px] font-bold">{team.patron.email}</span>
+              </a>
             </div>
-            <div>
-              <h2 className="text-xl font-bold">Session Details</h2>
-              <p className="text-blue-100 opacity-90 text-sm">
-                {event?.counselor || 'No counselor'}
+          </div>
+        </div>
+        <div className="absolute top-0 right-0 p-2 opacity-10"><FiAward size={40} className="rotate-12 text-indigo-900" /></div>
+      </div>
+    </div>
+  )}
+
+  {/* --- 2. MATRON SECTION --- */}
+  {team.matron && (
+    <div className="relative w-full max-w-md mx-auto group">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-rose-500/10 to-pink-500/10 rounded-[2rem] blur-xl opacity-50" />
+      <div className="relative flex items-center gap-5 p-4 bg-white/80 backdrop-blur-xl rounded-[1.75rem] border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+        <div className="relative shrink-0">
+          <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-slate-50/50 shadow-inner">
+            {team.matron.image ? (
+              <img src={team.matron.image} alt={team.matron.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-rose-100 to-rose-200">
+                <FiUserCheck className="text-rose-400 w-7 h-7" />
+              </div>
+            )}
+          </div>
+          <span className="absolute -top-1 -right-1 flex h-4 w-4">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20"></span>
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-white shadow-sm"></span>
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-rose-500/80 mb-1">Matron</span>
+            <h4 className="text-base font-bold text-slate-900 truncate tracking-tight">{team.matron.name}</h4>
+            <p className="text-[11px] font-medium text-slate-400 truncate mb-3">{team.matron.title || "Department Head"}</p>
+            <div className="flex items-center gap-2">
+              <a href={`tel:${team.matron.phone}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 text-white shadow-sm shadow-rose-200 active:scale-95 transition-all">
+                <FiPhone size={11} /><span className="text-[10px] font-bold">{team.matron.phone}</span>
+              </a>
+              <a href={`mailto:${team.matron.email}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 active:bg-slate-50 transition-all">
+                <FiMail size={11} /><span className="text-[10px] font-bold">{team.matron.email}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div className="absolute top-0 right-0 p-2 opacity-10"><FiShield size={40} className="rotate-12 text-rose-900" /></div>
+      </div>
+    </div>
+  )}
+
+  {/* --- 3. TEACHER SECTION --- */}
+  {team.teacher && (
+    <div className="relative w-full max-w-md mx-auto group">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-[2rem] blur-xl opacity-50" />
+      <div className="relative flex items-center gap-5 p-4 bg-white/80 backdrop-blur-xl rounded-[1.75rem] border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+        <div className="relative shrink-0">
+          <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-slate-50/50 shadow-inner">
+            {team.teacher.image ? (
+              <img src={team.teacher.image} alt={team.teacher.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
+                <FiBriefcase className="text-blue-400 w-7 h-7" />
+              </div>
+            )}
+          </div>
+          <span className="absolute -top-1 -right-1 flex h-4 w-4">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20"></span>
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-white shadow-sm"></span>
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500/80 mb-1">Guidance Teacher</span>
+            <h4 className="text-base font-bold text-slate-900 truncate tracking-tight">{team.teacher.name}</h4>
+            <p className="text-[11px] font-medium text-slate-400 truncate mb-3">{team.teacher.title || "Senior Instructor"}</p>
+            <div className="flex items-center gap-2">
+              <a href={`tel:${team.teacher.phone}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm shadow-blue-200 active:scale-95 transition-all">
+                <FiPhone size={11} /><span className="text-[10px] font-bold">{team.teacher.phone}</span>
+              </a>
+              <a href={`mailto:${team.teacher.email}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 active:bg-slate-50 transition-all">
+                <FiMail size={11} /><span className="text-[10px] font-bold">{team.teacher.email}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div className="absolute top-0 right-0 p-2 opacity-10"><FiBriefcase size={40} className="rotate-12 text-blue-900" /></div>
+      </div>
+    </div>
+  )}
+
+  {/* --- 4. ASSISTANT TEACHER SECTION --- */}
+  {team.teacher?.assistant && (
+    <div className="relative w-full max-w-md mx-auto group">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-slate-400/10 to-amber-500/10 rounded-[2rem] blur-xl opacity-50" />
+      <div className="relative flex items-center gap-5 p-4 bg-white/80 backdrop-blur-xl rounded-[1.75rem] border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+        <div className="relative shrink-0">
+          <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-slate-50/50 shadow-inner">
+            {team.teacher.assistant.image ? (
+              <img src={team.teacher.assistant.image} alt={team.teacher.assistant.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+                <FiUserPlus className="text-slate-400 w-7 h-7" />
+              </div>
+            )}
+          </div>
+          <span className="absolute -top-1 -right-1 flex h-4 w-4">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20"></span>
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-white shadow-sm"></span>
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500/80 mb-1">Assistant Teacher</span>
+            <h4 className="text-base font-bold text-slate-900 truncate tracking-tight">{team.teacher.assistant.name}</h4>
+            <p className="text-[11px] font-medium text-slate-400 truncate mb-3">{team.teacher.assistant.title || "Assistant"}</p>
+            <div className="flex items-center gap-2">
+              <a href={`tel:${team.teacher.assistant.phone}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-white shadow-sm shadow-slate-200 active:scale-95 transition-all">
+                <FiPhone size={11} /><span className="text-[10px] font-bold">{team.teacher.assistant.phone}</span>
+              </a>
+              <a href={`mailto:${team.teacher.assistant.email}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 active:bg-slate-50 transition-all">
+                <FiMail size={11} /><span className="text-[10px] font-bold">{team.teacher.assistant.email}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div className="absolute top-0 right-0 p-2 opacity-10"><FiUserPlus size={40} className="rotate-12 text-slate-900" /></div>
+      </div>
+    </div>
+  )}
+
+</div>
+        
+        {!team.patron && !team.matron && !team.teacher && (
+          <div className="relative group max-w-[300px] mx-auto rounded-[2.5rem] border-2 border-dashed border-slate-200 bg-slate-50/50 p-10 text-center transition-all duration-500 hover:border-indigo-200 hover:bg-white">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-indigo-100/40 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            
+            <div className="relative flex flex-col items-center">
+              <div className="relative mb-6">
+                <div className="w-20 h-20 rounded-3xl bg-white shadow-sm border border-slate-100 flex items-center justify-center rotate-6 group-hover:rotate-0 transition-transform duration-500">
+                  <FiUsers className="text-slate-300 w-8 h-8 group-hover:text-indigo-400 transition-colors duration-500" />
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-slate-200 border-2 border-white rounded-full" />
+              </div>
+
+              <h4 className="text-lg font-bold text-slate-800 mb-2 tracking-tight">
+                No Team Assigned
+              </h4>
+              <p className="text-sm text-slate-500 leading-relaxed mb-8 px-2">
+                Start building your team by adding a Patron, Matron, or Teacher to this project.
               </p>
+
+              <button className="px-6 py-2.5 rounded-2xl bg-white border border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600 shadow-sm hover:shadow-md hover:border-indigo-100 hover:text-indigo-600 transition-all active:scale-95">
+                + Add Member
+              </button>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg cursor-pointer">
-            <FiX className="w-5 h-5" />
-          </button>
-        </div>
+        )}
       </div>
-
-      {/* Content */}
-      <div className="overflow-y-auto max-h-[calc(85vh-150px)]">
-        <div className="p-4 space-y-4">
-          {/* Image */}
-          {event.image && (
-            <div className="relative h-48 rounded-lg overflow-hidden">
-              <img
-                src={event.image}
-                alt={`Counseling session with ${event.counselor}`}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
-
-          {/* Info Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
-              <FiUser className="text-blue-500" />
-              <div>
-                <p className="text-xs text-blue-600 font-medium">Counselor</p>
-                <p className="text-sm font-bold text-gray-800">{event.counselor}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg">
-              {categoryConfig?.icon || <FiMessageCircle className="text-gray-500" />}
-              <div>
-                <p className="text-xs text-purple-600 font-medium">Category</p>
-                <p className="text-sm font-bold text-gray-800">{event.category}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-lg">
-              <FiCalendar className="text-emerald-500" />
-              <div>
-                <p className="text-xs text-emerald-600 font-medium">Date</p>
-                <p className="text-sm font-bold text-gray-800">
-                  {new Date(event.date).toLocaleDateString('en-US', { 
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                  })}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg">
-              <FiClock className="text-amber-500" />
-              <div>
-                <p className="text-xs text-amber-600 font-medium">Time</p>
-                <p className="text-sm font-bold text-gray-800">{event.time}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Priority and Type */}
-          <div className="flex gap-3">
-            <div className="flex-1 p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-600 font-medium">Session Type</p>
-              <p className="text-sm font-bold text-gray-800">{event.type}</p>
-            </div>
-            <div className="flex-1 p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-600 font-medium">Priority</p>
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white ${getPriorityColor(event.priority)}`}>
-                {event.priority}
-              </span>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <h3 className="text-sm font-bold text-gray-800 mb-2">Description</h3>
-            <p className="text-gray-600 text-sm leading-relaxed bg-gray-50 p-3 rounded-lg">
-              {event.description}
-            </p>
-          </div>
-
-          {/* Notes */}
-          {event.notes && (
-            <div>
-              <h3 className="text-sm font-bold text-gray-800 mb-2">Notes</h3>
-              <p className="text-gray-600 text-sm leading-relaxed bg-gray-50 p-3 rounded-lg">
-                {event.notes}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-gray-100">
-        <div className="flex gap-2">
-          <button
-            onClick={onClose}
-            className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-full font-medium"
-          >
-            <span className="text-sm">Close</span>
-          </button>
-          <button
-            onClick={onEdit}
-            className="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-2.5 rounded-full font-medium flex items-center justify-center gap-2"
-          >
-            <FiEdit3 className="w-4 h-4" />
-            <span className="text-sm">Edit Session</span>
-          </button>
-        </div>
-      </div>
-    </ModernModal>
+    </div>
   );
 };
 
+// Guidance Team Modal Component (Create/Edit)
+// Guidance Team Modal Component - SIMPLIFIED VERSION (No toggles, no dropdowns)
+// Modern Team Member Modal Component
+const ModernMemberModal = ({ 
+  open, 
+  onClose, 
+  member = null,
+  onSave 
+}) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    role: 'teacher',
+    title: '',
+    phone: '',
+    email: '',
+    bio: '',
+    image: null,
+    imagePreview: '',
+  });
+  
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Initialize form when editing
+  useEffect(() => {
+    if (member) {
+      setFormData({
+        name: member.name || '',
+        role: member.role || 'teacher',
+        title: member.title || '',
+        phone: member.phone || '',
+        email: member.email || '',
+        bio: member.bio || '',
+        image: null,
+        imagePreview: member.image || '',
+      });
+    } else {
+      // Reset form for new member
+      setFormData({
+        name: '',
+        role: 'teacher',
+        title: '',
+        phone: '',
+        email: '',
+        bio: '',
+        image: null,
+        imagePreview: '',
+      });
+    }
+  }, [member]);
+  
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file (PNG, JPG, JPEG)');
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setFormData(prev => ({
+        ...prev,
+        image: file,
+        imagePreview: e.target.result,
+      }));
+    };
+    reader.readAsDataURL(file);
+    
+    toast.success('Image uploaded successfully!');
+  };
+  
+  const removeImage = () => {
+    setFormData(prev => ({
+      ...prev,
+      image: null,
+      imagePreview: '',
+    }));
+    toast.info('Image removed');
+  };
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      toast.error('Please enter name');
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const submitData = new FormData();
+      submitData.append('name', formData.name);
+      submitData.append('role', formData.role);
+      submitData.append('title', formData.title);
+      submitData.append('phone', formData.phone);
+      submitData.append('email', formData.email);
+      submitData.append('bio', formData.bio);
+      
+      // Only append image if a new one is uploaded
+      if (formData.image) {
+        submitData.append('image', formData.image);
+      }
+      
+      // If editing and image was removed
+      if (member && member.image && !formData.imagePreview) {
+        submitData.append('removeImage', 'true');
+      }
+      
+      let url = '/api/team-members';
+      let method = 'POST';
+      
+      if (member?.id) {
+        url = `/api/team-members/${member.id}`;
+        method = 'PUT';
+      }
+      
+      const response = await fetch(url, {
+        method,
+        body: submitData,
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success(member ? 'Member updated successfully!' : 'Member created successfully!');
+        onSave();
+        onClose();
+      } else {
+        throw new Error(result.error || 'An error occurred');
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  if (!open) return null;
+  
+  const isEditMode = !!member;
+  
+  // Role icons and colors
+  const roleOptions = [
+    { value: 'teacher', label: 'Guidance Teacher', icon: <FiBriefcase />, color: 'text-blue-600', bgColor: 'bg-blue-100' },
+    { value: 'patron', label: 'Patron', icon: <FiAward />, color: 'text-purple-600', bgColor: 'bg-purple-100' },
+    { value: 'matron', label: 'Matron', icon: <FiUserCheck />, color: 'text-pink-600', bgColor: 'bg-pink-100' },
+    { value: 'assistant', label: 'Assistant', icon: <FiUserPlus />, color: 'text-gray-600', bgColor: 'bg-gray-100' },
+  ];
+  
+  const selectedRole = roleOptions.find(r => r.value === formData.role) || roleOptions[0];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      {/* Modal Container */}
+      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden">
+        
+        {/* Close Button */}
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 p-2 bg-white/90 backdrop-blur-sm text-gray-700 rounded-full hover:bg-white transition-all"
+          disabled={isLoading}
+        >
+          <FiX className="w-5 h-5" />
+        </button>
+        
+        {/* Header - Modern Gradient */}
+        <div className="relative bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-white">
+          <div className="flex items-center gap-3">
+            <div className={`p-3 rounded-2xl ${selectedRole.bgColor} ${selectedRole.color}`}>
+              {selectedRole.icon}
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight">
+                {isEditMode ? 'Edit Team Member' : 'Add Team Member'}
+              </h2>
+              <p className="text-indigo-100 text-sm opacity-90">
+                {isEditMode ? 'Update member details' : 'Create a new guidance team member'}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Content */}
+        <div className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* Image Upload Section - Modern Design */}
+            <div className="flex flex-col items-center">
+              <div className="relative mb-4">
+                {formData.imagePreview ? (
+                  <div className="relative">
+                    <img
+                      src={formData.imagePreview}
+                      alt="Preview"
+                      className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute -top-1 -right-1 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                      disabled={isLoading}
+                    >
+                      <FiX className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-4 border-white shadow-xl flex flex-col items-center justify-center">
+                    <FiUser className="text-gray-400 w-12 h-12 mb-2" />
+                    <span className="text-xs text-gray-500">No image</span>
+                  </div>
+                )}
+              </div>
+              
+              <input
+                type="file"
+                id="memberImage"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                disabled={isLoading}
+              />
+              <label
+                htmlFor="memberImage"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-xl font-medium hover:from-blue-100 hover:to-indigo-100 transition-all cursor-pointer border border-blue-100"
+              >
+                <FiUpload className="w-4 h-4" />
+                {formData.imagePreview ? 'Change Image' : 'Upload Image'}
+              </label>
+              <p className="text-xs text-gray-500 mt-2">Max 5MB • PNG, JPG, JPEG</p>
+            </div>
+            
+            {/* Form Fields Grid */}
+            <div className="space-y-5">
+              
+              {/* Name Field */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-4 py-3.5 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                  placeholder="Enter member's full name"
+                  disabled={isLoading}
+                />
+              </div>
+              
+              {/* Role Selection - Modern Toggle */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-3">
+                  Role *
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {roleOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => !isLoading && setFormData(prev => ({ ...prev, role: option.value }))}
+                      className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${
+                        formData.role === option.value
+                          ? `${option.bgColor} border-${option.color.split('-')[1]}-300 shadow-sm`
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                      disabled={isLoading}
+                    >
+                      <span className={`text-lg mb-1 ${formData.role === option.value ? option.color : 'text-gray-500'}`}>
+                        {option.icon}
+                      </span>
+                      <span className={`text-xs font-medium ${
+                        formData.role === option.value ? 'text-gray-800' : 'text-gray-600'
+                      }`}>
+                        {option.label.split(' ')[0]}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Title Field */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Title / Position
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full px-4 py-3.5 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                  placeholder="e.g., Head Counselor, Senior Teacher"
+                  disabled={isLoading}
+                />
+              </div>
+              
+              {/* Contact Info Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    Phone Number
+                  </label>
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      <FiPhone className="w-5 h-5" />
+                    </div>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                      className="w-full pl-10 pr-4 py-3.5 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                      placeholder="+123 456 7890"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      <FiMail className="w-5 h-5" />
+                    </div>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full pl-10 pr-4 py-3.5 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                      placeholder="member@school.edu"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Bio/Description */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Bio / Description
+                </label>
+                <textarea
+                  value={formData.bio}
+                  onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                  rows="4"
+                  className="w-full px-4 py-3.5 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all resize-none"
+                  placeholder="Brief description about the team member's role, experience, or background..."
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isLoading}
+                className="flex-1 h-12 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              >
+                <FiX className="w-4 h-4" />
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>{isEditMode ? 'Updating...' : 'Creating...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <FiSave className="w-4 h-4" />
+                    <span>{isEditMode ? 'Update Member' : 'Create Member'}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Modern Team Card Component
+const ModernTeamCard = ({ member, onEdit, onDelete }) => {
+  const [imageError, setImageError] = useState(false);
+  
+  // Role configuration
+  const getRoleConfig = (role) => {
+    const configs = {
+      teacher: {
+        icon: <FiBriefcase className="w-4 h-4" />,
+        color: 'bg-gradient-to-r from-blue-500 to-blue-600',
+        textColor: 'text-blue-600',
+        bgColor: 'bg-blue-50',
+        borderColor: 'border-blue-100',
+        label: 'Teacher'
+      },
+      patron: {
+        icon: <FiAward className="w-4 h-4" />,
+        color: 'bg-gradient-to-r from-purple-500 to-purple-600',
+        textColor: 'text-purple-600',
+        bgColor: 'bg-purple-50',
+        borderColor: 'border-purple-100',
+        label: 'Patron'
+      },
+      matron: {
+        icon: <FiUserCheck className="w-4 h-4" />,
+        color: 'bg-gradient-to-r from-pink-500 to-pink-600',
+        textColor: 'text-pink-600',
+        bgColor: 'bg-pink-50',
+        borderColor: 'border-pink-100',
+        label: 'Matron'
+      },
+      assistant: {
+        icon: <FiUserPlus className="w-4 h-4" />,
+        color: 'bg-gradient-to-r from-gray-500 to-gray-600',
+        textColor: 'text-gray-600',
+        bgColor: 'bg-gray-50',
+        borderColor: 'border-gray-100',
+        label: 'Assistant'
+      }
+    };
+    return configs[role] || configs.teacher;
+  };
+  
+  const roleConfig = getRoleConfig(member.role);
+  
+  // Format date
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch {
+      return 'Recent';
+    }
+  };
+
+  return (
+    <div className="group relative bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+      {/* Background accent */}
+      <div className={`absolute top-0 left-0 right-0 h-1 ${roleConfig.color}`} />
+      
+      <div className="p-5">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            {/* Profile Image */}
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-lg">
+                {member.image && !imageError ? (
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="w-full h-full object-cover"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <div className={`w-full h-full flex items-center justify-center ${roleConfig.bgColor}`}>
+                    <div className={`p-2 rounded-full ${roleConfig.bgColor}`}>
+                      {roleConfig.icon}
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* Online indicator */}
+              <div className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full" />
+            </div>
+            
+            {/* Name and Role */}
+            <div className="min-w-0">
+              <h3 className="font-bold text-gray-900 text-lg truncate">{member.name}</h3>
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${roleConfig.bgColor} ${roleConfig.textColor} border ${roleConfig.borderColor}`}>
+                  {roleConfig.icon}
+                  {roleConfig.label}
+                </span>
+                {member.title && (
+                  <span className="text-xs text-gray-500 truncate">• {member.title}</span>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Action Menu */}
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              title="Edit"
+            >
+              <FiEdit3 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="Delete"
+            >
+              <FiTrash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        
+        {/* Contact Info */}
+        <div className="space-y-3 mb-4">
+          {member.phone && (
+            <div className="flex items-center gap-3 text-sm">
+              <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
+                <FiPhone className="text-gray-500 w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs text-gray-400">Phone</span>
+                <p className="font-medium text-gray-800 truncate">{member.phone}</p>
+              </div>
+            </div>
+          )}
+          
+          {member.email && (
+            <div className="flex items-center gap-3 text-sm">
+              <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
+                <FiMail className="text-gray-500 w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs text-gray-400">Email</span>
+                <p className="font-medium text-gray-800 truncate">{member.email}</p>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Bio Preview */}
+        {member.bio && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+              {member.bio}
+            </p>
+          </div>
+        )}
+        
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <FiCalendar className="w-3 h-3" />
+            <span>Added {formatDate(member.createdAt)}</span>
+          </div>
+          
+          {/* Quick Actions */}
+          <div className="flex items-center gap-2">
+            {member.phone && (
+              <a
+                href={`tel:${member.phone}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-medium rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                <FiPhone className="w-3 h-3" />
+                Call
+              </a>
+            )}
+            {member.email && (
+              <a
+                href={`mailto:${member.email}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <FiMail className="w-3 h-3" />
+                Email
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+
+// In your main component, add these states and functions:
+
+// State for members
+const [teamMembers, setTeamMembers] = useState([]);
+const [membersLoading, setMembersLoading] = useState(true);
+const [memberModal, setMemberModal] = useState({
+  open: false,
+  member: null,
+});
+const [deleteMemberModal, setDeleteMemberModal] = useState({
+  open: false,
+  memberId: null,
+  memberName: '',
+  loading: false,
+});
+
+// Fetch team members
+const fetchTeamMembers = async () => {
+  setMembersLoading(true);
+  try {
+    const response = await fetch('/api/team-members');
+    const result = await response.json();
+    
+    if (result.success) {
+      setTeamMembers(result.members || []);
+    } else {
+      throw new Error(result.error || 'Failed to fetch team members');
+    }
+  } catch (error) {
+    console.error('Error fetching team members:', error);
+    toast.error('Failed to load team members');
+    setTeamMembers([]);
+  } finally {
+    setMembersLoading(false);
+  }
+};
+
+// Delete member handler
+const handleDeleteMember = (member) => {
+  setDeleteMemberModal({
+    open: true,
+    memberId: member.id,
+    memberName: member.name,
+    loading: false,
+  });
+};
+
+const confirmDeleteMember = async () => {
+  setDeleteMemberModal(prev => ({ ...prev, loading: true }));
+
+  try {
+    const response = await fetch(`/api/team-members/${deleteMemberModal.memberId}`, {
+      method: 'DELETE',
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      await fetchTeamMembers();
+      toast.success('Team member deleted successfully!');
+      setDeleteMemberModal({ open: false, memberId: null, memberName: '', loading: false });
+    } else {
+      throw new Error(result.error || 'Error deleting member');
+    }
+  } catch (error) {
+    toast.error(error.message || 'Error deleting member');
+    setDeleteMemberModal(prev => ({ ...prev, loading: false }));
+  }
+};
+
+// Add to useEffect
+useEffect(() => {
+  fetchEvents();
+  fetchTeamMembers(); // Replace fetchTeams with this
+}, []);
+
+// Replace the team section in your main component with:
+<div className="mb-6">
+  <div className="flex items-center justify-between mb-6">
+    <div>
+      <h2 className="text-2xl font-bold text-gray-900">Guidance Team Members</h2>
+      <p className="text-gray-600 text-sm mt-1">Manage school guidance team members</p>
+    </div>
+    <button
+      onClick={() => setMemberModal({ open: true, member: null })}
+      className="group relative inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl text-base font-bold tracking-tight shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 hover:-translate-y-0.5"
+    >
+      <div className="absolute inset-0 rounded-2xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+      <FiUserPlus className="w-5 h-5 transition-transform group-hover:scale-110 group-hover:-rotate-12" />
+      <span className="relative">Add Team Member</span>
+    </button>
+  </div>
+  
+  {membersLoading ? (
+    <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+      <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl mb-6">
+        <FiUsers className="text-blue-600 w-7 h-7" />
+      </div>
+      <CircularProgress size={24} className="mb-4" />
+      <h3 className="text-lg font-bold text-gray-900 mb-2">Loading Team Members</h3>
+      <p className="text-gray-600">Please wait while we fetch team members data</p>
+    </div>
+  ) : teamMembers.length === 0 ? (
+    <div className="bg-white rounded-2xl border-2 border-dashed border-gray-300 p-12 text-center">
+      <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-gray-50 to-gray-100 rounded-3xl mb-6">
+        <FiUsers className="text-gray-400 w-10 h-10" />
+      </div>
+      <h3 className="text-xl font-bold text-gray-900 mb-3">No Team Members Yet</h3>
+      <p className="text-gray-600 max-w-md mx-auto mb-8">
+        Start building your guidance team by adding patrons, matrons, and guidance teachers.
+      </p>
+      <button
+        onClick={() => setMemberModal({ open: true, member: null })}
+        className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold hover:opacity-90 transition-all"
+      >
+        <FiUserPlus className="w-5 h-5" />
+        Add First Member
+      </button>
+    </div>
+  ) : (
+    <>
+      {/* Stats Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-2xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">Total Members</p>
+              <p className="text-2xl font-bold text-gray-900">{teamMembers.length}</p>
+            </div>
+            <FiUsers className="text-blue-500 w-8 h-8" />
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-2xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-purple-700 uppercase tracking-wider mb-1">Patrons</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {teamMembers.filter(m => m.role === 'patron').length}
+              </p>
+            </div>
+            <FiAward className="text-purple-500 w-8 h-8" />
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-200 rounded-2xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-pink-700 uppercase tracking-wider mb-1">Matrons</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {teamMembers.filter(m => m.role === 'matron').length}
+              </p>
+            </div>
+            <FiUserCheck className="text-pink-500 w-8 h-8" />
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-2xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Teachers</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {teamMembers.filter(m => m.role === 'teacher').length}
+              </p>
+            </div>
+            <FiBriefcase className="text-gray-600 w-8 h-8" />
+          </div>
+        </div>
+      </div>
+      
+      {/* Members Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        {teamMembers.map((member) => (
+          <ModernTeamCard
+            key={member.id}
+            member={member}
+            onEdit={() => setMemberModal({ open: true, member })}
+            onDelete={() => handleDeleteMember(member)}
+          />
+        ))}
+      </div>
+    </>
+  )}
+</div>
+
+// Add the modals at the bottom of your main component:
+{/* Modern Member Modal */}
+<ModernMemberModal
+  open={memberModal.open}
+  onClose={() => setMemberModal({ open: false, member: null })}
+  member={memberModal.member}
+  onSave={fetchTeamMembers}
+/>
+
+{/* Delete Confirmation Modal for Members */}
+<DeleteConfirmationModal
+  open={deleteMemberModal.open}
+  onClose={() => setDeleteMemberModal({ open: false, memberId: null, memberName: '', loading: false })}
+  onConfirm={confirmDeleteMember}
+  itemName={deleteMemberModal.memberName}
+  loading={deleteMemberModal.loading}
+/>
 // Main Component
 export default function GuidanceCounselingTab() {
   const [events, setEvents] = useState([]);
+  const [teams, setTeams] = useState([]);
+  const [teamLoading, setTeamLoading] = useState(true);
+  const [teamModal, setTeamModal] = useState({
+    open: false,
+    mode: 'view', // 'view', 'create', 'edit'
+    team: null,
+  });
+  const [teamDeleteModal, setTeamDeleteModal] = useState({
+    open: false,
+    teamId: null,
+    loading: false,
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [isViewing, setIsViewing] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(null);
@@ -1104,8 +2380,30 @@ export default function GuidanceCounselingTab() {
     }
   };
 
+  // Fetch teams from API
+  const fetchTeams = async () => {
+    setTeamLoading(true);
+    try {
+      const response = await fetch('/api/guidanceteam');
+      const result = await response.json();
+      
+      if (result.success) {
+        setTeams(result.teams || []);
+      } else {
+        throw new Error(result.error || 'Failed to fetch teams');
+      }
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+      toast.error('Failed to load guidance teams');
+      setTeams([]);
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchEvents();
+    fetchTeams();
   }, []);
 
   const handleNewEvent = () => {
@@ -1123,7 +2421,7 @@ export default function GuidanceCounselingTab() {
     setIsViewing(true);
   };
 
-  // Updated handleDelete function to use modal
+  // Event delete handlers
   const handleDelete = (event) => {
     setDeleteModal({
       open: true,
@@ -1133,7 +2431,6 @@ export default function GuidanceCounselingTab() {
     });
   };
 
-  // Confirm delete function
   const confirmDelete = async () => {
     setDeleteModal(prev => ({ ...prev, loading: true }));
 
@@ -1153,6 +2450,61 @@ export default function GuidanceCounselingTab() {
     } catch (error) {
       toast.error(error.message || 'Error deleting session');
       setDeleteModal(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  // Team handlers
+  const handleCreateTeam = () => {
+    setTeamModal({
+      open: true,
+      mode: 'create',
+      team: null,
+    });
+  };
+
+  const handleViewTeam = (team) => {
+    setTeamModal({
+      open: true,
+      mode: 'view',
+      team,
+    });
+  };
+
+  const handleEditTeam = (team) => {
+    setTeamModal({
+      open: true,
+      mode: 'edit',
+      team,
+    });
+  };
+
+  const handleDeleteTeam = (team) => {
+    setTeamDeleteModal({
+      open: true,
+      teamId: team?.id,
+      loading: false,
+    });
+  };
+
+  const confirmDeleteTeam = async () => {
+    setTeamDeleteModal(prev => ({ ...prev, loading: true }));
+
+    try {
+      const response = await fetch(`/api/guidanceteam/${teamDeleteModal.teamId}`, {
+        method: 'DELETE',
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        await fetchTeams();
+        toast.success('Guidance team deleted successfully!');
+        setTeamDeleteModal({ open: false, teamId: null, loading: false });
+      } else {
+        throw new Error(result.error || 'Error deleting team');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Error deleting team');
+      setTeamDeleteModal(prev => ({ ...prev, loading: false }));
     }
   };
 
@@ -1186,35 +2538,43 @@ export default function GuidanceCounselingTab() {
     }).length
   };
 
- if (loading && events.length === 0) {
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-      <div className="text-center">
-        <CircularProgress size={48} />
+  if (loading && events.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+        <div className="text-center">
+          <CircularProgress size={48} />
 
-        <p className="text-gray-700 text-lg mt-4 font-medium">
-          Loading Sessions…
-        </p>
+          <p className="text-gray-700 text-lg mt-4 font-medium">
+            Loading Sessions…
+          </p>
 
-        <p className="text-gray-400 text-sm mt-1">
-          Please wait while we fetch sessions data
-        </p>
+          <p className="text-gray-400 text-sm mt-1">
+            Please wait while we fetch sessions data
+          </p>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/20 p-4 md:p-6">
       <Toaster position="top-right" richColors />
       
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modals */}
       <DeleteConfirmationModal
         open={deleteModal.open}
         onClose={() => setDeleteModal({ open: false, eventId: null, eventName: '', loading: false })}
         onConfirm={confirmDelete}
         itemName={deleteModal.eventName}
         loading={deleteModal.loading}
+      />
+      
+      <DeleteConfirmationModal
+        open={teamDeleteModal.open}
+        onClose={() => setTeamDeleteModal({ open: false, teamId: null, loading: false })}
+        onConfirm={confirmDeleteTeam}
+        itemName="this guidance team"
+        loading={teamDeleteModal.loading}
       />
       
       <div className="max-w-7xl mx-auto space-y-6">
@@ -1229,13 +2589,16 @@ export default function GuidanceCounselingTab() {
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
                   Guidance & Counseling
                 </h1>
-                <p className="text-gray-600 mt-1">Manage student counseling sessions</p>
+                <p className="text-gray-600 mt-1">Manage student counseling sessions and guidance team</p>
               </div>
             </div>
           </div>
           <div className="flex gap-2 md:gap-3 flex-wrap">
             <button
-              onClick={() => fetchEvents(true)}
+              onClick={() => {
+                fetchEvents(true);
+                fetchTeams();
+              }}
               disabled={refreshing}
               className="inline-flex items-center gap-2 bg-white text-gray-700 px-3 md:px-4 py-2 md:py-3 rounded-full border border-gray-300 font-medium disabled:opacity-50 text-sm md:text-base"
             >
@@ -1290,27 +2653,66 @@ export default function GuidanceCounselingTab() {
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs md:text-sm font-medium text-gray-600 mb-1">View Mode</p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    className={`text-xs px-2 py-1 rounded-full ${viewMode === 'grid' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-700'}`}
-                  >
-                    Grid
-                  </button>
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`text-xs px-2 py-1 rounded-full ${viewMode === 'list' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-700'}`}
-                  >
-                    List
-                  </button>
-                </div>
+                <p className="text-xs md:text-sm font-medium text-gray-600 mb-1">Teams</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900 mb-1">{teams.length}</p>
               </div>
               <div className="p-2 bg-gray-50 rounded-lg">
                 <FiBarChart2 className="text-gray-600 text-base w-5 h-5" />
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Guidance Team Section */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Guidance Team</h2>
+              <p className="text-gray-600 text-sm">Manage school patrons, matrons, and guidance teachers</p>
+            </div>
+            <button
+              onClick={handleCreateTeam}
+              className="group relative inline-flex items-center justify-center gap-2 min-w-[44px] md:min-w-[140px] px-4 md:px-6 py-3 md:py-3.5 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 text-white rounded-2xl md:rounded-full text-sm md:text-base font-bold tracking-tight shadow-[0_10px_20px_-5px_rgba(16,185,129,0.3)] hover:shadow-[0_15px_30px_-10px_rgba(16,185,129,0.4)] transition-all duration-300 ease-out active:scale-95 active:shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2"
+            >
+              <div className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              <FiUserPlus className="w-5 h-5 transition-transform group-hover:scale-110 group-hover:-rotate-12" />
+              <span className="relative whitespace-nowrap">Add Team</span>
+            </button>
+          </div>
+          
+          {teamLoading ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+              <CircularProgress size={32} />
+              <p className="text-gray-600 mt-4">Loading guidance teams...</p>
+            </div>
+          ) : teams.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+              <FiUsers className="text-gray-300 w-12 h-12 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-gray-900 mb-2">No Guidance Team</h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                Create a guidance team to add patrons, matrons, and guidance teachers.
+              </p>
+              <button
+                onClick={handleCreateTeam}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-green-600 text-white px-4 py-2.5 rounded-full font-medium"
+              >
+                <FiUserPlus className="w-4 h-4" />
+                Create First Team
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {teams.map((team, index) => (
+                <GuidanceTeamCard
+                  key={team?.id || index}
+                  team={team}
+                  onView={() => handleViewTeam(team)}
+                  onEdit={() => handleEditTeam(team)}
+                  onDelete={() => handleDeleteTeam(team)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Filters */}
@@ -1348,6 +2750,15 @@ export default function GuidanceCounselingTab() {
                 <option value="Low">Low</option>
                 <option value="Medium">Medium</option>
                 <option value="High">High</option>
+              </select>
+              
+              <select 
+                value={viewMode}
+                onChange={(e) => setViewMode(e.target.value)}
+                className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm"
+              >
+                <option value="grid">Grid View</option>
+                <option value="list">List View</option>
               </select>
               
               <button
@@ -1452,7 +2863,7 @@ export default function GuidanceCounselingTab() {
         </div>
       </div>
 
-      {/* Edit Dialog */}
+      {/* Modals */}
       {isEditing && (
         <GuidanceEditDialog
           event={currentEvent}
@@ -1468,9 +2879,8 @@ export default function GuidanceCounselingTab() {
         />
       )}
 
-      {/* View Dialog */}
       {isViewing && (
-        <ViewEventModal
+        <ModernSessionDetailModal
           event={currentEvent}
           onClose={() => {
             setIsViewing(false);
@@ -1482,6 +2892,14 @@ export default function GuidanceCounselingTab() {
           }}
         />
       )}
+
+      <GuidanceTeamModal
+        open={teamModal.open}
+        onClose={() => setTeamModal({ open: false, mode: 'view', team: null })}
+        mode={teamModal.mode}
+        team={teamModal.team}
+        onSave={fetchTeams}
+      />
     </div>
   );
 }

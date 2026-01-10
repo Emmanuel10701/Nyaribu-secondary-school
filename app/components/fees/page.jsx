@@ -1757,7 +1757,9 @@ const getFormTextColor = (form) => {
   }, []);
 
 
-// Add this component to your fee balances frontend file (same pattern as results)
+
+
+
 function FeeDuplicateValidationModal({ 
   open, 
   onClose, 
@@ -1771,6 +1773,24 @@ function FeeDuplicateValidationModal({
   showNotification
 }) {
   const [action, setAction] = useState('skip');
+  const [confirmText, setConfirmText] = useState('');
+
+  useEffect(() => {
+    if (uploadType === 'update' && open) {
+      setConfirmText('');
+    }
+  }, [open, uploadType]);
+
+  const handleProceed = () => {
+    if (uploadType === 'update') {
+      // For UPDATE uploads, require confirmation text
+      if (confirmText !== 'REPLACE ALL') {
+        showNotification('Please type "REPLACE ALL" to confirm complete replacement', 'warning');
+        return;
+      }
+    }
+    onProceed(action);
+  };
 
   if (!open) return null;
 
@@ -1781,8 +1801,8 @@ function FeeDuplicateValidationModal({
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: { xs: '98vw', sm: '95vw', md: '850px', lg: '850px' },
-        maxWidth: '850px',
+        width: { xs: '98vw', sm: '95vw', md: '900px', lg: '900px' },
+        maxWidth: '900px',
         maxHeight: { xs: '85vh', sm: '90vh' },
         bgcolor: 'background.paper',
         borderRadius: 3,
@@ -1794,7 +1814,7 @@ function FeeDuplicateValidationModal({
         {/* Header */}
         <div className={`p-4 sm:p-6 text-white ${
           uploadType === 'update' 
-            ? 'bg-gradient-to-r from-amber-500 to-orange-600' 
+            ? 'bg-gradient-to-r from-orange-500 to-red-600' 
             : 'bg-gradient-to-r from-blue-600 to-indigo-600'
         }`}>
           <div className="flex items-center justify-between">
@@ -1808,11 +1828,11 @@ function FeeDuplicateValidationModal({
               </div>
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold">
-                  {uploadType === 'update' ? 'Fee Update Confirmation' : 'Duplicate Fee Detection'}
+                  {uploadType === 'update' ? '⚠️ Complete Replacement Required' : 'Duplicate Detection'}
                 </h2>
                 <p className="opacity-90 text-sm sm:text-base">
                   {uploadType === 'update'
-                    ? `Will replace ${duplicates.length} existing fees`
+                    ? `Will replace ALL existing fees for ${selectedForm} ${term} ${academicYear}`
                     : `Found ${duplicates.length} existing student fees in ${selectedForm}`
                   }
                 </p>
@@ -1827,37 +1847,38 @@ function FeeDuplicateValidationModal({
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-4 sm:p-6">
-            {/* Summary */}
-            <div className="mb-4 sm:mb-6">
-              <div className={`rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 ${
-                uploadType === 'update' 
-                  ? 'bg-amber-50 border border-amber-200' 
-                  : 'bg-blue-50 border border-blue-200'
-              }`}>
-                <h3 className="font-bold text-gray-900 mb-2 text-sm sm:text-base">
-                  {uploadType === 'update'
-                    ? `Updating ${selectedForm} (${term} ${academicYear})`
-                    : `Processing fees for ${selectedForm}`
-                  }
-                </h3>
-                <p className="text-sm">
-                  {uploadType === 'update'
-                    ? 'Existing fees will be completely removed and replaced with new fees from your file.'
-                    : 'Only new fees will be added. Existing fees will be skipped.'
-                  }
-                </p>
-           {uploadType === 'update' && (
-  <p className="text-sm text-amber-700 font-semibold mt-2">
-    ⚠️ This is a true overwrite operation. All existing fees for this form/term/year will be deleted before new ones are inserted.
-  </p>
-)}
+            {/* Warning Box for UPDATE Uploads */}
+            {uploadType === 'update' && (
+              <div className="mb-4 sm:mb-6">
+                <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl p-4 sm:p-6 border-2 border-red-300">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="p-2 sm:p-3 bg-red-100 rounded-xl">
+                      <FiAlertCircle className="text-red-600 text-lg sm:text-xl" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-red-900 text-base sm:text-lg mb-2">
+                        Complete Data Replacement Required
+                      </h3>
+                      <div className="space-y-2 text-sm sm:text-base text-red-800">
+                        <p>✅ <strong>This is a true replace operation:</strong></p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li>All existing fees for <strong>{selectedForm} - {term} {academicYear}</strong> will be deleted</li>
+                          <li>{duplicates.length} existing fee records will be removed</li>
+                          <li>New fees from your file will be inserted</li>
+                          <li>Statistics will be recalculated with ONLY the new data</li>
+                          <li>This action cannot be undone</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Duplicate List */}
             <div className="mb-4 sm:mb-6">
               <h4 className="font-bold text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">
-                {uploadType === 'update' ? 'Fees to Replace:' : 'Existing Students:'}
+                {uploadType === 'update' ? 'Existing Fees to Replace:' : 'Existing Student Fees:'}
               </h4>
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <div className="overflow-x-auto max-h-60">
@@ -1868,10 +1889,10 @@ function FeeDuplicateValidationModal({
                           Row #
                         </th>
                         <th className="px-3 sm:px-4 py-2 text-left text-xs sm:text-sm font-bold text-gray-700">
-                          Admission Number
+                          Admission #
                         </th>
                         <th className="px-3 sm:px-4 py-2 text-left text-xs sm:text-sm font-bold text-gray-700">
-                          Form
+                          Current Form
                         </th>
                         {uploadType === 'update' && (
                           <>
@@ -1879,14 +1900,14 @@ function FeeDuplicateValidationModal({
                               Term
                             </th>
                             <th className="px-3 sm:px-4 py-2 text-left text-xs sm:text-sm font-bold text-gray-700">
-                              Academic Year
+                              Year
                             </th>
                           </>
                         )}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {duplicates.slice(0, 20).map((dup, index) => (
+                      {duplicates.slice(0, 15).map((dup, index) => (
                         <tr key={index} className="hover:bg-gray-50">
                           <td className="px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-600">
                             {dup.row}
@@ -1914,13 +1935,35 @@ function FeeDuplicateValidationModal({
                     </tbody>
                   </table>
                 </div>
-                {duplicates.length > 20 && (
+                {duplicates.length > 15 && (
                   <div className="px-4 py-2 text-xs sm:text-sm text-gray-500 text-center border-t border-gray-200 bg-gray-50">
-                    ... and {duplicates.length - 20} more
+                    ... and {duplicates.length - 15} more fees will be replaced
                   </div>
                 )}
               </div>
             </div>
+
+            {/* Confirmation for UPDATE Uploads */}
+            {uploadType === 'update' && (
+              <div className="mb-4 sm:mb-6">
+                <div className="bg-gray-50 rounded-xl p-4 sm:p-5 border border-gray-300">
+                  <label className="block text-sm font-bold text-gray-700 mb-3">
+                    Type <span className="font-mono text-red-600 bg-red-50 px-3 py-1 rounded-lg">REPLACE ALL</span> to confirm:
+                  </label>
+                  <input 
+                    type="text" 
+                    value={confirmText} 
+                    onChange={(e) => setConfirmText(e.target.value)} 
+                    placeholder='Type "REPLACE ALL" here'
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-base"
+                    autoFocus
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    This confirms you understand all existing data will be permanently replaced.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Action for NEW uploads only */}
             {uploadType === 'new' && (
@@ -1942,9 +1985,9 @@ function FeeDuplicateValidationModal({
                         <FiCheckCircle className={`text-sm sm:text-base ${action === 'skip' ? 'text-blue-600' : 'text-gray-500'}`} />
                       </div>
                       <div>
-                        <h4 className="font-bold text-gray-900 text-sm sm:text-base">Skip Existing</h4>
+                        <h4 className="font-bold text-gray-900 text-sm sm:text-base">Skip Existing (Recommended)</h4>
                         <p className="text-xs sm:text-sm text-gray-600">
-                          Keep existing fees, only add new ones
+                          Keep existing fees, only add new student fees
                         </p>
                       </div>
                     </div>
@@ -1966,11 +2009,11 @@ function FeeDuplicateValidationModal({
               Cancel
             </button>
             <button
-              onClick={() => onProceed(action)}
-              disabled={loading}
+              onClick={handleProceed}
+              disabled={loading || (uploadType === 'update' && confirmText !== 'REPLACE ALL')}
               className={`flex-1 py-2 sm:py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-50 text-sm sm:text-base ${
                 uploadType === 'update'
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white'
+                  ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white'
                   : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white'
               }`}
             >
@@ -1981,13 +2024,13 @@ function FeeDuplicateValidationModal({
                 </>
               ) : uploadType === 'update' ? (
                 <>
-                  <FiDatabase className="text-sm sm:text-base" />
-                  <span className="text-sm sm:text-base">Replace & Upload</span>
+                  <FiRefreshCw className="text-sm sm:text-base" />
+                  <span className="text-sm sm:text-base">Replace All Fees</span>
                 </>
               ) : (
                 <>
                   <FiCheckCircle className="text-sm sm:text-base" />
-                  <span className="text-sm sm:text-base">Skip & Upload</span>
+                  <span className="text-sm sm:text-base">Skip & Upload New</span>
                 </>
               )}
             </button>
@@ -1997,8 +2040,6 @@ function FeeDuplicateValidationModal({
     </Modal>
   );
 }
-
-
   // Load school fees
   const loadSchoolFees = async (page = 1) => {
     setLoading(true);
@@ -2276,7 +2317,8 @@ const checkDuplicates = async () => {
   }
 };
 
-// In your proceedWithUpload function, after successful upload:
+// In your ModernSchoolFeesManagement component, update the proceedWithUpload function:
+
 const proceedWithUpload = async (duplicateAction = 'skip') => {
   if (!file || !uploadStrategy) return;
   
@@ -2287,10 +2329,10 @@ const proceedWithUpload = async (duplicateAction = 'skip') => {
     formData.append('uploadType', uploadStrategy.uploadType);
     formData.append('selectedForm', uploadStrategy.selectedForm);
     
-    // For update uploads, send term and academic year
+    // For update/replace uploads, send term and academic year
     if (uploadStrategy.uploadType === 'update') {
       if (!uploadStrategy.term || !uploadStrategy.academicYear) {
-        showNotification('Term and academic year are required for update uploads', 'error');
+        showNotification('Term and academic year are required for replace uploads', 'error');
         setUploading(false);
         return;
       }
@@ -2306,38 +2348,97 @@ const proceedWithUpload = async (duplicateAction = 'skip') => {
     const data = await response.json();
     
     if (data.success) {
-      showNotification(
-        data.message || `Successfully ${uploadStrategy.uploadType === 'new' ? 'uploaded' : 'updated'} fees`,
-        'success'
-      );
+      // Success message based on upload type
+      let successMessage = '';
+      if (uploadStrategy.uploadType === 'update') {
+        const replaced = data.data?.replaced || 0;
+        const created = data.data?.created || 0;
+        successMessage = `✅ Successfully replaced fees for ${uploadStrategy.selectedForm}. ` +
+          `Removed ${replaced} old records and added ${created} new records.`;
+      } else {
+        const created = data.data?.created || 0;
+        const skipped = data.data?.skipped || 0;
+        successMessage = `✅ Uploaded ${created} new fees for ${uploadStrategy.selectedForm}`;
+        if (skipped > 0) {
+          successMessage += ` (skipped ${skipped} duplicates)`;
+        }
+      }
       
-      // IMPORTANT: Clear cached stats to force fresh calculation
-      localStorage.removeItem('previousFeeStats');
+      showNotification(successMessage, 'success');
       
-      // Refresh all data with a small delay
+      // CRITICAL: Force complete data refresh
       setTimeout(async () => {
+        // Clear all local state
+        setSchoolFees([]);
+        setStats({
+          totalAmount: 0,
+          totalPaid: 0,
+          totalBalance: 0,
+          totalRecords: 0,
+          formDistribution: {},
+          termDistribution: {},
+          yearDistribution: {}
+        });
+        
+        // Force reload all data with cache busting
         await Promise.all([
-          loadSchoolFees(),
-          loadStatistics(), // This will calculate fresh trends
-          loadUploadHistory()
+          loadSchoolFees(1),
+          loadStatistics(true),
+          loadUploadHistory(1)
         ]);
-      }, 500);
+        
+        // Additional refresh to ensure consistency
+        setTimeout(() => {
+          loadStatistics(true);
+          loadSchoolFees(1);
+        }, 500);
+        
+        showNotification('All data refreshed successfully', 'success');
+      }, 1000);
       
-      // Clear state
+      // Clear upload state
       setFile(null);
       setUploadStrategy(null);
       setResult(data);
+      setDuplicates([]);
+      
     } else {
       showNotification(data.error || 'Upload failed', 'error');
     }
   } catch (error) {
     console.error('Upload error:', error);
-    showNotification('Upload failed: ' + error.message, 'error');
+    showNotification(`Upload failed: ${error.message}`, 'error');
   } finally {
     setUploading(false);
     setShowValidationModal(false);
   }
-};;
+};
+
+// Add a function to force refresh statistics
+const forceRefreshStatistics = async () => {
+  showNotification('Refreshing statistics...', 'info');
+  
+  // Clear all caches
+  localStorage.removeItem('previousFeeStats');
+  localStorage.removeItem('feeStatsCache');
+  sessionStorage.removeItem('feeStats');
+  
+  // Reset stats state
+  setStats({
+    totalAmount: 0,
+    totalPaid: 0,
+    totalBalance: 0,
+    totalRecords: 0,
+    formDistribution: {},
+    termDistribution: {},
+    yearDistribution: {}
+  });
+  
+  // Load fresh statistics
+  await loadStatistics(true);
+  
+  showNotification('Statistics refreshed successfully', 'success');
+};
 
 // Handle strategy confirm (SAME as student uploads)
 const handleStrategyConfirm = (strategy) => {
@@ -2448,43 +2549,13 @@ const handleStrategyConfirm = (strategy) => {
   };
 
 const downloadCSVTemplate = () => {
-  const template = `admissionNumber,amount,amountPaid,term,academicYear,dueDate
-3407,50000,25000,Term 1,2024/2025,2024-03-31
-3408,45000,45000,Term 1,2024/2025,2024-03-31
-3409,50000,30000,Term 1,2024/2025,2024-03-31
-3410,45000,0,Term 1,2024/2025,2024-03-31`;
-
-  const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'school_fees_template.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  showNotification('CSV template downloaded', 'success');
+  window.location.href = "/csv/form_1_fees.csv";
 };
 
 const downloadExcelTemplate = () => {
-  try {
-    const sampleData = [
-      ['admissionNumber', 'amount', 'amountPaid', 'term', 'academicYear', 'dueDate'],
-      ['3407', '50000', '25000', 'Term 1', '2024/2025', '2024-03-31'],
-      ['3408', '45000', '45000', 'Term 1', '2024/2025', '2024-03-31'],
-      ['3409', '50000', '30000', 'Term 1', '2024/2025', '2024-03-31']
-    ];
-
-    const ws = XLSX.utils.aoa_to_sheet(sampleData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "School Fees");
-    XLSX.writeFile(wb, 'school_fees_template.xlsx');
-    showNotification('Excel template downloaded', 'success');
-  } catch (error) {
-    console.error('Error downloading Excel template:', error);
-    showNotification('Failed to download template', 'error');
-  }
+  window.location.href = "/excel/form_1_fees.xlsx";
 };
+
 
   // Export data
   const exportFeesToCSV = () => {
@@ -2617,6 +2688,7 @@ if (loading && view === 'fees' && schoolFees.length === 0) {
               <FiDownload className="text-base" />
               Export Data
             </button>
+
           </div>
         </div>
       </div>
@@ -2780,15 +2852,7 @@ if (loading && view === 'fees' && schoolFees.length === 0) {
       />
     </div>
 
-    {/* Term Distribution Chart */}
-    {chartData.termDistribution && chartData.termDistribution.length > 0 && (
-      <ModernFeeChart 
-        data={chartData.termDistribution} 
-        type="composed" 
-        title="Term-wise Distribution" 
-        height={400} 
-      />
-    )}
+  
 
     {/* Recent School Fees */}
     <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-2xl">
@@ -2880,36 +2944,7 @@ if (loading && view === 'fees' && schoolFees.length === 0) {
       </div>
     </div>
 
-    {/* Quick Actions */}
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border-2 border-blue-200">
-      <h3 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
-      <div className="flex flex-wrap gap-4">
-        <button
-          onClick={() => setView('upload')}
-          className="px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl font-bold flex items-center gap-2 hover:shadow-lg transition-all"
-        >
-          <FiUpload /> Upload New Fees
-        </button>
-        <button
-          onClick={exportFeesToCSV}
-          disabled={schoolFees.length === 0}
-          className="px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-800 text-white rounded-xl font-bold flex items-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
-        >
-          <FiDownload /> Export Data
-        </button>
-        <button
-          onClick={() => {
-            setLoading(true);
-            Promise.all([loadSchoolFees(), loadStatistics()]);
-          }}
-          disabled={loading}
-          className="px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-xl font-bold flex items-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
-        >
-          {loading ? <CircularProgress size={16} /> : <FiRefreshCw />}
-          {loading ? 'Refreshing...' : 'Refresh Data'}
-        </button>
-      </div>
-    </div>
+ 
   </div>
 )}
         {/* Upload View */}

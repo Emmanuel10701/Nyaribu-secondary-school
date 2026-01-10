@@ -749,16 +749,17 @@ const parseFeeExcel = async (file, uploadStrategy) => {
   }
 };
 // ========== TRUE OVERWRITE UPDATE STRATEGY ==========
+// ========== COMPLETE REPLACE STRATEGY ==========
 
 const processUpdateFeeUpload = async (fees, uploadBatchId, uploadStrategy) => {
-  console.log(`\n🔄 Processing UPDATE UPLOAD (True Overwrite Strategy):`);
+  console.log(`\n🔄 PROCESSING UPDATE UPLOAD (Complete Replace):`);
   console.log('Strategy:', uploadStrategy);
   
   const normalizedForm = normalizeForm(uploadStrategy.selectedForm);
   const normalizedTerm = normalizeTerm(uploadStrategy.term);
   const normalizedYear = normalizeAcademicYear(uploadStrategy.academicYear);
   
-  console.log(`🔍 Target for overwrite: ${normalizedForm} - ${normalizedTerm} ${normalizedYear}`);
+  console.log(`🎯 Target for complete replace: ${normalizedForm} - ${normalizedTerm} ${normalizedYear}`);
   
   const stats = {
     totalRows: fees.length,
@@ -767,53 +768,91 @@ const processUpdateFeeUpload = async (fees, uploadBatchId, uploadStrategy) => {
     errorRows: 0,
     errors: [],
     created: 0,
-    updated: 0,
-    deleted: 0,
+    replaced: 0,
     metadata: {}
   };
   
   try {
-    // Start a transaction for atomic overwrite
-    await prisma.$transaction(async (tx) => {
-      // STEP 1: Count existing active fees for this form/term/year BEFORE deletion
-      const existingCount = await tx.feeBalance.count({
+    // Start transaction for atomic replace
+    const result = await prisma.$transaction(async (tx) => {
+      // STEP 1: Find and log existing fees before deletion
+      const existingFees = await tx.feeBalance.findMany({
         where: {
           form: normalizedForm,
           term: normalizedTerm,
-          academicYear: normalizedYear,
-          isActive: true
-        }
-      });
-      
-      // STEP 2: COMPLETELY DEACTIVATE all existing fees for this form/term/year
-      const deactivateResult = await tx.feeBalance.updateMany({
-        where: {
-          form: normalizedForm,
-          term: normalizedTerm,
-          academicYear: normalizedYear,
-          isActive: true
+          academicYear: normalizedYear
         },
-        data: {
-          isActive: false,
-          updatedAt: new Date()
+        select: {
+          id: true,
+          admissionNumber: true,
+          amount: true,
+          amountPaid: true,
+          form: true,
+          term: true,
+          academicYear: true
         }
       });
       
-      stats.deleted = deactivateResult.count;
-      console.log(`🗑️ DEACTIVATED ${deactivateResult.count} existing fees (true overwrite)`);
+      console.log(`📊 Found ${existingFees.length} existing fees to replace`);
       
-      // STEP 3: Check students exist for the new data
+      // STEP 2: Create audit log before deletion
+      if (existingFees.length > 0) {
+        await tx.feeBalanceAuditLog.createMany({
+          data: existingFees.map(fee => ({
+            action: 'REPLACE_DELETE',
+            feeId: fee.id,
+            admissionNumber: fee.admissionNumber,
+            form: fee.form,
+            term: fee.term,
+            academicYear: fee.academicYear,
+            oldAmount: fee.amount,
+            oldAmountPaid: fee.amountPaid,
+            uploadBatchId: uploadBatchId,
+            timestamp: new Date()
+          }))
+        });
+      }
+      
+      // STEP 3: HARD DELETE all existing fees (true replace)
+      const deleteResult = await tx.feeBalance.deleteMany({
+        where: {
+          form: normalizedForm,
+          term: normalizedTerm,
+          academicYear: normalizedYear
+        }
+      });
+      
+      stats.replaced = deleteResult.count;
+      console.log(`🗑️ HARD DELETED ${deleteResult.count} existing fees`);
+      
+      // STEP 4: Log batch deletion
+      if (deleteResult.count > 0) {
+        await tx.batchDeletionLog.create({
+          data: {
+            batchId: uploadBatchId,
+            entityType: 'FeeBalance',
+            form: normalizedForm,
+            term: normalizedTerm,
+            academicYear: normalizedYear,
+            deletedCount: deleteResult.count,
+            deletionReason: 'replace_upload',
+            deletedAt: new Date()
+          }
+        });
+      }
+      
+      // STEP 5: Check students exist for new data
       const admissionNumbers = fees.map(f => f.admissionNumber);
       const studentCheck = await checkStudentsExist(admissionNumbers, normalizedForm, tx);
       
       const seenAdmissionNumbers = new Set();
       const feeCreations = [];
       
-      // STEP 4: Process and validate each new fee
+      // STEP 6: Validate and prepare new fees
       for (const [index, fee] of fees.entries()) {
         const rowNum = index + 2;
         
-        // Skip duplicates within the same file
+        // Skip duplicates within same file
         if (seenAdmissionNumbers.has(fee.admissionNumber)) {
           stats.skippedRows++;
           stats.errors.push(`Row ${rowNum}: Duplicate admission number in file: ${fee.admissionNumber}`);
@@ -821,7 +860,7 @@ const processUpdateFeeUpload = async (fees, uploadBatchId, uploadStrategy) => {
         }
         seenAdmissionNumbers.add(fee.admissionNumber);
         
-        // Validate the fee
+        // Validate fee
         const validation = validateFeeBalance(fee, index);
         if (!validation.isValid) {
           stats.errorRows++;
@@ -829,7 +868,7 @@ const processUpdateFeeUpload = async (fees, uploadBatchId, uploadStrategy) => {
           continue;
         }
         
-        // Check if student exists
+        // Check student exists
         const student = studentCheck.existingStudentMap.get(fee.admissionNumber);
         if (!student) {
           stats.skippedRows++;
@@ -837,44 +876,7 @@ const processUpdateFeeUpload = async (fees, uploadBatchId, uploadStrategy) => {
           continue;
         }
         
-        // Check for existing inactive fee for same student/form/term/year
-        const existingInactiveFee = await tx.feeBalance.findFirst({
-          where: {
-            admissionNumber: fee.admissionNumber,
-            form: normalizedForm,
-            term: normalizedTerm,
-            academicYear: normalizedYear,
-            isActive: false
-          }
-        });
-        
-        if (existingInactiveFee) {
-          // Reactivate and update the existing fee
-          try {
-            await tx.feeBalance.update({
-              where: { id: existingInactiveFee.id },
-              data: {
-                amount: fee.amount,
-                amountPaid: fee.amountPaid,
-                balance: fee.balance,
-                paymentStatus: fee.paymentStatus,
-                dueDate: fee.dueDate,
-                uploadBatchId: uploadBatchId,
-                isActive: true,
-                updatedAt: new Date()
-              }
-            });
-            
-            stats.validRows++;
-            stats.updated++;
-            console.log(`✅ Row ${rowNum}: Reactivated and updated fee for ${fee.admissionNumber}`);
-            continue;
-          } catch (updateError) {
-            console.error(`Failed to update inactive fee: ${updateError.message}`);
-          }
-        }
-        
-        // Prepare new fee data for insertion
+        // Prepare new fee
         feeCreations.push({
           admissionNumber: fee.admissionNumber,
           form: normalizedForm,
@@ -892,11 +894,183 @@ const processUpdateFeeUpload = async (fees, uploadBatchId, uploadStrategy) => {
         });
         
         stats.validRows++;
-        stats.created++;
-        console.log(`✅ Row ${rowNum}: Prepared new fee for ${fee.admissionNumber}`);
       }
       
-      // STEP 5: Insert ALL new fees in bulk
+      // STEP 7: INSERT all new fees
+      if (feeCreations.length > 0) {
+        const createdFees = await tx.feeBalance.createMany({
+          data: feeCreations,
+          skipDuplicates: false
+        });
+        
+        stats.created = createdFees.count;
+        console.log(`✅ INSERTED ${createdFees.count} new fees`);
+        
+        // Create audit log for new fees
+        await tx.feeBalanceAuditLog.createMany({
+          data: feeCreations.map(fee => ({
+            action: 'REPLACE_CREATE',
+            admissionNumber: fee.admissionNumber,
+            form: fee.form,
+            term: fee.term,
+            academicYear: fee.academicYear,
+            newAmount: fee.amount,
+            newAmountPaid: fee.amountPaid,
+            uploadBatchId: uploadBatchId,
+            timestamp: new Date()
+          }))
+        });
+      }
+      
+      return { 
+        deletedCount: deleteResult.count, 
+        createdCount: stats.created 
+      };
+    }, {
+      maxWait: 15000,
+      timeout: 45000,
+      isolationLevel: 'Serializable'
+    });
+    
+    // STEP 8: Update statistics
+    stats.metadata = {
+      operation: 'complete_replace',
+      targetForm: normalizedForm,
+      targetTerm: normalizedTerm,
+      targetYear: normalizedYear,
+      oldDeleted: stats.replaced,
+      newInserted: stats.created,
+      totalProcessed: stats.validRows,
+      fileDuplicates: stats.skippedRows,
+      validationErrors: stats.errorRows,
+      netChange: stats.created - stats.replaced,
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('\n📊 REPLACE OPERATION COMPLETE:', stats.metadata);
+    
+    return stats;
+    
+  } catch (error) {
+    console.error('❌ Replace transaction failed:', error);
+    
+    // User-friendly error messages
+    if (error.code === 'P2002') {
+      throw new Error('Duplicate fee entries detected. Please ensure each student has only one fee per term/year.');
+    }
+    
+    if (error.code === 'P2003') {
+      throw new Error('Student record not found. Verify all students exist in the selected form.');
+    }
+    
+    if (error.message.includes('timeout') || error.code === 'P2024') {
+      throw new Error('Operation timed out. Please try with a smaller file or contact support.');
+    }
+    
+    throw new Error(`Replace operation failed: ${error.message}`);
+  }
+};
+
+// ========== NEW UPLOAD STRATEGY ==========
+
+const processNewFeeUpload = async (fees, uploadBatchId, uploadStrategy) => {
+  console.log(`\n📤 PROCESSING NEW UPLOAD:`);
+  console.log('Strategy:', uploadStrategy);
+  
+  const normalizedForm = normalizeForm(uploadStrategy.selectedForm);
+  const firstRow = fees[0];
+  const normalizedTerm = normalizeTerm(firstRow?.term || 'Term 1');
+  const normalizedYear = normalizeAcademicYear(firstRow?.academicYear || `${new Date().getFullYear()}/${new Date().getFullYear() + 1}`);
+  
+  console.log(`🎯 New upload for: ${normalizedForm} - ${normalizedTerm} ${normalizedYear}`);
+  
+  const stats = {
+    totalRows: fees.length,
+    validRows: 0,
+    skippedRows: 0,
+    errorRows: 0,
+    errors: [],
+    created: 0,
+    skippedDuplicates: 0,
+    metadata: {}
+  };
+  
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Check for existing fees to skip
+      const admissionNumbers = fees.map(f => f.admissionNumber);
+      const existingFees = await tx.feeBalance.findMany({
+        where: {
+          admissionNumber: { in: admissionNumbers },
+          form: normalizedForm,
+          term: normalizedTerm,
+          academicYear: normalizedYear
+        },
+        select: {
+          admissionNumber: true
+        }
+      });
+      
+      const existingAdmissionNumbers = new Set(existingFees.map(f => f.admissionNumber));
+      const seenInFile = new Set();
+      const feeCreations = [];
+      
+      // Process each fee
+      for (const [index, fee] of fees.entries()) {
+        const rowNum = index + 2;
+        
+        // Skip duplicates within same file
+        if (seenInFile.has(fee.admissionNumber)) {
+          stats.skippedRows++;
+          stats.errors.push(`Row ${rowNum}: Duplicate in file: ${fee.admissionNumber}`);
+          continue;
+        }
+        seenInFile.add(fee.admissionNumber);
+        
+        // Skip existing fees
+        if (existingAdmissionNumbers.has(fee.admissionNumber)) {
+          stats.skippedDuplicates++;
+          continue;
+        }
+        
+        // Validate
+        const validation = validateFeeBalance(fee, index);
+        if (!validation.isValid) {
+          stats.errorRows++;
+          stats.errors.push(...validation.errors);
+          continue;
+        }
+        
+        // Check student exists
+        const admissionNumbers = [fee.admissionNumber];
+        const studentCheck = await checkStudentsExist(admissionNumbers, normalizedForm, tx);
+        if (!studentCheck.existingStudentMap.has(fee.admissionNumber)) {
+          stats.skippedRows++;
+          stats.errors.push(`Row ${rowNum}: Student ${fee.admissionNumber} not found`);
+          continue;
+        }
+        
+        // Prepare new fee
+        feeCreations.push({
+          admissionNumber: fee.admissionNumber,
+          form: normalizedForm,
+          term: normalizedTerm,
+          academicYear: normalizedYear,
+          amount: fee.amount,
+          amountPaid: fee.amountPaid,
+          balance: fee.balance,
+          paymentStatus: fee.paymentStatus,
+          dueDate: fee.dueDate,
+          uploadBatchId: uploadBatchId,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+        
+        stats.validRows++;
+      }
+      
+      // Insert new fees
       if (feeCreations.length > 0) {
         const createdFees = await tx.feeBalance.createMany({
           data: feeCreations,
@@ -904,49 +1078,44 @@ const processUpdateFeeUpload = async (fees, uploadBatchId, uploadStrategy) => {
         });
         
         stats.created = createdFees.count;
-        console.log(`✅ INSERTED ${createdFees.count} new fees (replacing old data)`);
+        
+        // Audit log
+        await tx.feeBalanceAuditLog.createMany({
+          data: feeCreations.map(fee => ({
+            action: 'NEW_CREATE',
+            admissionNumber: fee.admissionNumber,
+            form: fee.form,
+            term: fee.term,
+            academicYear: fee.academicYear,
+            newAmount: fee.amount,
+            newAmountPaid: fee.amountPaid,
+            uploadBatchId: uploadBatchId,
+            timestamp: new Date()
+          }))
+        });
       }
-    }, {
-      maxWait: 10000,
-      timeout: 30000
     });
     
-    // Update metadata - CRITICAL: For update uploads, we count only NEWLY CREATED fees
     stats.metadata = {
-      oldDeactivated: stats.deleted,
+      operation: 'new_upload',
+      targetForm: normalizedForm,
+      targetTerm: normalizedTerm,
+      targetYear: normalizedYear,
       newInserted: stats.created,
-      updatedExisting: stats.updated,
+      duplicatesSkipped: stats.skippedDuplicates,
       totalProcessed: stats.validRows,
-      fileDuplicates: stats.skippedRows,
-      validationErrors: stats.errorRows,
-      // This is important for statistics calculation:
-      netChangeInRecords: stats.created - stats.deleted, // Negative means fewer records
-      isUpdateUpload: true
+      timestamp: new Date().toISOString()
     };
     
-    console.log('\n📊 TRUE OVERWRITE STATISTICS:', {
-      oldDeactivated: stats.deleted,
-      newInserted: stats.created,
-      updatedExisting: stats.updated,
-      valid: stats.validRows,
-      skipped: stats.skippedRows,
-      errors: stats.errorRows,
-      netChange: stats.created - stats.deleted
-    });
+    console.log('\n📊 NEW UPLOAD COMPLETE:', stats.metadata);
     
     return stats;
     
   } catch (error) {
-    console.error('❌ Transaction error:', error);
-    
-    if (error.code === 'P2002') {
-      throw new Error('Duplicate fee entries detected. Each student can only have one fee record per form/term/academic year.');
-    }
-    
+    console.error('New upload error:', error);
     throw error;
   }
 };
-
 
 // ========== API ENDPOINTS ==========
 
@@ -1292,104 +1461,102 @@ export async function GET(request) {
         }
       });
     }
-
-    if (action === 'stats') {
-      // Build WHERE clause for stats (only active records)
-      const statsWhere = buildFeeWhereClause({
-        form, term, academicYear, paymentStatus, search,
-        showInactive: false, // Stats only count active records
-        showAll: false
-      });
-      
-      // Calculate statistics by form - ONLY ACTIVE RECORDS
-      const forms = ['Form 1', 'Form 2', 'Form 3', 'Form 4'];
-      const statsByForm = {};
-      
-      for (const formName of forms) {
-        const formWhere = {
-          ...statsWhere,
-          form: formName,
-          isActive: true
-        };
-        
-        // Query only active fees for this form
-        const fees = await prisma.feeBalance.findMany({
-          where: formWhere,
-          include: {
-            student: {
-              select: {
-                firstName: true,
-                lastName: true,
-                admissionNumber: true
-              }
-            }
-          }
-        });
-        
-        statsByForm[formName] = {
-          totalRecords: fees.length,
-          totalAmount: fees.reduce((sum, fee) => sum + (fee.amount || 0), 0),
-          totalPaid: fees.reduce((sum, fee) => sum + (fee.amountPaid || 0), 0),
-          totalBalance: fees.reduce((sum, fee) => sum + (fee.balance || 0), 0),
-          paidCount: fees.filter(f => f.paymentStatus === 'paid').length,
-          partialCount: fees.filter(f => f.paymentStatus === 'partial').length,
-          pendingCount: fees.filter(f => f.paymentStatus === 'pending').length,
-          // Additional metrics
-          averageAmount: fees.length > 0 ? 
-            fees.reduce((sum, fee) => sum + (fee.amount || 0), 0) / fees.length : 0,
-          completionRate: fees.length > 0 ? 
-            (fees.filter(f => f.paymentStatus === 'paid').length / fees.length) * 100 : 0,
-          collectionRate: fees.reduce((sum, fee) => sum + (fee.amount || 0), 0) > 0 ?
-            (fees.reduce((sum, fee) => sum + (fee.amountPaid || 0), 0) / 
-             fees.reduce((sum, fee) => sum + (fee.amount || 0), 0)) * 100 : 0
-        };
-      }
-      
-      // Overall statistics - ONLY ACTIVE
-      const overallWhere = {
-        ...statsWhere,
-        isActive: true
-      };
-      
-      const allFees = await prisma.feeBalance.findMany({
-        where: overallWhere
-      });
-      
-      const overallStats = {
-        totalRecords: allFees.length,
-        totalAmount: allFees.reduce((sum, fee) => sum + (fee.amount || 0), 0),
-        totalPaid: allFees.reduce((sum, fee) => sum + (fee.amountPaid || 0), 0),
-        totalBalance: allFees.reduce((sum, fee) => sum + (fee.balance || 0), 0),
-        paidCount: allFees.filter(f => f.paymentStatus === 'paid').length,
-        partialCount: allFees.filter(f => f.paymentStatus === 'partial').length,
-        pendingCount: allFees.filter(f => f.paymentStatus === 'pending').length,
-        forms: statsByForm,
-        // Additional overall metrics
-        averageFeeAmount: allFees.length > 0 ? 
-          allFees.reduce((sum, fee) => sum + (fee.amount || 0), 0) / allFees.length : 0,
-        overallCompletionRate: allFees.length > 0 ? 
-          (allFees.filter(f => f.paymentStatus === 'paid').length / allFees.length) * 100 : 0,
-        totalExpectedRevenue: allFees.reduce((sum, fee) => sum + (fee.amount || 0), 0),
-        totalCollectedRevenue: allFees.reduce((sum, fee) => sum + (fee.amountPaid || 0), 0),
-        collectionRate: allFees.reduce((sum, fee) => sum + (fee.amount || 0), 0) > 0 ?
-          (allFees.reduce((sum, fee) => sum + (fee.amountPaid || 0), 0) / 
-           allFees.reduce((sum, fee) => sum + (fee.amount || 0), 0)) * 100 : 0,
-        // Active vs Inactive counts
-        activeCount: allFees.length,
-        inactiveCount: await prisma.feeBalance.count({
-          where: { ...statsWhere, isActive: false }
-        })
-      };
-      
-      return NextResponse.json({
-        success: true,
-        data: {
-          stats: overallStats,
-          filters: { form, term, academicYear, paymentStatus, search },
-          timestamp: new Date().toISOString()
+if (action === 'stats') {
+  // Get current academic year
+  const currentYear = new Date().getFullYear();
+  const currentAcademicYear = `${currentYear}/${currentYear + 1}`;
+  
+  // Build WHERE clause for active records only
+  const statsWhere = {
+    isActive: true,
+    ...(form && { form }),
+    ...(term && { term }),
+    ...(academicYear && { academicYear }),
+    ...(paymentStatus && { paymentStatus })
+  };
+  
+  // Get ALL active fees (for accurate statistics)
+  const allActiveFees = await prisma.feeBalance.findMany({
+    where: statsWhere,
+    include: {
+      student: {
+        select: {
+          firstName: true,
+          lastName: true,
+          form: true
         }
-      });
+      }
     }
+  });
+  
+  // Calculate comprehensive statistics
+  const forms = ['Form 1', 'Form 2', 'Form 3', 'Form 4'];
+  const statsByForm = {};
+  
+  forms.forEach(formName => {
+    const formFees = allActiveFees.filter(fee => fee.form === formName);
+    const totalAmount = formFees.reduce((sum, fee) => sum + (fee.amount || 0), 0);
+    const totalPaid = formFees.reduce((sum, fee) => sum + (fee.amountPaid || 0), 0);
+    const totalBalance = formFees.reduce((sum, fee) => sum + (fee.balance || 0), 0);
+    
+    statsByForm[formName] = {
+      count: formFees.length,
+      totalAmount,
+      totalPaid,
+      totalBalance,
+      paidCount: formFees.filter(f => f.paymentStatus === 'paid').length,
+      partialCount: formFees.filter(f => f.paymentStatus === 'partial').length,
+      pendingCount: formFees.filter(f => f.paymentStatus === 'pending').length,
+      collectionRate: totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0,
+      averageFee: formFees.length > 0 ? totalAmount / formFees.length : 0
+    };
+  });
+  
+  // Overall statistics
+  const totalRecords = allActiveFees.length;
+  const totalAmount = allActiveFees.reduce((sum, fee) => sum + (fee.amount || 0), 0);
+  const totalPaid = allActiveFees.reduce((sum, fee) => sum + (fee.amountPaid || 0), 0);
+  const totalBalance = allActiveFees.reduce((sum, fee) => sum + (fee.balance || 0), 0);
+  
+  const overallStats = {
+    totalRecords,
+    totalAmount,
+    totalPaid,
+    totalBalance,
+    paidCount: allActiveFees.filter(f => f.paymentStatus === 'paid').length,
+    partialCount: allActiveFees.filter(f => f.paymentStatus === 'partial').length,
+    pendingCount: allActiveFees.filter(f => f.paymentStatus === 'pending').length,
+    collectionRate: totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0,
+    averageFeePerStudent: totalRecords > 0 ? totalAmount / totalRecords : 0,
+    forms: statsByForm,
+    
+    // Active/Inactive counts
+    activeCount: await prisma.feeBalance.count({ where: { isActive: true } }),
+    inactiveCount: await prisma.feeBalance.count({ where: { isActive: false } }),
+    
+    // Current academic year focus
+    currentAcademicYear: {
+      year: currentAcademicYear,
+      count: allActiveFees.filter(f => f.academicYear === currentAcademicYear).length,
+      amount: allActiveFees
+        .filter(f => f.academicYear === currentAcademicYear)
+        .reduce((sum, fee) => sum + (fee.amount || 0), 0),
+      paid: allActiveFees
+        .filter(f => f.academicYear === currentAcademicYear)
+        .reduce((sum, fee) => sum + (fee.amountPaid || 0), 0)
+    }
+  };
+  
+  return NextResponse.json({
+    success: true,
+    data: {
+      stats: overallStats,
+      filters: { form, term, academicYear, paymentStatus },
+      generatedAt: new Date().toISOString(),
+      note: 'Statistics reflect only active fee records (isActive: true)'
+    }
+  });
+}
 
     if (action === 'inactive-fees') {
       // Special endpoint to view inactive fees (audit trail)

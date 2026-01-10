@@ -621,21 +621,21 @@ model FeeBalance {
   form            String
   term            String
   academicYear    String
-  amount          Float     @default(0)
-  amountPaid      Float     @default(0)
-  balance         Float     @default(0)
-  paymentStatus   String    @default("pending")
+  amount          Float           @default(0)
+  amountPaid      Float           @default(0)
+  balance         Float           @default(0)
+  paymentStatus   String          @default("pending")
   dueDate         DateTime?
-  
+
   // Audit fields
-  isActive        Boolean   @default(true)  // <-- ADD THIS instead of status
-  uploadBatchId   String?
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  uploadBatch     FeeBalanceUpload? @relation("UploadToFeeBalances", fields: [uploadBatchId], references: [id], onDelete: Cascade)
-  
+  isActive      Boolean @default(true) // <-- ADD THIS instead of status
+  uploadBatchId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  uploadBatch FeeBalanceUpload? @relation("UploadToFeeBalances", fields: [uploadBatchId], references: [id], onDelete: Cascade)
+
   @@unique([admissionNumber, form, term, academicYear])
   @@index([admissionNumber])
   @@index([form, term, academicYear])
@@ -643,30 +643,30 @@ model FeeBalance {
 }
 
 model FeeBalanceUpload {
-  id             String   @id @default(cuid())
-  fileName       String
-  fileType       String
-  uploadedBy     String
-  uploadDate     DateTime @default(now())
-  status         String   // processing, completed, failed
-  processedDate  DateTime?
-  
+  id            String    @id @default(cuid())
+  fileName      String
+  fileType      String
+  uploadedBy    String
+  uploadDate    DateTime  @default(now())
+  status        String // processing, completed, failed
+  processedDate DateTime?
+
   // Upload parameters
-  targetForm     String
-  term           String?
-  academicYear   String?
-  uploadType     String   // new, update
-  
+  targetForm   String
+  term         String?
+  academicYear String?
+  uploadType   String // new, update
+
   // Statistics
-  totalRows      Int
-  validRows      Int
-  skippedRows    Int
-  errorRows      Int
-  errorLog       String?
-  metadata       Json?
-  
-  feeBalances    FeeBalance[] @relation("UploadToFeeBalances")
-  
+  totalRows   Int
+  validRows   Int
+  skippedRows Int
+  errorRows   Int
+  errorLog    String?
+  metadata    Json?
+
+  feeBalances FeeBalance[] @relation("UploadToFeeBalances")
+
   @@map("fee_balance_uploads")
 }
 
@@ -726,4 +726,77 @@ model ResultsStats {
   gradeDistribution  Json // Store JSON of grade distribution
   subjectPerformance Json // Store JSON of subject averages
   updatedAt          DateTime @updatedAt
+}
+
+// Add these models to your schema:
+
+model FeeBalanceAuditLog {
+  id              String   @id @default(cuid())
+  action          String // REPLACE_DELETE, CREATE, UPDATE, DELETE
+  feeId           String?
+  admissionNumber String
+  form            String
+  term            String
+  academicYear    String
+  oldAmount       Float?
+  oldAmountPaid   Float?
+  newAmount       Float?
+  newAmountPaid   Float?
+  uploadBatchId   String?
+  timestamp       DateTime @default(now())
+
+  @@index([admissionNumber])
+  @@index([uploadBatchId])
+  @@index([timestamp])
+  @@map("fee_balance_audit_logs")
+}
+
+model BatchDeletionLog {
+  id             String   @id @default(cuid())
+  batchId        String // The upload batch that caused deletion
+  entityType     String // 'FeeBalance' or 'Student'
+  form           String?
+  term           String?
+  academicYear   String?
+  deletedCount   Int
+  deletionReason String // 'replace_upload', 'manual_deletion', 'cleanup'
+  deletedAt      DateTime @default(now())
+
+  @@index([batchId])
+  @@index([entityType])
+  @@index([deletedAt])
+  @@map("batch_deletion_logs")
+}
+
+// Add this to your existing schema.prisma
+// ===================== Guidance & Counselling Teams (MySQL) =====================
+// SIMPLE Schema - Just one table for all team members
+model TeamMember {
+  id        Int      @id @default(autoincrement())
+  name      String
+  role      String // "patron", "matron", "teacher", "assistant"
+  title     String?
+  phone     String?
+  email     String?
+  bio       String?  @db.Text
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Optional: if you want to group members into teams
+  teamId Int?
+  team   Team? @relation(fields: [teamId], references: [id])
+
+  @@map("team_members")
+}
+
+// Optional team grouping
+model Team {
+  id        Int          @id @default(autoincrement())
+  name      String
+  members   TeamMember[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("teams")
 }

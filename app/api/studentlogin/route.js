@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { prisma } from '@/libs/prisma';
+import { prisma } from '../../../libs/prisma';
 
 // Constants
 const JWT_SECRET = process.env.JWT_SECRET || 'nyaribu-student-secret-key-2024';
@@ -82,8 +82,7 @@ const validateStudentCredentials = async (fullName, admissionNumber) => {
     // Find student by admission number
     const student = await prisma.databaseStudent.findUnique({
       where: { 
-        admissionNumber: cleanAdmissionNumber,
-        status: 'active'
+        admissionNumber: cleanAdmissionNumber
       }
     });
 
@@ -91,6 +90,15 @@ const validateStudentCredentials = async (fullName, admissionNumber) => {
       return { 
         success: false, 
         error: 'Student not found with this admission number. Please contact your class teacher or the school administrator/secretary to add or confirm your records.',
+        requiresContact: true 
+      };
+    }
+
+    // Check if student is active
+    if (student.status !== 'active') {
+      return { 
+        success: false, 
+        error: 'Student account is not active. Please contact your class teacher or the school administrator/secretary.',
         requiresContact: true 
       };
     }

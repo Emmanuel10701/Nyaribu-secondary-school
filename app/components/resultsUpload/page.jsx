@@ -3167,42 +3167,14 @@ const handleStrategyConfirm = (strategy) => {
     setSelectedStudent(student);
     setEditingResult(result);
   };
+const downloadCSVTemplate = () => {
+  window.location.href = "/csv/form_1_results.csv";
+};
 
-  const downloadCSVTemplate = () => {
-    const template = `admissionNumber,form,stream,term,academicYear,totalScore,averageScore,overallGrade,overallRemark,totalPoints,classPosition,examType,uploadDate,status,English_Score,English_Grade,English_Points,English_Comment,Kiswahili_Score,Kiswahili_Grade,Kiswahili_Points,Kiswahili_Comment,Mathematics_Score,Mathematics_Grade,Mathematics_Points,Mathematics_Comment,Biology_Score,Biology_Grade,Biology_Points,Biology_Comment,Chemistry_Score,Chemistry_Grade,Chemistry_Points,Chemistry_Comment,Physics_Score,Physics_Grade,Physics_Points,Physics_Comment,History_Score,History_Grade,History_Points,History_Comment,Geography_Score,Geography_Grade,Geography_Points,Geography_Comment,CRE_Score,CRE_Grade,CRE_Points,CRE_Comment,Business Studies_Score,Business Studies_Grade,Business Studies_Points,Business Studies_Comment,Agriculture_Score,Agriculture_Grade,Agriculture_Points,Agriculture_Comment,Computer Studies_Score,Computer Studies_Grade,Computer Studies_Points,Computer Studies_Comment
-3000,Form 1,A,Term 1,2024/2025,876,73,A-,Very Good. Aim higher,130,22,End Term,12/31/2025,active,83,A,12,,66,B+,10,,65,B+,10,,64,B+,10,,87,A,12,,68,B+,10,,73,A-,11,,61,B+,10,,72,A-,11,,89,A,12,,71,A-,11,,77,A-,11,
-3001,Form 1,B,Term 1,2024/2025,951,79.2,A-,Very Good. Aim higher,135,10,End Term,12/31/2025,active,85,A,12,,76,A-,11,,77,A-,11,,84,A,12,,84,A,12,,85,A,12,,74,A-,11,,67,B+,10,,98,A,12,,68,B+,10,,76,A-,11,,77,A-,11,`;
+const downloadExcelTemplate = () => {
+  window.location.href = "/excel/form_1_results.xlsx";
+};
 
-    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'results_template.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showNotification('CSV template downloaded', 'success');
-  };
-
-  const downloadExcelTemplate = () => {
-    try {
-      const sampleData = [
-        ['admissionNumber', 'form', 'term', 'academicYear', 'Mathematics', 'English', 'Kiswahili'],
-        ['3407', 'Form 1', 'Term 1', '2024/2025', '85', '78', '82'],
-        ['3408', 'Form 2', 'Term 1', '2024/2025', '88', '82', '85']
-      ];
-
-      const ws = XLSX.utils.aoa_to_sheet(sampleData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Academic Results");
-      XLSX.writeFile(wb, 'results_template.xlsx');
-      showNotification('Excel template downloaded', 'success');
-    } catch (error) {
-      console.error('Error downloading Excel template:', error);
-      showNotification('Failed to download template', 'error');
-    }
-  };
 
   const exportResultsToCSV = () => {
     const validResults = studentResults.filter(result => result.student);

@@ -2554,43 +2554,14 @@ export default function ModernStudentBulkUpload() {
     }
   };
 
-  const downloadCSVTemplate = () => {
-    const template = `admissionNumber,firstName,middleName,lastName,form,stream,dateOfBirth,gender,parentPhone,email,address,status
-3407,John,Michael,Doe,Form 1,A,2008-05-15,Male,+254712345678,john.doe@example.com,123 Main St,active
-3408,Jane,,Smith,Form 2,B,2007-08-22,Female,+254723456789,jane.smith@example.com,456 Oak Ave,active
-3409,Robert,James,Wilson,Form 3,C,2006-11-30,Male,+254734567890,robert.wilson@example.com,789 Pine Rd,active
-3410,Sarah,Anne,Johnson,Form 4,D,2005-03-10,Female,+254745678901,sarah.johnson@example.com,321 Elm St,active`;
+ const downloadCSVTemplate = () => {
+  window.location.href = "/csv/form_1_students.csv";
+};
 
-    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'student_template.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    sooner.success('CSV template downloaded');
-  };
+const downloadExcelTemplate = () => {
+  window.location.href = "/excel/form_1_students.xlsx";
+};
 
-  const downloadExcelTemplate = () => {
-    try {
-      const sampleData = [
-        ['admissionNumber', 'firstName', 'middleName', 'lastName', 'form', 'stream', 'dateOfBirth', 'gender', 'parentPhone', 'email', 'address', 'status'],
-        ['3407', 'John', 'Michael', 'Doe', 'Form 1', 'A', '2008-05-15', 'Male', '+254712345678', 'john.doe@example.com', '123 Main St', 'active'],
-        ['3408', 'Jane', '', 'Smith', 'Form 2', 'B', '2007-08-22', 'Female', '+254723456789', 'jane.smith@example.com', '456 Oak Ave', 'active']
-      ];
-
-      const ws = XLSX.utils.aoa_to_sheet(sampleData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Students");
-      XLSX.writeFile(wb, 'student_template.xlsx');
-      sooner.success('Excel template downloaded');
-    } catch (error) {
-      console.error('Error downloading Excel template:', error);
-      sooner.error('Failed to download template');
-    }
-  };
 
   const exportStudentsToCSV = () => {
     if (students.length === 0) {
