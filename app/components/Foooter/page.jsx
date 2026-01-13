@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import {
   FiMapPin,
   FiPhone,
@@ -19,7 +20,8 @@ import {
   FiGlobe,
   FiLock,
   FiEye,
-  FiDownload
+  FiDownload,
+  FiBell
 } from 'react-icons/fi';
 import {
   IoLogoWhatsapp,
@@ -136,7 +138,7 @@ const handleSubscribe = async (e) => {
       body: JSON.stringify({
         email: email.trim(),
         subscribedAt: new Date().toISOString(),
-        source: 'guidance-portal' // You can customize this
+        source: 'guidance-portal'
       }),
     });
     
@@ -145,9 +147,8 @@ const handleSubscribe = async (e) => {
     if (data.success) {
       // Success
       setShowSuccess(true);
-      setEmail(''); // Clear the input
+      setEmail('');
       
-      // Hide success message after 5 seconds
       setTimeout(() => {
         setShowSuccess(false);
       }, 5000);
@@ -412,7 +413,7 @@ const isValidEmail = (email) => {
           ) : (
             <>
               <FiCheckCircle className="text-lg" />
-              Subscribe Now
+              Subscribe 
             </>
           )}
         </span>

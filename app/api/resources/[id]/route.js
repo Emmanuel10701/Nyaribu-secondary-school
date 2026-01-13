@@ -25,8 +25,26 @@ const uploadFile = async (file, uploadDir) => {
     url: `/resources/${fileName}`,
     name: file.name,
     size: formatFileSize(file.size),
-    extension: file.name.split('.').pop().toLowerCase()
+    extension: file.name.split('.').pop().toLowerCase(),
+    uploadedAt: new Date().toISOString()
   };
+};
+
+const uploadMultipleFiles = async (files, uploadDir) => {
+  if (!files || files.length === 0) return [];
+  
+  const uploadedFiles = [];
+  
+  for (const file of files) {
+    if (file && file.name) {
+      const fileData = await uploadFile(file, uploadDir);
+      if (fileData) {
+        uploadedFiles.push(fileData);
+      }
+    }
+  }
+  
+  return uploadedFiles;
 };
 
 const formatFileSize = (bytes) => {
@@ -51,6 +69,25 @@ const getFileType = (fileName) => {
   };
   
   return typeMap[ext] || 'document';
+};
+
+const determineMainTypeFromFiles = (files) => {
+  if (!files || files.length === 0) return 'document';
+  
+  const types = files.map(file => getFileType(file.name));
+  
+  // Count occurrences
+  const typeCount = {};
+  types.forEach(type => {
+    typeCount[type] = (typeCount[type] || 0) + 1;
+  });
+  
+  // Return most common type
+  const mostCommon = Object.keys(typeCount).reduce((a, b) => 
+    typeCount[a] > typeCount[b] ? a : b
+  );
+  
+  return mostCommon;
 };
 
 // 🔹 GET — Get single resource by ID
@@ -120,7 +157,7 @@ export async function PUT(request, { params }) {
     const contentType = request.headers.get("content-type") || "";
     
     if (contentType.includes("multipart/form-data")) {
-      return await handleFileUpdate(request, id, existingResource);
+      return await handleFormUpdate(request, id, existingResource);
     } else {
       return await handleJsonUpdate(request, id);
     }
@@ -146,7 +183,7 @@ async function handleJsonUpdate(request, id) {
   const body = await request.json();
   
   // Remove fields that shouldn't be updated
-  const { id: _, createdAt, downloads, ...updateData } = body;
+  const { id: _, createdAt, downloads, files, ...updateData } = body;
   
   // Update resource
   const resource = await prisma.resource.update({
@@ -167,67 +204,85 @@ async function handleJsonUpdate(request, id) {
   );
 }
 
-// Handle file update with new file upload
-async function handleFileUpdate(request, id, existingResource) {
+// Handle form update with file operations
+async function handleFormUpdate(request, id, existingResource) {
   const formData = await request.formData();
+  const action = formData.get("action") || "update"; // "addFiles", "removeFile", "update"
   
-  // Extract fields from FormData
-  const title = formData.get("title")?.trim() || existingResource.title;
-  const subject = formData.get("subject")?.trim() || existingResource.subject;
-  const className = formData.get("className")?.trim() || existingResource.className; // ADDED
-  const description = formData.get("description")?.trim() || existingResource.description;
-  const category = formData.get("category")?.trim() || existingResource.category;
-  const accessLevel = formData.get("accessLevel")?.trim() || existingResource.accessLevel;
-  const uploadedBy = formData.get("uploadedBy")?.trim() || existingResource.uploadedBy;
-  const gradeLevel = formData.get("gradeLevel")?.trim() || existingResource.gradeLevel;
-  const isActive = formData.get("isActive") || existingResource.isActive.toString();
-  const teacher = formData.get("teacher")?.trim() || existingResource.teacher;
+  let updateData = {};
+  let uploadedFiles = [...(existingResource.files || [])];
   
-  // Handle file upload if provided
-  const file = formData.get("file");
-  let updateData = {
-    title,
-    subject,
-    className, // ADDED
-    description,
-    category,
-    accessLevel,
-    uploadedBy,
-    teacher,
-    gradeLevel,
-    isActive: isActive === "true",
-    updatedAt: new Date(),
-  };
-
-  if (file && file.name) {
-    // Delete old file
-    try {
-      const oldFilePath = path.join(process.cwd(), 'public', existingResource.fileUrl);
-      if (fs.existsSync(oldFilePath)) {
-        await unlink(oldFilePath);
+  switch (action) {
+    case "addFiles":
+      // Add new files
+      const newFiles = formData.getAll("files");
+      if (newFiles && newFiles.length > 0 && newFiles[0].name) {
+        const uploadDir = path.join(process.cwd(), "public/resources");
+        ensureUploadDir(uploadDir);
+        
+        const uploadedNewFiles = await uploadMultipleFiles(newFiles, uploadDir);
+        uploadedFiles = [...uploadedFiles, ...uploadedNewFiles];
+        
+        // Update type based on all files
+        const allFileNames = [...uploadedFiles.map(f => f.name)];
+        const newMainType = determineMainTypeFromFiles(allFileNames);
+        updateData.type = newMainType;
       }
-    } catch (fileError) {
-      console.warn("Could not delete old file:", fileError.message);
-    }
-
-    // Upload new file
-    const uploadDir = path.join(process.cwd(), "public/resources");
-    ensureUploadDir(uploadDir);
-    
-    const fileData = await uploadFile(file, uploadDir);
-    if (fileData) {
-      const fileType = getFileType(fileData.name);
-      updateData = {
-        ...updateData,
-        type: fileType,
-        fileUrl: fileData.url,
-        fileName: fileData.name,
-        fileSize: fileData.size,
-        extension: fileData.extension,
-      };
-    }
+      break;
+      
+    case "removeFile":
+      // Remove specific file
+      const fileNameToRemove = formData.get("fileName");
+      if (fileNameToRemove) {
+        // Find the file to remove
+        const fileToRemove = uploadedFiles.find(f => f.name === fileNameToRemove);
+        if (fileToRemove) {
+          // Delete physical file
+          const filePath = path.join(process.cwd(), "public/resources", 
+            path.basename(fileToRemove.url));
+          if (fs.existsSync(filePath)) {
+            await unlink(filePath);
+          }
+          
+          // Remove from array
+          uploadedFiles = uploadedFiles.filter(f => f.name !== fileNameToRemove);
+        }
+      }
+      break;
+      
+    case "update":
+    default:
+      // Update basic fields
+      const title = formData.get("title")?.trim();
+      const subject = formData.get("subject")?.trim();
+      const className = formData.get("className")?.trim();
+      const teacher = formData.get("teacher")?.trim();
+      const description = formData.get("description")?.trim();
+      const category = formData.get("category")?.trim();
+      const accessLevel = formData.get("accessLevel")?.trim();
+      const uploadedBy = formData.get("uploadedBy")?.trim();
+      const isActive = formData.get("isActive");
+      
+      if (title) updateData.title = title;
+      if (subject) updateData.subject = subject;
+      if (className) updateData.className = className;
+      if (teacher) updateData.teacher = teacher;
+      if (description) updateData.description = description;
+      if (category) updateData.category = category;
+      if (accessLevel) updateData.accessLevel = accessLevel;
+      if (uploadedBy) updateData.uploadedBy = uploadedBy;
+      if (isActive !== null) updateData.isActive = isActive === "true";
+      break;
   }
-
+  
+  // Always update files if modified
+  if (action === "addFiles" || action === "removeFile") {
+    updateData.files = uploadedFiles;
+  }
+  
+  // Add updated timestamp
+  updateData.updatedAt = new Date();
+  
   // Update resource in database
   const resource = await prisma.resource.update({
     where: { id: parseInt(id) },
@@ -237,11 +292,22 @@ async function handleFileUpdate(request, id, existingResource) {
   return NextResponse.json(
     {
       success: true,
-      message: file && file.name ? "Resource and file updated successfully" : "Resource updated successfully",
+      message: getUpdateMessage(action, uploadedFiles.length),
       resource,
     },
     { status: 200 }
   );
+}
+
+function getUpdateMessage(action, fileCount) {
+  switch (action) {
+    case "addFiles":
+      return `Added ${fileCount} file(s) to resource`;
+    case "removeFile":
+      return "File removed from resource";
+    default:
+      return "Resource updated successfully";
+  }
 }
 
 // 🔹 DELETE — Delete a resource
@@ -256,7 +322,7 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Get resource first to delete the file
+    // Get resource first to delete files
     const resource = await prisma.resource.findUnique({
       where: { id: parseInt(id) },
     });
@@ -268,14 +334,20 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Delete the file from storage
+    // Delete all associated files from storage
     try {
-      const filePath = path.join(process.cwd(), 'public', resource.fileUrl);
-      if (fs.existsSync(filePath)) {
-        await unlink(filePath);
+      if (resource.files && Array.isArray(resource.files)) {
+        for (const file of resource.files) {
+          if (file.url) {
+            const filePath = path.join(process.cwd(), 'public', file.url);
+            if (fs.existsSync(filePath)) {
+              await unlink(filePath);
+            }
+          }
+        }
       }
     } catch (fileError) {
-      console.warn("Could not delete file:", fileError.message);
+      console.warn("Could not delete some files:", fileError.message);
     }
 
     // Delete from database
@@ -286,7 +358,7 @@ export async function DELETE(request, { params }) {
     return NextResponse.json(
       {
         success: true,
-        message: "Resource deleted successfully",
+        message: "Resource and all associated files deleted successfully",
       },
       { status: 200 }
     );

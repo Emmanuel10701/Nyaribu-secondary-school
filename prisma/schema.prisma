@@ -76,20 +76,16 @@ model Assignment {
 
 model Resource {
   id          Int      @id @default(autoincrement())
-  title       String   @db.VarChar(255)
+  title       String   @db.VarChar(400)
   subject     String   @db.VarChar(100)
-  teacher     String   @db.VarChar(100) 
+  teacher     String   @db.VarChar(100)
   className   String   @db.VarChar(50)
   description String?  @db.Text
   category    String   @default("general") @db.VarChar(100)
   type        String   @default("document") @db.VarChar(50)
-  fileUrl     String   @db.VarChar(500)
-  fileName    String   @db.VarChar(255)
-  fileSize    String   @db.VarChar(50)
-  extension   String   @db.VarChar(20)
+  files       Json // Array of file objects (like assignmentFiles)
   accessLevel String   @default("student") @db.VarChar(20)
   uploadedBy  String   @default("System") @db.VarChar(100)
-  gradeLevel  String?  @db.VarChar(50)
   downloads   Int      @default(0)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -100,7 +96,6 @@ model Resource {
   @@index([category])
   @@index([type])
   @@index([accessLevel])
-  @@index([gradeLevel])
   @@index([createdAt])
   @@map("resources")
 }

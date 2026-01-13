@@ -191,7 +191,6 @@ function ModernStudentHeader({
 
 
 
-const router = useRouter();
   return (
     <>
       <style jsx global>{responsiveStyles}</style>
@@ -519,6 +518,9 @@ export default function ModernStudentPortalPage() {
   const [currentView, setCurrentView] = useState('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+const router = useRouter();
+
 
   // Data State
   const [assignments, setAssignments] = useState([]);

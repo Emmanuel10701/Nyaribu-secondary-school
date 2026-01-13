@@ -25,8 +25,26 @@ const uploadFile = async (file, uploadDir) => {
     url: `/resources/${fileName}`,
     name: file.name,
     size: formatFileSize(file.size),
-    extension: file.name.split('.').pop().toLowerCase()
+    extension: file.name.split('.').pop().toLowerCase(),
+    uploadedAt: new Date().toISOString()
   };
+};
+
+const uploadMultipleFiles = async (files, uploadDir) => {
+  if (!files || files.length === 0) return [];
+  
+  const uploadedFiles = [];
+  
+  for (const file of files) {
+    if (file && file.name) {
+      const fileData = await uploadFile(file, uploadDir);
+      if (fileData) {
+        uploadedFiles.push(fileData);
+      }
+    }
+  }
+  
+  return uploadedFiles;
 };
 
 const formatFileSize = (bytes) => {
@@ -41,34 +59,40 @@ const getFileType = (fileName) => {
   const ext = fileName.split('.').pop().toLowerCase();
   
   const typeMap = {
-    // Documents
     pdf: 'pdf',
     doc: 'document', docx: 'document',
-    txt: 'document', rtf: 'document',
-    
-    // Presentations
+    txt: 'document',
     ppt: 'presentation', pptx: 'presentation',
-    
-    // Spreadsheets
     xls: 'spreadsheet', xlsx: 'spreadsheet', csv: 'spreadsheet',
-    
-    // Images
     jpg: 'image', jpeg: 'image', png: 'image', gif: 'image',
-    bmp: 'image', svg: 'image', webp: 'image',
-    
-    // Videos
-    mp4: 'video', mov: 'video', avi: 'video', mkv: 'video', webm: 'video',
-    
-    // Audio
-    mp3: 'audio', wav: 'audio', ogg: 'audio', m4a: 'audio',
-    
-    // Archives
-    zip: 'archive', rar: 'archive', '7z': 'archive', tar: 'archive', gz: 'archive'
+    mp4: 'video', mov: 'video',
+    mp3: 'audio', wav: 'audio',
+    zip: 'archive', rar: 'archive'
   };
   
   return typeMap[ext] || 'document';
 };
 
+const determineMainTypeFromFiles = (files) => {
+  if (!files || files.length === 0) return 'document';
+  
+  const types = files.map(file => getFileType(file.name));
+  
+  // Count occurrences
+  const typeCount = {};
+  types.forEach(type => {
+    typeCount[type] = (typeCount[type] || 0) + 1;
+  });
+  
+  // Return most common type
+  const mostCommon = Object.keys(typeCount).reduce((a, b) => 
+    typeCount[a] > typeCount[b] ? a : b
+  );
+  
+  return mostCommon;
+};
+
+// 🔹 GET — Fetch all resources
 export async function GET(request) {
   try {
     const resources = await prisma.resource.findMany({
@@ -94,72 +118,70 @@ export async function GET(request) {
   }
 }
 
-// 🔹 POST — Create/Upload a new resource
+// 🔹 POST — Create resource with multiple files
 export async function POST(request) {
   try {
     const formData = await request.formData();
 
-    // Extract fields from FormData
+    // Extract fields
     const title = formData.get("title")?.trim() || "";
     const subject = formData.get("subject")?.trim() || "";
-    const className = formData.get("className")?.trim() || ""; // ADDED: Get class
+    const className = formData.get("className")?.trim() || "";
+    const teacher = formData.get("teacher")?.trim() || "";
     const description = formData.get("description")?.trim() || "";
     const category = formData.get("category")?.trim() || "general";
     const accessLevel = formData.get("accessLevel")?.trim() || "student";
     const uploadedBy = formData.get("uploadedBy")?.trim() || "System";
-    const gradeLevel = formData.get("gradeLevel")?.trim() || null;
     const isActive = formData.get("isActive") !== "false";
-    const teacher = formData.get("teacher")?.trim() || "";
 
     // Validate required fields
-    if (!title || !subject || !className) { // ADDED: Validate class
+    if (!title || !subject || !className || !teacher) {
       return NextResponse.json(
-        { success: false, error: "Title, subject, and class are required" },
+        { success: false, error: "Title, subject, class, and teacher are required" },
         { status: 400 }
       );
     }
 
-    // Handle file upload
-    const file = formData.get("file");
-    if (!file || !file.name) {
+    // Get multiple files - use "files" as the field name
+    const files = formData.getAll("files");
+    
+    // Validate files
+    if (!files || files.length === 0 || (files.length === 1 && !files[0].name)) {
       return NextResponse.json(
-        { success: false, error: "File is required" },
+        { success: false, error: "At least one file is required" },
         { status: 400 }
       );
     }
 
-    // Upload file
+    // Upload directory
     const uploadDir = path.join(process.cwd(), "public/resources");
     ensureUploadDir(uploadDir);
     
-    const fileData = await uploadFile(file, uploadDir);
-    if (!fileData) {
+    // Upload all files
+    const uploadedFiles = await uploadMultipleFiles(files, uploadDir);
+    if (uploadedFiles.length === 0) {
       return NextResponse.json(
-        { success: false, error: "Failed to upload file" },
+        { success: false, error: "Failed to upload files" },
         { status: 500 }
       );
     }
 
-    // Determine file type
-    const fileType = getFileType(fileData.name);
+    // Determine main type
+    const mainType = determineMainTypeFromFiles(files);
 
-    // Create resource in database
+    // Create resource with multiple files
     const resource = await prisma.resource.create({
       data: {
         title,
         subject,
-        className, // ADDED: Include class
+        className,
+        teacher,
         description,
         category,
-        type: fileType,
-        fileUrl: fileData.url,
-        fileName: fileData.name,
-        fileSize: fileData.size,
-        extension: fileData.extension,
+        type: mainType,
+        files: uploadedFiles, // Array of file objects
         accessLevel,
         uploadedBy,
-        teacher, // ADDED: Include teacher
-        gradeLevel,
         downloads: 0,
         isActive,
       },
@@ -168,7 +190,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         success: true,
-        message: "Resource uploaded successfully",
+        message: `Resource created with ${uploadedFiles.length} file(s)`,
         resource,
       },
       { status: 201 }
@@ -178,8 +200,7 @@ export async function POST(request) {
     return NextResponse.json(
       { 
         success: false, 
-        error: error.message,
-        details: "Please check your database connection and schema"
+        error: error.message
       },
       { status: 500 }
     );

@@ -43,7 +43,7 @@ import {
   FiTrendingUp,
   FiGlobe,
   FiCopy,
-  FiBell
+  FiBell,FiUserPlus 
 } from 'react-icons/fi';
 
 import {
@@ -397,94 +397,596 @@ const ModernCounselingCard = ({ session, onView, onBookmark, viewMode = 'grid' }
 };
 
 // Modern Support Team Card
-const ModernSupportTeamCard = ({ member, onContact }) => {
+const ModernSupportTeamCard = ({ member, onView, onContact, viewMode = 'grid' }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
 
   const getRoleStyle = (role) => {
     const styles = {
-      '24/7 Student Support': { gradient: 'from-emerald-500 to-green-500', icon: FiPhoneCall },
-      'Guidance Counselor': { gradient: 'from-blue-500 to-cyan-500', icon: FiUser },
-      '24/7 Guidance': { gradient: 'from-purple-500 to-pink-500', icon: FiShield }
+      'teacher': { 
+        gradient: 'from-blue-500 to-cyan-500', 
+        bg: 'bg-blue-50', 
+        text: 'text-blue-700',
+        border: 'border-blue-200',
+        iconBg: 'bg-blue-100',
+        iconColor: 'text-blue-600',
+        label: 'Teacher'
+      },
+      'matron': { 
+        gradient: 'from-purple-500 to-pink-500', 
+        bg: 'bg-purple-50', 
+        text: 'text-purple-700',
+        border: 'border-purple-200',
+        iconBg: 'bg-purple-100',
+        iconColor: 'text-purple-600',
+        label: 'Matron'
+      },
+      'patron': { 
+        gradient: 'from-emerald-500 to-green-500', 
+        bg: 'bg-emerald-50', 
+        text: 'text-emerald-700',
+        border: 'border-emerald-200',
+        iconBg: 'bg-emerald-100',
+        iconColor: 'text-emerald-600',
+        label: 'Patron'
+      },
+      'Guidance Teacher': { 
+        gradient: 'from-blue-500 to-cyan-500', 
+        bg: 'bg-blue-50', 
+        text: 'text-blue-700',
+        border: 'border-blue-200',
+        iconBg: 'bg-blue-100',
+        iconColor: 'text-blue-600',
+        label: 'Guidance Teacher'
+      },
+      'HOD Guidance and councelling teacher': { 
+        gradient: 'from-blue-500 to-cyan-500', 
+        bg: 'bg-blue-50', 
+        text: 'text-blue-700',
+        border: 'border-blue-200',
+        iconBg: 'bg-blue-100',
+        iconColor: 'text-blue-600',
+        label: 'HOD Guidance'
+      }
     };
-    return styles[role] || { gradient: 'from-slate-500 to-slate-600', icon: FiUser };
+    return styles[role] || { 
+      gradient: 'from-slate-500 to-slate-600', 
+      bg: 'bg-slate-50', 
+      text: 'text-slate-700',
+      border: 'border-slate-200',
+      iconBg: 'bg-slate-100',
+      iconColor: 'text-slate-600',
+      label: role || 'Team Member'
+    };
   };
 
   const roleStyle = getRoleStyle(member.role);
-  const Icon = roleStyle.icon;
+  
+  // Grid View (EXACTLY like the Event Card)
+  if (viewMode === 'grid') {
+    return (
+      <div 
+        onClick={() => onView(member)}
+        className="relative bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden cursor-pointer group"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* 1. Static Image Header - EXACTLY like Event Card */}
+        <div className="relative h-52 w-full shrink-0 overflow-hidden">
+          <img
+            src={member.image || '/default-avatar.jpg'}
+            alt={member.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+          
+          {/* Permanent Badges (Top Left) - EXACTLY like Event Card */}
+          <div className="absolute top-4 left-4 flex flex-col gap-2">
+            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm border backdrop-blur-sm ${roleStyle.bg} ${roleStyle.text} ${roleStyle.border}`}>
+              {roleStyle.label}
+            </span>
+            
+            {/* Priority Badge for Support Staff */}
+            {(member.role === 'teacher' || member.role === 'matron' || member.role === 'patron') && (
+              <span className="px-3 py-1 bg-emerald-500/90 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-sm border border-emerald-300/20">
+                <FiClock className="text-white" size={12} /> 24/7 Available
+              </span>
+            )}
+          </div>
 
+          {/* Bookmark Button (Top Right) - EXACTLY like Event Card */}
+          <div className="absolute top-4 right-4">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsBookmarked(!isBookmarked);
+                // You can add bookmark functionality for staff if needed
+              }}
+              className={`p-2.5 rounded-xl backdrop-blur-md border shadow-sm transition-all ${
+                isBookmarked 
+                  ? 'bg-amber-500 border-amber-500 text-white' 
+                  : 'bg-white/90 border-white/10 text-slate-700 hover:bg-white'
+              }`}
+            >
+              <FiUserPlus className={isBookmarked ? 'fill-current' : ''} size={16} />
+            </button>
+          </div>
+
+          {/* Staff Title (Bottom) */}
+          <div className="absolute bottom-0 inset-x-0 h-12 bg-gradient-to-t from-black/40 to-transparent flex items-end p-4">
+            <span className="text-[10px] font-bold text-white uppercase tracking-widest">
+              {member.title || roleStyle.label}
+            </span>
+          </div>
+        </div>
+
+        {/* 2. Content Area - EXACTLY like Event Card */}
+        <div className="p-6">
+          <h3 className="text-xl font-bold text-slate-900 mb-2 line-clamp-1 leading-tight">
+            {member.name}
+          </h3>
+          
+          <p className="text-slate-500 text-sm mb-6 line-clamp-2 leading-relaxed">
+            {member.bio || 'Dedicated professional providing guidance and support to students.'}
+          </p>
+
+          {/* 3. Bento-Style Info Grid - EXACTLY like Event Card */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {member.phone && (
+              <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50 border border-slate-100/50">
+                <div className={`p-1.5 rounded-lg ${roleStyle.iconBg}`}>
+                  <FiPhone className={`${roleStyle.iconColor}`} size={14} />
+                </div>
+                <span className="text-[11px] font-bold text-slate-700 uppercase tracking-tight truncate">
+                  {member.phone}
+                </span>
+              </div>
+            )}
+
+            {member.email && (
+              <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50 border border-slate-100/50">
+                <div className={`p-1.5 rounded-lg ${roleStyle.iconBg}`}>
+                  <FiMail className={`${roleStyle.iconColor}`} size={14} />
+                </div>
+                <span className="text-[11px] font-bold text-slate-700 uppercase tracking-tight truncate">
+                  Email
+                </span>
+              </div>
+            )}
+
+            <div className="col-span-2 flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50 border border-slate-100/50">
+              <div className={`p-1.5 rounded-lg ${roleStyle.iconBg}`}>
+                <FiUser className={`${roleStyle.iconColor}`} size={14} />
+              </div>
+              <span className="text-[11px] font-bold text-slate-700 uppercase tracking-tight truncate">
+                {member.role || 'Support Staff'}
+              </span>
+            </div>
+          </div>
+
+          {/* 4. Status Indicator */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${
+                (member.role === 'teacher' || member.role === 'matron' || member.role === 'patron') 
+                  ? 'bg-emerald-500 animate-pulse' 
+                  : 'bg-blue-500'
+              }`} />
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                {(member.role === 'teacher' || member.role === 'matron' || member.role === 'patron') 
+                  ? '24/7 Support' 
+                  : 'Available'}
+              </span>
+            </div>
+            
+            <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border bg-emerald-50 text-emerald-700 border-emerald-200`}>
+              Active
+            </div>
+          </div>
+
+          {/* 5. Final Action Button - EXACTLY like Event Card */}
+          <button 
+                 onClick={() => onView(member)}
+
+            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:shadow-lg"
+          >
+View profile    </button>
+        </div>
+      </div>
+    );
+  }
+
+  // List View (if needed, matches Event Card list view)
   return (
     <div 
-      className="relative bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onClick={() => onView(member)}
+      className="relative bg-white rounded-[24px] border border-slate-100 p-4 shadow-sm cursor-pointer transition-colors active:bg-slate-50"
     >
-      {/* 1. Hero Header */}
-      <div className={`relative h-32 bg-gradient-to-r ${roleStyle.gradient}`}>
-        {/* Abstract Pattern Overlay */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/20"></div>
-          <div className="absolute bottom-4 left-4 w-8 h-8 rounded-full bg-white/20"></div>
+      <div className="flex gap-5">
+        {/* Image Container */}
+        <div className="relative w-24 h-24 rounded-2xl overflow-hidden shrink-0 shadow-sm">
+          <img
+            src={member.image || '/default-avatar.jpg'}
+            alt={member.name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 ring-1 ring-inset ring-black/5 rounded-2xl"></div>
         </div>
 
-        {/* Role Badge */}
-        <div className="absolute top-4 left-4">
-          <span className="px-3 py-1 bg-white/20 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-widest border border-white/30">
-            {member.role.includes('24/7') ? 'Emergency' : 'Professional'}
-          </span>
-        </div>
+        {/* Content Area */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between">
+          <div>
+            {/* Metadata Row */}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${roleStyle.bg} ${roleStyle.text} ${roleStyle.border}`}>
+                  {roleStyle.label}
+                </span>
+                {(member.role === 'teacher' || member.role === 'matron' || member.role === 'patron') && (
+                  <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-[9px] font-bold">
+                    24/7
+                  </span>
+                )}
+              </div>
+            </div>
 
-        {/* Priority Dot */}
-        <div className="absolute top-4 right-4 flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${member.priority === 'high' ? 'bg-red-500 animate-pulse' : 'bg-yellow-500'}`} />
-          <span className="text-[10px] font-bold text-white/80">{member.priority} priority</span>
-        </div>
+            <h3 className="text-base font-bold text-slate-900 leading-snug line-clamp-2 mb-1">
+              {member.name}
+            </h3>
+            
+            <p className="text-slate-500 text-xs line-clamp-1 mb-2">
+              {member.title || roleStyle.label}
+            </p>
 
-        {/* Center Icon */}
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
-          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-xl border-4 border-white">
-            <div className={`p-3 rounded-xl bg-gradient-to-r ${roleStyle.gradient}`}>
-              <Icon className="text-white text-xl" />
+            <p className="text-slate-500 text-xs line-clamp-2 mb-3">
+              {member.bio?.substring(0, 100) || 'Dedicated professional providing guidance and support to students.'}
+            </p>
+          </div>
+
+          {/* Footer: Details & Action */}
+          <div className="flex items-center justify-between mt-auto">
+            <div className="flex items-center gap-3 text-xs text-slate-500">
+              {member.phone && (
+                <div className="flex items-center gap-1">
+                  <FiPhone className="text-slate-400" size={12} />
+                  <span className="font-semibold">{member.phone}</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-1 text-blue-600 font-bold text-[11px] uppercase tracking-wider">
+              Contact
+              <FiArrowRight size={12} />
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+};
 
-      {/* 2. Content Area */}
-      <div className="pt-10 p-6">
-        <h3 className="text-xl font-bold text-slate-900 text-center mb-1">{member.name}</h3>
-        <p className="text-slate-500 text-sm text-center mb-4">{member.specialization}</p>
+// Modern Team Member Modal (when clicked)
+const TeamMemberModal = ({ member, isOpen, onClose, onContact }) => {
+  const [activeTab, setActiveTab] = useState('overview');
 
-        {/* Availability Chip */}
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <FiClock className="text-emerald-500" size={14} />
-          <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-            {member.availability}
-          </span>
-        </div>
+  if (!isOpen || !member) return null;
 
-        {/* Description */}
-        <p className="text-slate-600 text-sm text-center mb-6 leading-relaxed">
-          {member.description}
-        </p>
+  const getRoleStyle = (role) => {
+    const styles = {
+      'teacher': { 
+        gradient: 'from-blue-500 to-cyan-500', 
+        bg: 'bg-blue-50', 
+        text: 'text-blue-700',
+        border: 'border-blue-200',
+        label: 'Teacher'
+      },
+      'matron': { 
+        gradient: 'from-purple-500 to-pink-500', 
+        bg: 'bg-purple-50', 
+        text: 'text-purple-700',
+        border: 'border-purple-200',
+        label: 'Matron'
+      },
+      'patron': { 
+        gradient: 'from-emerald-500 to-green-500', 
+        bg: 'bg-emerald-50', 
+        text: 'text-emerald-700',
+        border: 'border-emerald-200',
+        label: 'Patron'
+      }
+    };
+    return styles[role] || { 
+      gradient: 'from-slate-500 to-slate-600', 
+      bg: 'bg-slate-50', 
+      text: 'text-slate-700',
+      border: 'border-slate-200',
+      label: role || 'Team Member'
+    };
+  };
 
-        {/* Contact Info */}
-        <div className="mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-          <div className="flex items-center justify-center gap-2">
-            <FiPhone className="text-blue-500" size={16} />
-            <span className="text-slate-900 font-bold">{member.contact}</span>
+  const roleStyle = getRoleStyle(member.role);
+  const isSupportStaff = member.role === 'teacher' || member.role === 'matron' || member.role === 'patron';
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300"
+        onClick={onClose}
+      />
+      
+      {/* Modal - EXACTLY like Event Card Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div 
+          className="bg-white rounded-[40px] w-full max-w-4xl max-h-[90vh] overflow-hidden border border-slate-200 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className={`relative h-64 bg-gradient-to-r ${roleStyle.gradient} p-8`}>
+            <button
+              onClick={onClose}
+              className="absolute top-6 right-6 p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-colors"
+            >
+              <FiX size={20} />
+            </button>
+            
+            <div className="flex items-start gap-6 h-full">
+              {/* Profile Image */}
+              <div className="relative">
+                <div className="w-40 h-40 rounded-3xl overflow-hidden border-4 border-white shadow-2xl">
+                  <img
+                    src={member.image || '/default-avatar.jpg'}
+                    alt={member.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {isSupportStaff && (
+                  <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 border-2 border-white">
+                    <FiClock size={10} /> 24/7
+                  </div>
+                )}
+              </div>
+              
+              {/* Header Info */}
+              <div className="flex-1 pt-8">
+                <div className="flex items-center gap-4 mb-3">
+                  <span className={`px-4 py-2 rounded-full text-sm font-black uppercase tracking-widest ${roleStyle.bg} ${roleStyle.text} ${roleStyle.border}`}>
+                    {roleStyle.label}
+                  </span>
+                  {isSupportStaff && (
+                    <span className="px-3 py-1 bg-emerald-500/90 text-white rounded-full text-xs font-bold flex items-center gap-1">
+                      <FiClock size={12} /> 24/7 Available
+                    </span>
+                  )}
+                </div>
+                
+                <h2 className="text-3xl font-bold text-white mb-2">{member.name}</h2>
+                <p className="text-white/90 text-lg">{member.title || roleStyle.label}</p>
+                
+                <div className="flex items-center gap-6 mt-6">
+                  {member.phone && (
+                    <div className="flex items-center gap-2">
+                      <FiPhone className="text-white" size={18} />
+                      <span className="text-white font-medium">{member.phone}</span>
+                    </div>
+                  )}
+                  
+                  {member.email && (
+                    <div className="flex items-center gap-2">
+                      <FiMail className="text-white" size={18} />
+                      <span className="text-white font-medium truncate max-w-[200px]">{member.email}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="border-b border-slate-200">
+            <div className="flex px-8 pt-6 gap-8">
+              <button
+                className={`pb-3 font-bold text-sm border-b-2 transition-colors ${
+                  activeTab === 'overview' 
+                    ? `border-blue-500 text-blue-600` 
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
+                onClick={() => setActiveTab('overview')}
+              >
+                <FiUser className="inline mr-2" />
+                Overview
+              </button>
+              <button
+                className={`pb-3 font-bold text-sm border-b-2 transition-colors ${
+                  activeTab === 'contact' 
+                    ? `border-blue-500 text-blue-600` 
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
+                onClick={() => setActiveTab('contact')}
+              >
+                <FiPhone className="inline mr-2" />
+                Contact Info
+              </button>
+              <button
+                className={`pb-3 font-bold text-sm border-b-2 transition-colors ${
+                  activeTab === 'availability' 
+                    ? `border-blue-500 text-blue-600` 
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
+                onClick={() => setActiveTab('availability')}
+              >
+                <FiClock className="inline mr-2" />
+                Availability
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-8 max-h-[400px] overflow-y-auto">
+            {activeTab === 'overview' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-3">About</h3>
+                  <p className="text-slate-600 leading-relaxed">
+                    {member.bio || `As a dedicated ${roleStyle.label}, ${member.name.split(' ')[0]} provides comprehensive support and guidance to students. With a focus on student wellbeing and success, they offer personalized assistance and resources.`}
+                  </p>
+                </div>
+                
+                {isSupportStaff && (
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-3">Support Services</h3>
+                    <ul className="space-y-2">
+                      <li className="flex items-center gap-3 text-slate-600">
+                        <div className={`w-2 h-2 rounded-full ${roleStyle.bg}`} />
+                        24/7 emergency support and counseling
+                      </li>
+                      <li className="flex items-center gap-3 text-slate-600">
+                        <div className={`w-2 h-2 rounded-full ${roleStyle.bg}`} />
+                        Academic guidance and mentorship
+                      </li>
+                      <li className="flex items-center gap-3 text-slate-600">
+                        <div className={`w-2 h-2 rounded-full ${roleStyle.bg}`} />
+                        Personal development and wellbeing support
+                      </li>
+                      <li className="flex items-center gap-3 text-slate-600">
+                        <div className={`w-2 h-2 rounded-full ${roleStyle.bg}`} />
+                        Crisis intervention and conflict resolution
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'contact' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  {member.phone && (
+                    <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
+                      <FiPhone className="text-blue-500 mb-3" size={24} />
+                      <h4 className="font-bold text-slate-900 mb-1">Phone</h4>
+                      <p className="text-slate-700 font-medium">{member.phone}</p>
+                      <p className="text-slate-500 text-sm mt-2">Direct line for immediate assistance</p>
+                    </div>
+                  )}
+                  
+                  {member.email && (
+                    <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
+                      <FiMail className="text-purple-500 mb-3" size={24} />
+                      <h4 className="font-bold text-slate-900 mb-1">Email</h4>
+                      <p className="text-slate-700 font-medium truncate">{member.email}</p>
+                      <p className="text-slate-500 text-sm mt-2">Response within 24 hours</p>
+                    </div>
+                  )}
+                  
+                  <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
+                    <FiUser className="text-emerald-500 mb-3" size={24} />
+                    <h4 className="font-bold text-slate-900 mb-1">Role</h4>
+                    <p className="text-slate-700 font-medium">{member.title || roleStyle.label}</p>
+                    <p className="text-slate-500 text-sm mt-2">Support Staff Member</p>
+                  </div>
+                  
+                  <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
+                    <FiShield className="text-amber-500 mb-3" size={24} />
+                    <h4 className="font-bold text-slate-900 mb-1">Status</h4>
+                    <p className="text-slate-700 font-medium">
+                      {isSupportStaff ? '24/7 Available' : 'Available'}
+                    </p>
+                    <p className="text-slate-500 text-sm mt-2">
+                      {isSupportStaff ? 'Always available for emergencies' : 'Regular working hours'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'availability' && (
+              <div className="space-y-6">
+                <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-100">
+                  <h4 className="font-bold text-slate-900 mb-3">Availability Schedule</h4>
+                  <div className="space-y-3">
+                    {isSupportStaff ? (
+                      <>
+                        <div className="flex items-center justify-between p-3 bg-white/50 rounded-xl">
+                          <div>
+                            <span className="font-medium text-slate-900">24/7 Emergency Support</span>
+                            <span className="text-slate-500 text-sm ml-3">Always Available</span>
+                          </div>
+                          <span className="font-bold text-emerald-600">Active Now</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-white/50 rounded-xl">
+                          <div>
+                            <span className="font-medium text-slate-900">Regular Consultation</span>
+                            <span className="text-slate-500 text-sm ml-3">Scheduled</span>
+                          </div>
+                          <span className="font-bold text-slate-700">8:00 AM - 5:00 PM</span>
+                        </div>
+                      </>
+                    ) : (
+                      [
+                        { day: 'Monday', time: '8:00 AM - 5:00 PM' },
+                        { day: 'Tuesday', time: '8:00 AM - 5:00 PM' },
+                        { day: 'Wednesday', time: '8:00 AM - 5:00 PM' },
+                        { day: 'Thursday', time: '8:00 AM - 5:00 PM' },
+                        { day: 'Friday', time: '8:00 AM - 4:00 PM' }
+                      ].map((schedule, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-white/50 rounded-xl">
+                          <div>
+                            <span className="font-medium text-slate-900">{schedule.day}</span>
+                          </div>
+                          <span className="font-bold text-slate-700">{schedule.time}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+                
+                {isSupportStaff && (
+                  <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                    <div className="flex items-center gap-3">
+                      <FiAlertTriangle className="text-emerald-600" />
+                      <p className="text-sm text-emerald-800">
+                        <strong>24/7 Emergency Support:</strong> For urgent matters, always available via the phone number above.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Footer Actions */}
+          <div className="p-8 border-t border-slate-200">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => {
+                  // Copy contact info to clipboard
+                  const contactInfo = `${member.name}\n${member.title}\nPhone: ${member.phone}\nEmail: ${member.email}`;
+                  navigator.clipboard.writeText(contactInfo);
+                  toast.success('Contact info copied to clipboard');
+                }}
+                className="px-6 py-3 rounded-2xl border border-slate-200 text-slate-700 font-bold text-sm flex items-center gap-2 hover:bg-slate-50"
+              >
+                <FiCopy size={16} />
+                Copy Contact
+              </button>
+              
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={onClose}
+                  className="px-6 py-3 rounded-2xl border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50"
+                >
+                  Close
+                </button>
+        
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Action Button */}
-        <button
-          onClick={onContact}
-          className="w-full py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:shadow-lg"
-        >
-          <FiPhoneCall size={16} />
-          Contact Now
-        </button>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -522,6 +1024,80 @@ const ModernDetailModal = ({ session, onClose, onContact }) => {
     } catch {
       return dateString;
     }
+  };
+
+  // Function to add session to Google Calendar
+  const addSessionToGoogleCalendar = () => {
+    if (!session) return;
+    
+    // Format date and time for Google Calendar
+    const formatDateForGoogle = (dateString, timeString) => {
+      if (dateString === 'Always Available' || dateString === 'Monday - Friday') {
+        // For always available sessions, use today's date with 1 hour duration
+        const startDate = new Date();
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour later
+        return {
+          start: startDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z',
+          end: endDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
+        };
+      }
+      
+      try {
+        // Parse the date and time
+        const date = new Date(dateString);
+        const timeParts = timeString?.match(/(\d+):(\d+)\s*(AM|PM)/i);
+        
+        if (timeParts) {
+          let [_, hours, minutes, period] = timeParts;
+          hours = parseInt(hours);
+          minutes = parseInt(minutes);
+          
+          // Convert to 24-hour format
+          if (period.toLowerCase() === 'pm' && hours < 12) hours += 12;
+          if (period.toLowerCase() === 'am' && hours === 12) hours = 0;
+          
+          date.setHours(hours, minutes, 0, 0);
+          
+          // Assume 1 hour duration if no end time specified
+          const endDate = new Date(date.getTime() + 60 * 60 * 1000);
+          
+          return {
+            start: date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z',
+            end: endDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
+          };
+        }
+        
+        // Default: use the date with current time for 1 hour
+        const startDate = new Date(dateString);
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+        
+        return {
+          start: startDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z',
+          end: endDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
+        };
+      } catch (error) {
+        console.error('Error parsing date:', error);
+        // Fallback to current date/time
+        const startDate = new Date();
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+        
+        return {
+          start: startDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z',
+          end: endDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
+        };
+      }
+    };
+
+    const { start, end } = formatDateForGoogle(session.date, session.time);
+    
+    // Create Google Calendar URL
+    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(session.title)}&dates=${start}/${end}&details=${encodeURIComponent(session.description || 'Join this counseling session')}&location=${encodeURIComponent(session.location || 'Guidance Office')}&sf=true&output=xml`;
+    
+    // Open Google Calendar in a new tab
+    window.open(calendarUrl, '_blank', 'noopener,noreferrer');
+    
+    // Show success message
+    toast.success('Opening Google Calendar to add this session...');
   };
 
   return (
@@ -701,7 +1277,7 @@ const ModernDetailModal = ({ session, onClose, onContact }) => {
         <div className="shrink-0 p-6 bg-slate-50/80 backdrop-blur-md border-t border-slate-100">
           <div className="max-w-2xl mx-auto flex gap-3">
             <button
-              onClick={session.isSupport ? onContact : () => toast.info('Joining session...')}
+              onClick={session.isSupport ? onContact : addSessionToGoogleCalendar}
               className="flex-[2] h-14 bg-slate-900 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
             >
               {session.isSupport ? (
@@ -812,6 +1388,31 @@ const fetchGuidanceSessions = async () => {
   }
 };
 
+// Fetch team members from API
+const fetchTeamMembers = async () => {
+  try {
+    const response = await fetch('/api/guidanceteam');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    
+    if (data.success && data.members) {
+      // Process team members to ensure image paths are complete
+      return data.members.map(member => ({
+        ...member,
+        image: member.image ? member.image.startsWith('/') ? member.image : `/${member.image}` : null,
+        isSupport: member.role === 'teacher' || member.role === 'matron' || member.role === 'patron'
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching team members:', error);
+    toast.error('Failed to load team members');
+    return [];
+  }
+};
+
 // Transform API data to match session format
 const transformApiDataToSessions = (apiEvents) => {
   return apiEvents.map(event => ({
@@ -869,43 +1470,7 @@ const DEFAULT_SESSIONS = [
   }
 ];
 
-// 24/7 Support sessions (static)
-const SUPPORT_SESSIONS = [
-  {
-    id: 'support-1',
-    title: '24/7 Matron Support',
-    counselor: 'School Matron',
-    date: 'Always Available',
-    time: '24/7',
-    type: 'Emergency Support',
-    category: 'support',
-    status: 'active',
-    description: 'Round-the-clock health and wellness support. Immediate assistance for any health concerns or emergencies.',
-    notes: 'Available anytime for medical emergencies, health consultations, and wellness support.',
-    priority: 'high',
-    image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800&q=80',
-    featured: true,
-    isSupport: true,
-    location: 'Matron\'s Office'
-  },
-  {
-    id: 'support-2',
-    title: '24/7 Patron Guidance',
-    counselor: 'School Patron',
-    date: 'Always Available',
-    time: '24/7',
-    type: 'Guidance Support',
-    category: 'support',
-    status: 'active',
-    description: 'Always available for academic guidance, personal development, and emergency counseling.',
-    notes: 'On-call support for academic guidance and personal development issues.',
-    priority: 'high',
-    image: 'https://images.unsplash.com/photo-1551836026-d5c88ac5d691?w=800&q=80',
-    featured: true,
-    isSupport: true,
-    location: 'Patron\'s Office'
-  }
-];
+
 
 // Main Component
 export default function StudentCounseling() {
@@ -916,46 +1481,16 @@ export default function StudentCounseling() {
   const [refreshing, setRefreshing] = useState(false);
   const [counselingSessions, setCounselingSessions] = useState([]);
   const [guidanceSessions, setGuidanceSessions] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
   const [categories, setCategories] = useState([]);
   const [viewMode, setViewMode] = useState('grid');
   const [bookmarkedSessions, setBookmarkedSessions] = useState(new Set());
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
 
-  // Support team data
-  const supportTeam = [
-    {
-      id: 1,
-      name: 'School Matron',
-      role: '24/7 Student Support',
-      specialization: 'Health & Wellness Support',
-      availability: '24/7 Emergency',
-      contact: 'Emergency Hotline',
-      description: 'Available round the clock for all student health and wellness concerns including medical emergencies.',
-      priority: 'high'
-    },
-    {
-      id: 2,
-      name: 'School Patron',
-      role: '24/7 Guidance',
-      specialization: 'Academic & Personal Guidance',
-      availability: '24/7 On-call',
-      contact: 'Guidance Hotline',
-      description: 'Always available for academic guidance, personal development, and crisis intervention.',
-      priority: 'high'
-    },
-    {
-      id: 3,
-      name: 'Ms. Nzyko',
-      role: 'Guidance Counselor',
-      specialization: 'Personal Counseling & Career Guidance',
-      availability: 'Mon-Fri, 8AM-4PM',
-      contact: 'Guidance Office',
-      description: 'Professional counseling services for personal growth, career development, and emotional support.',
-      priority: 'medium'
-    }
-  ];
 
-  // Stats data
-  const stats = [
+  // Dynamic stats based on team data
+  const [stats, setStats] = useState([
     { 
       icon: FiCalendar, 
       number: '15+', 
@@ -984,7 +1519,7 @@ export default function StudentCounseling() {
       sublabel: 'Available support',
       gradient: 'from-amber-500 to-orange-500'
     }
-  ];
+  ]);
 
   // Categories for filtering
   const categoryOptions = [
@@ -997,9 +1532,10 @@ export default function StudentCounseling() {
     { id: 'drugs', name: 'Drug Awareness', icon: FiAlertTriangle, gradient: 'from-red-500 to-rose-500' }
   ];
 
-  // Load guidance sessions from API
-  const loadGuidanceSessions = async () => {
+  // Load guidance sessions and team members from API
+  const loadData = async () => {
     try {
+      // Load guidance sessions from API
       const apiSessions = await fetchGuidanceSessions();
       const transformedSessions = transformApiDataToSessions(apiSessions);
       setGuidanceSessions(transformedSessions);
@@ -1007,7 +1543,6 @@ export default function StudentCounseling() {
       // Combine default sessions with API sessions and support sessions
       const allSessions = [
         ...DEFAULT_SESSIONS,
-        ...SUPPORT_SESSIONS,
         ...transformedSessions
       ];
       setCounselingSessions(allSessions);
@@ -1016,22 +1551,63 @@ export default function StudentCounseling() {
       const uniqueCategories = [...new Set(allSessions.map(s => s.category))];
       setCategories(uniqueCategories);
       
+      // Load team members from API
+      const teamData = await fetchTeamMembers();
+      setTeamMembers(teamData);
+      
+      // Update stats with dynamic data from team
+      const teacherCount = teamData.filter(m => m.role === 'teacher').length;
+      const matronCount = teamData.filter(m => m.role === 'matron').length;
+      const patronCount = teamData.filter(m => m.role === 'patron').length;
+      
+      // Update stats with dynamic information
+      setStats([
+        { 
+          icon: FiCalendar, 
+          number: allSessions.length.toString(), 
+          label: 'Total Sessions', 
+          sublabel: 'All categories',
+          gradient: 'from-blue-500 to-cyan-500'
+        },
+        { 
+          icon: FiPhoneCall, 
+          number: (matronCount + patronCount).toString(), 
+          label: 'Support Staff', 
+          sublabel: 'Matrons & Patrons',
+          gradient: 'from-emerald-500 to-green-500'
+        },
+        { 
+          icon: FiShield, 
+          number: teacherCount.toString(), 
+          label: 'Teachers', 
+          sublabel: 'Guidance Counselors',
+          gradient: 'from-purple-500 to-pink-500'
+        },
+        { 
+          icon: FiUsers, 
+          number: teamData.length.toString(), 
+          label: 'Team Members', 
+          sublabel: 'Total support team',
+          gradient: 'from-amber-500 to-orange-500'
+        }
+      ]);
+      
     } catch (error) {
-      console.error('Error loading guidance sessions:', error);
+      console.error('Error loading data:', error);
       // Fallback to default sessions only
-      const allSessions = [...DEFAULT_SESSIONS, ...SUPPORT_SESSIONS];
+      const allSessions = [...DEFAULT_SESSIONS];
       setCounselingSessions(allSessions);
       setGuidanceSessions([]);
+      setTeamMembers([]);
     }
   };
 
   // Simulate data loading
   useEffect(() => {
-    const loadData = async () => {
+    const initData = async () => {
       setLoading(true);
       try {
-        // Load guidance sessions from API
-        await loadGuidanceSessions();
+        await loadData();
       } catch (error) {
         console.error('Error loading data:', error);
         toast.error('Failed to load some data');
@@ -1040,7 +1616,7 @@ export default function StudentCounseling() {
       }
     };
 
-    loadData();
+    initData();
   }, []);
 
   // Filter sessions
@@ -1066,15 +1642,14 @@ export default function StudentCounseling() {
   };
 
   const handleContactSupport = (member) => {
-    toast.success(`Contacting ${member.name}...`);
+    toast.success(`viewing ${member.name} profile`);
     // Implement actual contact logic here
   };
 
   const refreshData = async () => {
     setRefreshing(true);
     try {
-      // Refresh only the guidance sessions from API
-      await loadGuidanceSessions();
+      await loadData();
       toast.success('Data refreshed!');
     } catch (error) {
       console.error('Error refreshing data:', error);
@@ -1113,14 +1688,6 @@ export default function StudentCounseling() {
     setCounselingSessions(prev => [newSession, ...prev]);
     
     toast.success('Session added to calendar!');
-    
-    // In a real implementation, you would POST this to your API
-    // Example:
-    // fetch('/api/guidance', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(newSessionData)
-    // }).then(() => refreshData());
   };
 
 if (loading) {
@@ -1173,14 +1740,14 @@ if (loading) {
             color="text.primary"
             sx={{ letterSpacing: '-0.01em' }}
           >
-Loading for our school latest Guidance and Counseling sessions  to stay updated
+            Loading Guidance and Counseling sessions...
           </Typography>
           <Typography 
             variant="caption" 
             color="text.secondary"
             className="flex items-center gap-1"
           >
-            Fetching latest Guidance and Counseling sessions
+            Fetching latest sessions and team information
           </Typography>
         </Stack>
       </Stack>
@@ -1211,37 +1778,37 @@ Loading for our school latest Guidance and Counseling sessions  to stay updated
           </div>
           
           <div className="flex items-center gap-3">
-         <button
-           onClick={refreshData}
-           disabled={refreshing}
-           className="
-             inline-flex items-center gap-2
-             px-4 sm:px-5
-             py-2.5 sm:py-3
-             rounded-xl
-             bg-white text-slate-700
-             border border-slate-200
-             font-medium text-sm sm:text-base
-             shadow-sm
-             transition-all duration-300
-             hover:shadow-md
-             disabled:opacity-50 disabled:cursor-not-allowed
-           "
-         >
-           {refreshing && (
-             <CircularProgress
-               size={18}
-               thickness={4}
-               sx={{
-                 color: "#0284c7", // tailwind cyan-600
-               }}
-             />
-           )}
-         
-           <span className="whitespace-nowrap">
-             {refreshing ? "Refreshing..." : "Refresh"}
-           </span>
-         </button>
+            <button
+              onClick={refreshData}
+              disabled={refreshing}
+              className="
+                inline-flex items-center gap-2
+                px-4 sm:px-5
+                py-2.5 sm:py-3
+                rounded-xl
+                bg-white text-slate-700
+                border border-slate-200
+                font-medium text-sm sm:text-base
+                shadow-sm
+                transition-all duration-300
+                hover:shadow-md
+                disabled:opacity-50 disabled:cursor-not-allowed
+              "
+            >
+              {refreshing && (
+                <CircularProgress
+                  size={18}
+                  thickness={4}
+                  sx={{
+                    color: "#0284c7", // tailwind cyan-600
+                  }}
+                />
+              )}
+            
+              <span className="whitespace-nowrap">
+                {refreshing ? "Refreshing..." : "Refresh"}
+              </span>
+            </button>
             
             <div className="flex bg-white rounded-xl border border-slate-200 overflow-hidden">
               <button
@@ -1260,14 +1827,14 @@ Loading for our school latest Guidance and Counseling sessions  to stay updated
           </div>
         </div>
 
-        {/* Stats */}
+        {/* Dynamic Stats from Team Data */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 mb-10">
           {stats.map((stat, index) => (
             <ModernStatCard key={index} stat={stat} />
           ))}
         </div>
 
-        {/* 24/7 Support Team Section */}
+        {/* 24/7 Support Team Section - Dynamic from API */}
         <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-3xl p-6 md:p-8 border border-emerald-100 shadow-sm mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
             <div className="flex items-center gap-4 mb-4 lg:mb-0">
@@ -1275,23 +1842,43 @@ Loading for our school latest Guidance and Counseling sessions  to stay updated
                 <FiPhoneCall className="text-white text-2xl" />
               </div>
               <div>
-                <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">24/7 Support Team</h2>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Guidance & Counseling Team</h2>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  Always available for immediate assistance
+                  {teamMembers.length} Dedicated Professionals
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  • Fetched from /api/guidanceteam • Dynamic statistics above
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-6">
-            {supportTeam.map((member) => (
-              <ModernSupportTeamCard
-                key={member.id}
-                member={member}
-                onContact={() => handleContactSupport(member)}
-              />
-            ))}
-          </div>
+          {teamMembers.length === 0 ? (
+            <div className="bg-white rounded-2xl p-8 text-center border border-emerald-100">
+              <div className="text-emerald-300 text-4xl mb-4">
+                <FiUsers />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">No Team Members Available</h3>
+              <p className="text-slate-500 text-sm">Team information will be loaded soon.</p>
+            </div>
+          ) : (
+        // In your main component, update the team members section:
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  {teamMembers.map((member) => (
+    <ModernSupportTeamCard
+      key={member.id}
+      member={member}
+      onView={() => {
+        setSelectedMember(member);
+        setIsTeamModalOpen(true);
+      }}
+      onContact={handleContactSupport}
+    />
+  ))}
+</div>
+
+
+          )}
         </div>
 
         {/* Main Content Layout */}
@@ -1533,6 +2120,14 @@ Loading for our school latest Guidance and Counseling sessions  to stay updated
                     </div>
                     <span className="text-xs font-bold text-blue-600">API ({guidanceSessions.length})</span>
                   </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-blue-100">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <span className="text-sm font-medium text-slate-700">Team Members</span>
+                    </div>
+                    <span className="text-xs font-bold text-blue-600">API ({teamMembers.length})</span>
+                  </div>
                 </div>
               </div>
 
@@ -1626,6 +2221,19 @@ Loading for our school latest Guidance and Counseling sessions  to stay updated
             setSelectedSession(null);
             toast.success('Connecting you to support...');
           }}
+        />
+      )}
+
+
+         {selectedMember && (
+        <TeamMemberModal
+          member={selectedMember}
+          isOpen={isTeamModalOpen}
+          onClose={() => {
+            setIsTeamModalOpen(false);
+            setSelectedMember(null);
+          }}
+          onContact={handleContactSupport}
         />
       )}
     </div>
